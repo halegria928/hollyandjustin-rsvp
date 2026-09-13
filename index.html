@@ -1,0 +1,136 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holly &amp; Justin — RSVP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Pinyon+Script&family=Jost:wght@300;400;500&display=swap">
+<style>
+:root{--night:#171310;--night2:#241d15;--paper:#f8f3e7;--gold:#c8a24d;--gold-line:#a9884288;--cream:#e8ddc4;--muted:#a4926f;
+--foil:linear-gradient(100deg,#8a6a2f 0%,#c9a960 22%,#f7e9bd 42%,#d4b26a 58%,#96742f 78%,#c9a960 100%)}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(1200px 700px at 50% -100px,#3a2f1f 0%,var(--night2) 45%,var(--night) 100%) fixed,var(--night);color:var(--cream);font:300 15.5px/1.65 'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:46px 16px 80px}
+.arch{position:relative;max-width:660px;margin:0 auto;border:1px solid var(--gold-line);border-radius:330px 330px 0 0;padding:78px 40px 60px}
+.arch:before{content:"";position:absolute;inset:10px;border:1px solid #a9884255;border-radius:322px 322px 0 0;pointer-events:none}
+.arch:after{content:"";position:absolute;left:50%;top:-7px;width:13px;height:13px;transform:translateX(-50%) rotate(45deg);background:var(--foil)}
+.eyebrow{font-size:11px;letter-spacing:.46em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:24px}
+h1{font:400 clamp(56px,11vw,88px)/1.02 'Pinyon Script',cursive;text-align:center;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;padding:8px 0 14px}
+@media (prefers-reduced-motion:no-preference){
+ h1{background-size:220% 100%;animation:shimmer 7s ease-in-out infinite alternate}
+ @keyframes shimmer{from{background-position:0% 0}to{background-position:100% 0}}
+}
+.flor{margin:10px auto 24px;display:block}
+.when{font-size:13px;letter-spacing:.3em;text-transform:uppercase;text-align:center;line-height:2.3;color:var(--cream)}
+.when b{font-weight:400;color:var(--muted);letter-spacing:.24em}
+.note{font:italic 400 19px/1.75 'Cormorant Garamond',Georgia,serif;color:var(--muted);max-width:440px;margin:26px auto 0;text-align:center}
+form{margin-top:48px}
+.f{margin-bottom:30px}
+label,.lg{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+label .req,.lg .req{color:var(--cream)}
+input[type=text],textarea{width:100%;border:0;border-bottom:1px solid #a9884266;background:transparent;padding:9px 2px;font:400 18px 'Cormorant Garamond',Georgia,serif;color:var(--paper);border-radius:0;outline:none;transition:border-color .25s}
+input[type=text]:focus,textarea:focus{border-bottom-color:var(--gold)}
+::placeholder{color:#7e7156;font-style:italic}
+textarea{resize:vertical;min-height:36px}
+.choice{display:flex;gap:12px;flex-wrap:wrap}
+.choice button{flex:1;min-width:180px;padding:16px 10px;background:transparent;border:1px solid var(--gold-line);font:400 11.5px 'Jost',sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--cream);cursor:pointer;transition:all .25s}
+.choice button:hover{border-color:var(--gold)}
+.choice button.on{background:var(--foil);border-color:var(--gold);color:#241c0e;font-weight:500}
+.pills{display:flex;gap:10px;flex-wrap:wrap}
+.pills button{width:48px;height:48px;border-radius:50%;border:1px solid var(--gold-line);background:transparent;font:400 17px 'Cormorant Garamond',serif;color:var(--cream);cursor:pointer;transition:all .25s}
+.pills button.wide{width:auto;border-radius:24px;padding:0 22px;font-size:15px;letter-spacing:.05em}
+.pills button:hover{border-color:var(--gold)}
+.pills button.on{background:var(--foil);border-color:var(--gold);color:#241c0e;font-weight:500}
+.kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:-6px 0 30px}
+.ev{display:flex;align-items:flex-start;gap:15px;padding:14px 0;border-bottom:1px solid #a9884233;cursor:pointer}
+.ev:last-child{border-bottom:0}
+.box{width:17px;height:17px;border:1px solid var(--gold);flex:none;margin-top:4px;transform:rotate(45deg);transition:background .2s}
+.ev.on .box{background:var(--foil)}
+.ev .t{font:500 18px 'Cormorant Garamond',serif;letter-spacing:.04em;color:var(--paper)}
+.ev .d{font-size:11.5px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase}
+#more{max-height:0;overflow:hidden;transition:max-height .5s ease}
+#more.open{max-height:2200px}
+.send{display:block;width:100%;margin-top:14px;padding:18px;background:var(--foil);border:1px solid var(--gold);color:#241c0e;font:500 12.5px 'Jost',sans-serif;letter-spacing:.34em;text-transform:uppercase;cursor:pointer;transition:filter .25s}
+.send:hover{filter:brightness(1.07)}
+.send[disabled]{opacity:.55;cursor:wait}
+.err{display:none;margin-top:14px;font-size:13px;color:#d98a7c;text-align:center;letter-spacing:.05em}
+#done{display:none;padding:70px 0 30px;text-align:center}
+#done .big{font:400 clamp(40px,8vw,60px)/1.25 'Pinyon Script',cursive;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;margin:18px 0 14px;padding-bottom:8px}
+#done p{color:var(--muted);font:italic 400 19px/1.85 'Cormorant Garamond',Georgia,serif}
+.foot{max-width:660px;margin:30px auto 0;text-align:center;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#6b5f49}
+@media (max-width:560px){.arch{border-radius:200px 200px 0 0;padding:64px 22px 46px}.arch:before{border-radius:194px 194px 0 0}}
+</style></head><body>
+<div class="arch">
+ <div id="cardview">
+  <div class="eyebrow">Kindly Respond</div>
+  <h1>Holly &amp; Justin</h1>
+  <svg class="flor" width="240" height="24" viewBox="0 0 240 24" fill="none" aria-hidden="true">
+   <path d="M8 12 C52 3,92 3,112 12" stroke="#c8a24d" stroke-width="1"/>
+   <path d="M232 12 C188 3,148 3,128 12" stroke="#c8a24d" stroke-width="1"/>
+   <path d="M120 4.5 L126.5 12 L120 19.5 L113.5 12 Z" fill="#c8a24d"/>
+   <circle cx="8" cy="12" r="1.7" fill="#c8a24d"/><circle cx="232" cy="12" r="1.7" fill="#c8a24d"/>
+  </svg>
+  <div class="when">Saturday, March 13, 2027<br><b>Hacienda del Mar &middot; Puerto Aventuras, Mexico</b></div>
+  <p class="note">We can&rsquo;t wait to celebrate with you. Please respond once per invitation, for the guests named upon it.</p>
+  <form id="f" novalidate>
+   <div class="f"><label>Your full name <span class="req">*</span></label><input type="text" id="name" placeholder="As it appears on your invitation"></div>
+   <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
+    <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
+   <div id="more">
+    <div class="f"><span class="lg">How many will attend, including yourself?</span>
+     <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
+    <div id="extras"></div>
+    <p class="kids" id="kids" hidden>If your little ones can&rsquo;t stay home, they&rsquo;re more than welcome &mdash; we&rsquo;d rather have your whole crew than miss you. Just include them in your count and names.</p>
+    <div class="f"><span class="lg">Weekend celebrations you&rsquo;ll attend</span>
+     <div class="ev" data-v="Welcome Party — Friday, March 12"><div class="box"></div><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div></div>
+     <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div class="box"></div><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div></div>
+     <div class="ev" data-v="Beach &amp; Pool Day — Sunday, March 14"><div class="box"></div><div><div class="t">Beach &amp; Pool Day</div><div class="d">Sunday, March 14</div></div></div></div>
+    <div class="f"><label>Dietary restrictions or allergies</label><input type="text" id="diet" placeholder="Anything we should know"></div>
+   </div>
+   <div class="f"><label>Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
+   <button class="send" id="send" type="submit">Send RSVP</button>
+   <div class="err" id="err">Please add your name and whether you&rsquo;ll be joining us.</div>
+  </form>
+ </div>
+ <div id="done">
+  <div class="eyebrow">Thank You</div>
+  <div class="big" id="dbig">Your RSVP has been received</div>
+  <p>With love, Holly &amp; Justin<br>March 13, 2027 &middot; Puerto Aventuras</p>
+ </div>
+</div>
+<div class="foot">H &nbsp;&middot;&nbsp; 03 &middot; 13 &middot; 27 &nbsp;&middot;&nbsp; J</div>
+<script>
+var A="",C="";
+function q(s){return document.querySelector(s)}function qa(s){return[].slice.call(document.querySelectorAll(s))}
+var WORDS=["Two","Three","Four","Five"];
+function setExtras(n){
+ var box=q('#extras');
+ var old=qa('#extras input').map(function(i){return i.value});
+ box.innerHTML='';
+ var count=Math.min(n-1,4);
+ for(var i=0;i<count;i++){
+  var d=document.createElement('div');d.className='f';
+  d.innerHTML='<label>Guest '+WORDS[i]+' — full name</label><input type="text" placeholder="Your plus one or family member">';
+  box.appendChild(d);
+  d.querySelector('input').value=old[i]||'';
+ }
+ q('#kids').hidden=(n<2);
+}
+q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open')}
+q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open')}
+qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');setExtras(parseInt(C,10)||5)}})
+qa('.ev').forEach(function(e){e.onclick=function(){e.classList.toggle('on')}})
+q('#f').onsubmit=function(ev){ev.preventDefault();
+ var n=q('#name').value.trim();
+ if(!n||!A){q('#err').style.display='block';return}
+ q('#err').style.display='none';var b=q('#send');b.disabled=true;b.textContent='Sending…';
+ var p=new URLSearchParams();
+ p.append('entry.1923252760',n);p.append('entry.174967632',A);
+ if(A==="Joyfully accept"){
+  if(C)p.append('entry.1828750429',C);
+  var oth=qa('#extras input').map(function(i){return i.value.trim()}).filter(Boolean);
+  if(oth.length)p.append('entry.220301343',oth.join('\n'));
+  qa('.ev.on').forEach(function(e){p.append('entry.373522947',e.getAttribute('data-v'))});
+  if(q('#diet').value.trim())p.append('entry.1027420598',q('#diet').value.trim());}
+ if(q('#msg').value.trim())p.append('entry.1289249600',q('#msg').value.trim());
+ fetch('https://docs.google.com/forms/d/e/1FAIpQLScGF9Gws1g_Nx0RKPdTUWqkCj3pF3Gh-9ZBKeOLbO-c2yz90Q/formResponse',{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()}).catch(function(){}).then(function(){
+  if(A==="Regretfully decline")q('#dbig').textContent='You will be dearly missed';
+  q('#cardview').style.display='none';q('#done').style.display='block';window.scrollTo(0,0);});
+ return false}
+</script></body></html>
