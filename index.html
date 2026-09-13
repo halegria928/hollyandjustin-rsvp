@@ -6,11 +6,12 @@
 --foil:linear-gradient(100deg,#8a6a2f 0%,#c9a960 22%,#e9d8a4 42%,#c2a058 58%,#8f6f30 78%,#c9a960 100%)}
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
-body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:var(--ink);font:300 15.5px/1.65 'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:46px 16px 110px}
+body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:var(--ink);font:300 15.5px/1.65 'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:118px 16px 150px;position:relative}
 .arch{position:relative;max-width:660px;margin:0 auto;background:var(--card);border:1px solid var(--gold-line);border-radius:330px 330px 0 0;padding:78px 40px 60px;box-shadow:0 8px 40px rgba(160,110,90,.14)}
 .arch:before{content:"";position:absolute;inset:10px;border:1px solid #b3924a55;border-radius:322px 322px 0 0;pointer-events:none}
 .arch:after{content:"";position:absolute;left:50%;top:-7px;width:13px;height:13px;transform:translateX(-50%) rotate(45deg);background:var(--foil)}
-.hem{position:absolute;left:0;right:0;bottom:-35px;width:100%;height:36px;display:block}
+.hem{position:absolute;left:0;right:0;bottom:-72px;width:100%;height:84px;display:block}
+.lacetop{position:absolute;top:-2px;left:0;width:100%;height:84px;display:block;filter:drop-shadow(0 3px 8px rgba(160,110,90,.10))}
 .eyebrow{font-size:11px;letter-spacing:.46em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:24px}
 h1{font:400 clamp(56px,11vw,88px)/1.02 'Pinyon Script',cursive;text-align:center;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;padding:8px 0 14px}
 @media (prefers-reduced-motion:no-preference){
@@ -57,6 +58,39 @@ textarea{resize:vertical;min-height:36px}
 .foot{max-width:660px;margin:62px auto 0;text-align:center;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#c0a08e}
 @media (max-width:560px){.arch{border-radius:200px 200px 0 0;padding:64px 22px 46px}.arch:before{border-radius:194px 194px 0 0}}
 </style></head><body>
+<svg class="lacetop" aria-hidden="true" preserveAspectRatio="xMidYMax meet">
+  <defs>
+   <clipPath id="laceAc"><path d="M0 0 H120 V44 Q108 60 92 54 Q76 48 60 62 Q44 48 28 54 Q12 60 0 44 Z"/></clipPath>
+   <pattern id="laceAn" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r=".7" fill="#f1e2d6"/></pattern>
+   <pattern id="laceA" width="120" height="84" patternUnits="userSpaceOnUse">
+    <path d="M0 0 H120 V44 Q108 60 92 54 Q76 48 60 62 Q44 48 28 54 Q12 60 0 44 Z" fill="#fdfaf5" stroke="#e0cfb6" stroke-width="1"/>
+    <rect x="0" y="0" width="120" height="70" fill="url(#laceAn)" clip-path="url(#laceAc)"/>
+    <path d="M0 22 C20 14,40 30,60 22 S100 14,120 22" stroke="#dcc9ad" stroke-width="1" fill="none"/>
+    <path d="M18 20 Q24 12 30 18 Q24 22 18 20 Z" fill="#f7efe2" stroke="#dcc9ad" stroke-width=".6"/>
+    <path d="M90 26 Q96 18 102 24 Q96 28 90 26 Z" fill="#f7efe2" stroke="#dcc9ad" stroke-width=".6"/>
+    <g fill="#fdfaf5" stroke="#d9c3a0" stroke-width=".8">
+     <circle cx="71" cy="52" r="6.5"/><circle cx="67.8" cy="59.8" r="6.5"/><circle cx="60" cy="63" r="6.5"/><circle cx="52.2" cy="59.8" r="6.5"/><circle cx="49" cy="52" r="6.5"/><circle cx="52.2" cy="44.2" r="6.5"/><circle cx="60" cy="41" r="6.5"/><circle cx="67.8" cy="44.2" r="6.5"/>
+    </g>
+    <g fill="#faf3e6" stroke="#d9c3a0" stroke-width=".7">
+     <circle cx="65.5" cy="52" r="4"/><circle cx="61.7" cy="57.2" r="4"/><circle cx="55.6" cy="55.2" r="4"/><circle cx="55.6" cy="48.8" r="4"/><circle cx="61.7" cy="46.8" r="4"/>
+    </g>
+    <circle cx="60" cy="52" r="2.6" fill="#f2e3d0" stroke="#d9c3a0" stroke-width=".7"/>
+    <circle cx="60" cy="52" r="1.2" fill="#b3924a"/>
+    <g fill="#fdfaf5" stroke="#d9c3a0" stroke-width=".7">
+     <circle cx="7.5" cy="40" r="4.5"/><circle cx="3.8" cy="46.5" r="4.5"/><circle cx="-3.8" cy="46.5" r="4.5"/><circle cx="-7.5" cy="40" r="4.5"/><circle cx="-3.8" cy="33.5" r="4.5"/><circle cx="3.8" cy="33.5" r="4.5"/>
+     <circle cx="127.5" cy="40" r="4.5"/><circle cx="123.8" cy="46.5" r="4.5"/><circle cx="116.2" cy="46.5" r="4.5"/><circle cx="112.5" cy="40" r="4.5"/><circle cx="116.2" cy="33.5" r="4.5"/><circle cx="123.8" cy="33.5" r="4.5"/>
+    </g>
+    <circle cx="0" cy="40" r="2" fill="#f2e3d0" stroke="#d9c3a0" stroke-width=".6"/><circle cx="0" cy="40" r=".9" fill="#b3924a"/>
+    <circle cx="120" cy="40" r="2" fill="#f2e3d0" stroke="#d9c3a0" stroke-width=".6"/><circle cx="120" cy="40" r=".9" fill="#b3924a"/>
+    <g stroke="#e6d5bd" stroke-width=".6">
+     <path d="M4 47 V51 M10 54 V58 M16 58 V62 M22 56 V60 M28 55 V59 M34 52 V56 M40 51 V55 M46 55 V59"/>
+     <path d="M52 62 V66 M56 65 V69 M60 66 V70 M64 65 V69 M68 62 V66"/>
+     <path d="M74 55 V59 M80 51 V55 M86 52 V56 M92 55 V59 M98 56 V60 M104 58 V62 M110 54 V58 M116 47 V51"/>
+    </g>
+   </pattern>
+  </defs>
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#laceA)"/>
+ </svg>
 <div class="arch">
  <div id="cardview">
   <div class="eyebrow">Kindly Respond</div>
@@ -94,21 +128,38 @@ textarea{resize:vertical;min-height:36px}
   <div class="big" id="dbig">Your RSVP has been received</div>
   <p>With love, Holly &amp; Justin<br>March 13, 2027 &middot; Puerto Aventuras</p>
  </div>
- <svg class="hem" aria-hidden="true" preserveAspectRatio="none">
+ <svg class="hem" aria-hidden="true" preserveAspectRatio="xMidYMax meet">
   <defs>
-   <pattern id="lace" width="80" height="36" patternUnits="userSpaceOnUse">
-    <path d="M0 0 Q40 44 80 0 Z" fill="#fdfaf5" stroke="#b3924a" stroke-width="1"/>
-    <path d="M6 0 Q40 34 74 0" fill="none" stroke="#b3924a" stroke-width=".7" opacity=".8"/>
-    <path d="M40 1 L16.2 8.7 M40 1 L26.4 14.3 M40 1 L40 17 M40 1 L53.6 14.3 M40 1 L63.8 8.7" stroke="#c9ab62" stroke-width=".6" opacity=".9"/>
-    <g stroke="#b3924a" stroke-width=".5">
-     <circle cx="40" cy="17.5" r="2.1" fill="#f2dcd2"/><circle cx="35.9" cy="20.4" r="2.1" fill="#f2dcd2"/><circle cx="37.4" cy="25.2" r="2.1" fill="#f2dcd2"/><circle cx="42.6" cy="25.2" r="2.1" fill="#f2dcd2"/><circle cx="44.1" cy="20.4" r="2.1" fill="#f2dcd2"/>
+   <clipPath id="laceBc"><path d="M0 0 H120 V44 Q108 60 92 54 Q76 48 60 62 Q44 48 28 54 Q12 60 0 44 Z"/></clipPath>
+   <pattern id="laceBn" width="5" height="5" patternUnits="userSpaceOnUse"><circle cx="2.5" cy="2.5" r=".7" fill="#f1e2d6"/></pattern>
+   <pattern id="laceB" width="120" height="84" patternUnits="userSpaceOnUse">
+    <path d="M0 0 H120 V44 Q108 60 92 54 Q76 48 60 62 Q44 48 28 54 Q12 60 0 44 Z" fill="#fdfaf5" stroke="#e0cfb6" stroke-width="1"/>
+    <rect x="0" y="0" width="120" height="70" fill="url(#laceBn)" clip-path="url(#laceBc)"/>
+    <path d="M0 22 C20 14,40 30,60 22 S100 14,120 22" stroke="#dcc9ad" stroke-width="1" fill="none"/>
+    <path d="M18 20 Q24 12 30 18 Q24 22 18 20 Z" fill="#f7efe2" stroke="#dcc9ad" stroke-width=".6"/>
+    <path d="M90 26 Q96 18 102 24 Q96 28 90 26 Z" fill="#f7efe2" stroke="#dcc9ad" stroke-width=".6"/>
+    <g fill="#fdfaf5" stroke="#d9c3a0" stroke-width=".8">
+     <circle cx="71" cy="52" r="6.5"/><circle cx="67.8" cy="59.8" r="6.5"/><circle cx="60" cy="63" r="6.5"/><circle cx="52.2" cy="59.8" r="6.5"/><circle cx="49" cy="52" r="6.5"/><circle cx="52.2" cy="44.2" r="6.5"/><circle cx="60" cy="41" r="6.5"/><circle cx="67.8" cy="44.2" r="6.5"/>
     </g>
-    <circle cx="40" cy="21.4" r="1.6" fill="#b3924a"/>
-    <circle cx="40" cy="31" r="1.2" fill="#c9ab62"/>
-    <circle cx="0" cy="3" r="1.5" fill="#b3924a"/><circle cx="80" cy="3" r="1.5" fill="#b3924a"/>
+    <g fill="#faf3e6" stroke="#d9c3a0" stroke-width=".7">
+     <circle cx="65.5" cy="52" r="4"/><circle cx="61.7" cy="57.2" r="4"/><circle cx="55.6" cy="55.2" r="4"/><circle cx="55.6" cy="48.8" r="4"/><circle cx="61.7" cy="46.8" r="4"/>
+    </g>
+    <circle cx="60" cy="52" r="2.6" fill="#f2e3d0" stroke="#d9c3a0" stroke-width=".7"/>
+    <circle cx="60" cy="52" r="1.2" fill="#b3924a"/>
+    <g fill="#fdfaf5" stroke="#d9c3a0" stroke-width=".7">
+     <circle cx="7.5" cy="40" r="4.5"/><circle cx="3.8" cy="46.5" r="4.5"/><circle cx="-3.8" cy="46.5" r="4.5"/><circle cx="-7.5" cy="40" r="4.5"/><circle cx="-3.8" cy="33.5" r="4.5"/><circle cx="3.8" cy="33.5" r="4.5"/>
+     <circle cx="127.5" cy="40" r="4.5"/><circle cx="123.8" cy="46.5" r="4.5"/><circle cx="116.2" cy="46.5" r="4.5"/><circle cx="112.5" cy="40" r="4.5"/><circle cx="116.2" cy="33.5" r="4.5"/><circle cx="123.8" cy="33.5" r="4.5"/>
+    </g>
+    <circle cx="0" cy="40" r="2" fill="#f2e3d0" stroke="#d9c3a0" stroke-width=".6"/><circle cx="0" cy="40" r=".9" fill="#b3924a"/>
+    <circle cx="120" cy="40" r="2" fill="#f2e3d0" stroke="#d9c3a0" stroke-width=".6"/><circle cx="120" cy="40" r=".9" fill="#b3924a"/>
+    <g stroke="#e6d5bd" stroke-width=".6">
+     <path d="M4 47 V51 M10 54 V58 M16 58 V62 M22 56 V60 M28 55 V59 M34 52 V56 M40 51 V55 M46 55 V59"/>
+     <path d="M52 62 V66 M56 65 V69 M60 66 V70 M64 65 V69 M68 62 V66"/>
+     <path d="M74 55 V59 M80 51 V55 M86 52 V56 M92 55 V59 M98 56 V60 M104 58 V62 M110 54 V58 M116 47 V51"/>
+    </g>
    </pattern>
   </defs>
-  <rect x="0" y="0" width="100%" height="100%" fill="url(#lace)"/>
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#laceB)"/>
  </svg>
 </div>
 <div class="foot">H &nbsp;&middot;&nbsp; 03 &middot; 13 &middot; 27 &nbsp;&middot;&nbsp; J</div>
