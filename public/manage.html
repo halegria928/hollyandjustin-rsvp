@@ -3,8 +3,8 @@
 <meta name="robots" content="noindex,nofollow">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Pinyon+Script&family=Jost:wght@300;400;500&display=swap">
 <style>
-:root{--card:#fdfaf5;--ink:#54423b;--gold:#a8842c;--gold-line:#b3924a99;--muted:#a68d82;--line:#eddfd3;--ok:#5f8a5e;--warn:#b98a3a;--bad:#b56a5a;--soft:#faf1ea;
---foil:linear-gradient(100deg,#8a6a2f 0%,#c9a960 22%,#e9d8a4 42%,#c2a058 58%,#8f6f30 78%,#c9a960 100%)}
+:root{--card:#fdfaf5;--ink:#54423b;--gold:#9c7c54;--gold-line:#b39a7699;--muted:#a68d82;--line:#eddfd3;--ok:#5f8a5e;--warn:#b98a3a;--bad:#b56a5a;--soft:#faf1ea;
+--foil:linear-gradient(100deg,#8f7350 0%,#c0a37e 24%,#ecdcc4 46%,#c8a87f 64%,#8f7350 88%,#b3936c 100%)}
 *{box-sizing:border-box;margin:0}
 body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:var(--ink);font:300 15px/1.55 'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:26px 14px 90px}
 .wrap{max-width:1060px;margin:0 auto}
@@ -20,7 +20,7 @@ textarea{resize:vertical;min-height:60px}
 select{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a8842c'/%3E%3C/svg%3E") no-repeat right 10px center;padding-right:26px}
 .btn{display:inline-block;padding:10px 18px;border:1px solid var(--gold-line);background:transparent;font:400 10.5px 'Jost',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s}
 .btn:hover{border-color:var(--gold);background:var(--soft)}
-.btn.gold{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+.btn.gold{background:var(--foil);border-color:var(--gold);color:#46392b;font-weight:500}
 .btn.sm{padding:6px 12px;font-size:9.5px}
 .btn.danger{color:var(--bad);border-color:#e3c4bc}
 .btn[disabled]{opacity:.5;cursor:wait}
@@ -49,13 +49,14 @@ select{appearance:none;-webkit-appearance:none;background:#fff url("data:image/s
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .tile{cursor:pointer;transition:border-color .15s}
 .tile:hover{border-color:var(--gold)}
+.hhLink{cursor:pointer;text-decoration:underline dotted}
 .open-room{color:#b9a98f;font:italic 400 15px 'Cormorant Garamond',serif}
 .bk{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--line);background:#fff;cursor:grab}
 .bk.drag{opacity:.4}
 .bk .num{font:500 18px 'Cormorant Garamond',serif;color:var(--gold);width:26px;text-align:center;flex:none}
 .bk .nm{font:500 17px 'Cormorant Garamond',serif;flex:1}
 .bk .sub{font-size:11px;color:var(--muted);letter-spacing:.08em}
-.bk .grip{color:#cbb391;flex:none;font-size:15px;letter-spacing:2px}
+.bk .grip{color:#c9b59d;flex:none;font-size:15px;letter-spacing:2px}
 .ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
 .ph .p{background:#fff;border:1px solid var(--gold-line);padding:8px}
 .ph img{width:100%;height:130px;object-fit:cover;display:block}
@@ -66,7 +67,7 @@ select{appearance:none;-webkit-appearance:none;background:#fff url("data:image/s
 .tile .l{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:6px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
 .tabs button{padding:9px 16px;border:1px solid var(--gold-line);background:transparent;font:400 10.5px 'Jost';letter-spacing:.22em;text-transform:uppercase;color:var(--ink);cursor:pointer}
-.tabs button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+.tabs button.on{background:var(--foil);border-color:var(--gold);color:#46392b;font-weight:500}
 .tabs .cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:var(--bad);color:#fff;font-size:10px;letter-spacing:0;text-align:center}
 .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .tools input{max-width:320px}
@@ -79,7 +80,7 @@ select{appearance:none;-webkit-appearance:none;background:#fff url("data:image/s
 .pill.bad{color:var(--bad);border-color:#e3c4bc;background:#faf0ed}
 .pill.warn{color:var(--warn);border-color:#e6d3ad;background:#fbf5e9}
 .pill.mute{color:var(--muted);border-color:var(--line);background:#fff}
-.pill.gold{color:#7a5f22;border-color:#d9c58c;background:#fbf6e6}
+.pill.gold{color:#806647;border-color:#d8c3a5;background:#faf4ea}
 .hh .body{display:none;padding:6px 18px 20px;border-top:1px solid var(--line)}
 .hh.open .body{display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
@@ -176,7 +177,7 @@ function render(){
  function arcPath(p){if(p<=0)p=0.0001;if(p>1)p=1;var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);return 'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x+' '+y}
  var seg=function(n,c){return inv.length?'<span style="width:'+(n/inv.length*100)+'%;background:'+c+'"></span>':''};
  q('#sum-rsvp').innerHTML='<div class="eyebrow">RSVP progress'+(d.review.length?'<span class="cnt2">'+d.review.length+' to review</span>':'')+'</div><div class="dash" style="margin-top:12px">'
-  +'<div class="gwrap"><svg width="180" height="102" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a6a2f"/><stop offset=".5" stop-color="#c9a960"/><stop offset="1" stop-color="#e9d8a4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
+  +'<div class="gwrap"><svg width="180" height="102" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f7350"/><stop offset=".5" stop-color="#c0a37e"/><stop offset="1" stop-color="#ecdcc4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
   +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>Yes — '+headsN+' people</span><span><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>Declined</span><span><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>Awaiting</span></div></div></div>';
  q('#sum-coming').innerHTML='<div class="eyebrow">Who&rsquo;s coming &middot; the guest list</div><div class="tiles">'+[[headsN,'People coming','hh:coming'],[adults,'Adults','hh:coming'],[kids+teens,'Kids &amp; teens','hh:kids'],[declined,'Declined','hh:declined'],[none,'No reply yet','hh:none']].map(tile).join('')+'</div>';
  q('#sum-inv').innerHTML='<div class="eyebrow">Invitations &amp; backup list</div><div class="tiles">'+[[inv.length,'Households invited','hh:'],[invited,'Guests invited','hh:'],[waiting,'Backup list','sec:inv']].map(tile).join('')+'</div>';
@@ -262,11 +263,11 @@ function renderVilla(){
  var off=d.households.filter(function(h){return h.lodging==='Off-site'}),un=d.households.filter(function(h){return h.lodging!=='Villa'&&h.lodging!=='Off-site'});
  var money=function(n){return n===''||n==null?'—':'$'+Number(n).toLocaleString()};
  var occ={};var homeless=[];
- villa.forEach(function(h){h.guests.forEach(function(g){var r=String(g.room||h.room||'');if(r)((occ[r]=occ[r]||[])).push({n:g.name,hh:h.name,ty:g.type});else homeless.push(g.name+' ('+h.name+')')})});
+ villa.forEach(function(h){h.guests.forEach(function(g){var r=String(g.room||h.room||'');if(r)((occ[r]=occ[r]||[])).push({n:g.name,hh:h.name,hid:h.id,ty:g.type});else homeless.push(g.name+' ('+h.name+')')})});
  var rows='';var heads=0;
  for(var rn=1;rn<=15;rn++){
   var ps=occ[String(rn)]||[];heads+=ps.length;
-  rows+='<tr><td>'+rn+'</td><td>'+(ps.length?ps.map(function(p2){return esc(p2.n)+(p2.ty!=='Adult'?' <span class="pill warn" style="padding:0 6px">'+p2.ty.toLowerCase()+'</span>':'')+' <span style="color:#b9a98f">· '+esc(p2.hh)+'</span>'}).join('<br>'):'<span class="open-room">Open</span>')+'</td><td>'+(ps.length||'')+'</td></tr>';
+  rows+='<tr><td>'+rn+'</td><td>'+(ps.length?ps.map(function(p2){return esc(p2.n)+(p2.ty!=='Adult'?' <span class="pill warn" style="padding:0 6px">'+p2.ty.toLowerCase()+'</span>':'')+' <a class="hhLink" data-hh="'+p2.hid+'" style="color:#b9a98f">· '+esc(p2.hh)+'</a>'}).join('<br>'):'<span class="open-room">Open</span>')+'</td><td>'+(ps.length||'')+'</td></tr>';
  }
  var bill='';var tot={exp:0,paid:0};
  villa.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(h){
@@ -274,12 +275,13 @@ function renderVilla(){
   var t2=inc?0:(Number(h.roomCharge)||0)+(Number(h.foodCharge)||0);var pd=inc?0:(Number(h.paid)||0);
   if(!inc){tot.exp+=t2;tot.paid+=pd}
   var pay=inc?'<span class="pill gold">Included — gift</span>':(t2>0?(pd>=t2?'<span class="pill ok">Paid</span>':(pd>0?'<span class="pill warn">Partial</span>':'<span class="pill bad">Unpaid</span>')):'<span class="pill mute">Set price</span>');
-  bill+='<tr><td>'+esc(h.name)+'</td><td>'+(inc?'—':money(h.roomCharge))+'</td><td>'+(inc?'—':money(h.foodCharge))+'</td><td>'+(inc?'—':money(t2))+'</td><td>'+(inc?'—':money(pd||''))+'</td><td>'+(inc?'—':money(t2-pd))+'</td><td>'+pay+'</td><td>'+pill(h)+'</td></tr>';
+  bill+='<tr><td><a class="hhLink" data-hh="'+h.id+'">'+esc(h.name)+'</a></td><td>'+(inc?'—':money(h.roomCharge))+'</td><td>'+(inc?'—':money(h.foodCharge))+'</td><td>'+(inc?'—':money(t2))+'</td><td>'+(inc?'—':money(pd||''))+'</td><td>'+(inc?'—':money(t2-pd))+'</td><td>'+pay+'</td><td>'+pill(h)+'</td></tr>';
  });
  el.innerHTML='<div class="card"><div class="eyebrow">Who sleeps where &middot; 15 villa rooms</div><div class="hint" style="margin-top:6px">Set a room on the whole household, or per person on their name row (that wins) &mdash; so families can split rooms, and roommates can come from different households.</div><div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th style="width:60px">Room</th><th>Staying here</th><th style="width:70px">Heads</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td></td><td>Total sleeping at the villa</td><td>'+heads+'</td></tr></tfoot></table></div>'
   +(homeless.length?'<div class="hint" style="margin-top:12px">Villa, but no room yet: '+homeless.map(esc).join(', ')+'</div>':'')+'</div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing &mdash; by household</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food+tips</th><th>Total</th><th>Paid</th><th>Owed</th><th>Payment</th><th>RSVP</th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Totals (charged)</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Off-site</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th>Status</th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'—')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">No off-site stays recorded yet.</div>')+'<div class="hint" style="margin-top:12px">'+un.length+' household'+(un.length===1?'':'s')+' still marked Unsure.</div></div>';
+ qa('.hhLink',el).forEach(function(a){a.onclick=function(){var id=a.getAttribute('data-hh');S.open[id]=true;openSec('coming',true);q('#search').value='';q('#filter').value='';q('#tierF').value='';renderHouseholds();var c=q('.hh[data-id="'+id+'"]');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}});
 }
 function renderBackup(){
  var el=q('#tab-backup');
