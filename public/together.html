@@ -37,8 +37,7 @@ textarea{resize:vertical;min-height:36px}
 .pills button.wide{width:auto;border-radius:24px;padding:0 22px;font-size:15px;letter-spacing:.05em}
 .pills button:hover{border-color:var(--gold);background:#faf0e9}
 .pills button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .gt{display:flex;gap:8px;margin-top:8px}
 .gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
 .gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
@@ -60,14 +59,16 @@ textarea{resize:vertical;min-height:36px}
 #done p{color:var(--muted);font:italic 400 19px/1.85 'Cormorant Garamond',Georgia,serif}
 .foot{max-width:660px;margin:40px auto 0;text-align:center;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:#c0a08e}
 @media (max-width:560px){.arch{border-radius:200px 200px 0 0;padding:64px 22px 46px}.arch:before{border-radius:194px 194px 0 0}}
+@media (max-width:659px){.arch{background:rgba(253,250,245,.85)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}}
 
 .bg{position:fixed;inset:0;z-index:-1;background:#1a1410 url(together.jpg) left center/cover no-repeat;filter:saturate(.9) brightness(.9)}
 .bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(38,24,16,.34) 0%,rgba(32,20,13,.50) 55%,rgba(24,14,9,.68) 100%)}
 body{background:#1a1410}
-.arch{background:rgba(253,250,245,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.arch{background:rgba(253,250,245,.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .foot{color:#e8d3bd}
 </style><style>
 .bg:after{background:linear-gradient(90deg,rgba(30,18,12,.18) 0%,rgba(28,17,11,.42) 52%,rgba(22,13,8,.62) 100%),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(20,12,8,.35) 100%)}
+@media (max-width:659px){.arch{background:rgba(253,250,245,.68)!important}}
 @media (min-width:1000px){.arch{margin-left:auto;margin-right:5vw}.foot{max-width:660px;margin-left:auto;margin-right:5vw}}
 @media (min-width:660px) and (max-width:999px){.arch{max-width:530px;padding:60px 28px 44px;margin-left:auto;margin-right:14px}.foot{max-width:530px;margin-left:auto;margin-right:14px}}
 </style></head><body>
@@ -93,6 +94,7 @@ body{background:#1a1410}
     <div class="f"><span class="lg">How many will attend, including yourself?</span>
      <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
     <div id="extras"></div>
+    <div class="f"><label>Best phone number <span style="text-transform:none;letter-spacing:.04em;color:var(--muted)">&mdash; optional</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="So the couple can reach you about the weekend"></div>
     <div class="f"><span class="lg">Weekend celebrations you&rsquo;ll attend</span>
      <div class="ev" data-v="Welcome Party — Friday, March 12"><div class="box"></div><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div></div>
      <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div class="box"></div><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div></div>
@@ -142,7 +144,8 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  if(A==="Joyfully accept"){
   body.count=C;
   body.others=qa('#extras .f').map(function(d){var n=q('input',d).value.trim();return n?{name:n,type:q('.gt .on',d).getAttribute('data-t')}:null}).filter(Boolean);
-  body.events=qa('.ev.on').map(function(e){return e.getAttribute('data-v')});}
+  body.events=qa('.ev.on').map(function(e){return e.getAttribute('data-v')});
+  body.phone=q('#phone').value.trim();}
  fetch('/api/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(r){
   if(!r||!r.ok)throw new Error('save');
   if(A==="Regretfully decline")q('#dbig').textContent='You will be dearly missed';

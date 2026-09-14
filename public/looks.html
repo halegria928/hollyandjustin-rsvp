@@ -9,18 +9,21 @@ body{display:flex;flex-direction:column;background:#f3dcd2;font:300 14px 'Jost',
 .bar button{flex:none;border:1px solid transparent;background:transparent;padding:7px 12px;font:400 10.5px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#54423b;cursor:pointer;border-radius:16px;white-space:nowrap}
 .bar button:hover{border-color:#b39a76}
 .bar button.on{background:linear-gradient(100deg,#8f7350,#c0a37e 45%,#ecdcc4 75%,#b3936c);color:#3d3222;font-weight:500}
-.bar .note{flex:none;margin-left:auto;font:italic 400 13px 'Cormorant Garamond',serif;color:#a68d82;padding-left:12px;white-space:nowrap}
+.bar .home{flex:none;font:400 10.5px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#9c7c54;text-decoration:none;padding:7px 12px 7px 4px;border-right:1px solid #eddfd3;margin-right:6px;white-space:nowrap}
+.more{position:fixed;top:0;right:0;height:46px;line-height:44px;padding:0 10px 0 26px;font-size:22px;color:#9c7c54;background:linear-gradient(90deg,rgba(253,250,245,0),#fdfaf5 55%);pointer-events:none}
 iframe{flex:1;width:100%;border:0;display:block}
 </style></head><body>
-<div class="bar" id="bar"><span class="lbl">Looks</span><span class="note" id="note"></span></div>
+<div class="bar" id="bar"><a class="home" href="/">&lsaquo; Back to the site</a><span class="more" id="more">&rsaquo;</span></div>
 <iframe id="fr" title="Look preview"></iframe>
 <script>
-var LOOKS=[{id:'index',file:'index.html',title:'Blush',d:'Soft blush glow, ivory card — the original'},{id:'rose',file:'rose.html',title:'Rose',d:'Dusty rose, just color, with depth'},{id:'bouquet',file:'bouquet.html',title:'Blush Bouquet',d:'Champagne roses and baby&rsquo;s breath, soft focus'},{id:'lace',file:'lace.html',title:'Blush Lace',d:'Ivory floral lace on soft blush'},{id:'mauve',file:'mauve.html',title:'Mauve Roses',d:'Moody mauve and maroon roses, rich and dark'},{id:'together',file:'together.html',title:'Holly &amp; Justin',d:'The two of them, a quiet moment in the stables'},{id:'hacienda-dark',file:'hacienda-dark.html',title:'Hacienda Dark',d:'The arches at dusk, moody and mystical'},{id:'hacienda-light',file:'hacienda-light.html',title:'Hacienda Light',d:'The arches under a blush veil'},{id:'shore-dark',file:'shore-dark.html',title:'Shore Dark',d:'The villa pool and sea, after dark'},{id:'shore-light',file:'shore-light.html',title:'Shore Light',d:'The villa pool and sea, faded and soft'}];
-var bar=document.getElementById('bar'),fr=document.getElementById('fr'),note=document.getElementById('note');
+var LOOKS=[{id:'index',file:'index.html',title:'Blush'},{id:'rose',file:'rose.html',title:'Rose'},{id:'bouquet',file:'bouquet.html',title:'Blush Bouquet'},{id:'lace',file:'lace.html',title:'Blush Lace'},{id:'mauve',file:'mauve.html',title:'Mauve Roses'},{id:'together',file:'together.html',title:'Holly &amp; Justin'},{id:'hacienda-dark',file:'hacienda-dark.html',title:'Hacienda Dark'},{id:'hacienda-light',file:'hacienda-light.html',title:'Hacienda Light'},{id:'shore-dark',file:'shore-dark.html',title:'Shore Dark'},{id:'shore-light',file:'shore-light.html',title:'Shore Light'}];
+var bar=document.getElementById('bar'),fr=document.getElementById('fr'),more=document.getElementById('more');
+function upd(){more.style.display=(bar.scrollWidth-bar.clientWidth-bar.scrollLeft>8)?'':'none'}
+bar.addEventListener('scroll',upd);window.addEventListener('resize',upd);setTimeout(upd,300);
 function show(id){var l=LOOKS.find(function(x){return x.id===id})||LOOKS[0];
- fr.src='/'+l.file;location.hash=l.id;note.textContent=l.d;
+ fr.src='/'+l.file;location.hash=l.id;
  [].forEach.call(bar.querySelectorAll('button'),function(b){b.classList.toggle('on',b.getAttribute('data-id')===l.id)});}
-LOOKS.forEach(function(l){var b=document.createElement('button');b.textContent=l.title.replace(/&amp;/g,'&');b.setAttribute('data-id',l.id);b.onclick=function(){show(l.id)};bar.insertBefore(b,note);});
+LOOKS.forEach(function(l){var b=document.createElement('button');b.textContent=l.title.replace(/&amp;/g,'&');b.setAttribute('data-id',l.id);b.onclick=function(){show(l.id)};bar.appendChild(b);});
 var h=(location.hash||'').slice(1);
 if(h){show(h)}else{fetch('/api/theme').then(function(r){return r.json()}).then(function(r){var map={blush:'index'};show(map[r.theme]||r.theme||'index')}).catch(function(){show('index')});}
 </script></body></html>

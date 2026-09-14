@@ -190,7 +190,7 @@ function render(){
 }
 function respBlock(r,extra){
  var oth=r.others.map(function(o){return esc(o.name)+(/child/i.test(o.type)?' <span class="pill warn" style="padding:1px 7px">child</span>':'')}).join(', ');
- return '<div class="resp"><b>'+esc(r.name)+'</b> — '+esc(r.attending)+(r.count?' · '+esc(r.count)+' attending':'')+(oth?'<br>With: '+oth:'')+(r.events?'<br>Events: '+esc(r.events):'')+(r.dietary?'<br>Dietary: '+esc(r.dietary):'')+(r.note?'<br>Note: <i>'+esc(r.note)+'</i>':'')+'<br><span class="hint">'+new Date(r.ts).toLocaleString()+'</span>'+(extra||'')+'</div>';
+ return '<div class="resp"><b>'+esc(r.name)+'</b> — '+esc(r.attending)+(r.count?' · '+esc(r.count)+' attending':'')+(oth?'<br>With: '+oth:'')+(r.events?'<br>Events: '+esc(r.events):'')+(r.dietary?'<br>Dietary: '+esc(r.dietary):'')+(r.phone?'<br>Phone: '+esc(r.phone):'')+(r.note?'<br>Note: <i>'+esc(r.note)+'</i>':'')+'<br><span class="hint">'+new Date(r.ts).toLocaleString()+'</span>'+(extra||'')+'</div>';
 }
 function hhOptions(sel,suggested){
  var d=S.data,sug=(suggested||[]),ids={};var out='<option value="">— choose a household —</option>';

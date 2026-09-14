@@ -58,6 +58,7 @@ async function init() {
   await q(`CREATE TABLE IF NOT EXISTS responses (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(), first_name text NOT NULL DEFAULT '',
     last_name text NOT NULL DEFAULT '', attending text NOT NULL DEFAULT '', count text NOT NULL DEFAULT '', others jsonb NOT NULL DEFAULT '[]',
     events text NOT NULL DEFAULT '', note text NOT NULL DEFAULT '', look text NOT NULL DEFAULT '')`);
+  await q(`ALTER TABLE responses ADD COLUMN IF NOT EXISTS phone text NOT NULL DEFAULT ''`);
   await q(`CREATE TABLE IF NOT EXISTS matches (response_id integer PRIMARY KEY REFERENCES responses(id) ON DELETE CASCADE,
     household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE, approved boolean NOT NULL DEFAULT false, method text NOT NULL DEFAULT 'auto')`);
   await q(`CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL)`);
@@ -100,7 +101,7 @@ async function loadAll() {
   for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone, room: g.room == null ? '' : g.room }); }
   const responses = (await q('SELECT * FROM responses ORDER BY created DESC')).rows.map(r => ({
     key: String(r.id), ts: r.created, name: (r.first_name + ' ' + r.last_name).trim(), first: r.first_name, last: r.last_name, attending: r.attending, count: r.count,
-    others: Array.isArray(r.others) ? r.others : [], events: r.events, note: r.note, look: r.look
+    others: Array.isArray(r.others) ? r.others : [], events: r.events, note: r.note, look: r.look, phone: r.phone || ''
   }));
   const matches = {};
   for (const m of (await q('SELECT * FROM matches')).rows) matches[String(m.response_id)] = { hid: String(m.household_id), approved: m.approved, method: m.method };
@@ -153,8 +154,9 @@ app.post('/api/rsvp', async (req, res) => {
     if (!first || !last || !attending) return res.status(400).json({ ok: false, error: 'missing' });
     const others = (Array.isArray(b.others) ? b.others : []).slice(0, 12).map(o => ({ name: String(o.name || '').trim().slice(0, 80), type: OPTIONS.guestType.includes(o.type) ? o.type : 'Adult' })).filter(o => o.name);
     const events = (Array.isArray(b.events) ? b.events : []).map(e => String(e).slice(0, 80)).join('; ');
-    const r = await q('INSERT INTO responses(first_name,last_name,attending,count,others,events,note,look) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-      [first, last, attending, String(b.count || '').slice(0, 40), JSON.stringify(others), events, String(b.note || '').slice(0, 2000), String(b.look || '').slice(0, 40)]);
+    const phone = String(b.phone || '').trim().slice(0, 40);
+    const r = await q('INSERT INTO responses(first_name,last_name,attending,count,others,events,note,look,phone) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+      [first, last, attending, String(b.count || '').slice(0, 40), JSON.stringify(others), events, String(b.note || '').slice(0, 2000), String(b.look || '').slice(0, 40), phone]);
     res.json({ ok: true, id: r.rows[0].id });
   } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
 });
@@ -252,7 +254,7 @@ app.post('/api/admin', async (req, res) => {
       case 'exportCsv': {
         const data = await loadAll();
         const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Owed','Off-site place','Notes']];
+        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Phone','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Owed','Off-site place','Notes']];
         for (const h of data.households) {
           const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
           const acc = resps.filter(r => /accept/i.test(r.attending));
@@ -261,6 +263,7 @@ app.post('/api/admin', async (req, res) => {
           rows.push([h.name, h.tier, h.invited ? 'Yes' : 'No', h.plusOne ? 'Yes' : 'No', h.likelihood, status, heads || '',
             h.guests.map(g => g.name + (g.type !== 'Adult' ? ' (' + g.type + ')' : '')).join('; '),
             resps.map(r => r.name + (r.others.length ? ' + ' + r.others.map(o => o.name).join(', ') : '')).join(' | '),
+            resps.map(r => r.phone).filter(Boolean).join(' | '),
             resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.billing, h.paid, h.billing === 'included' ? '' : (((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || ''), h.offsitePlace, h.notes]);
         }
         return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
