@@ -46,6 +46,10 @@ textarea{resize:vertical;min-height:36px}
 .kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:0 0 26px}
 .ev{display:flex;align-items:flex-start;gap:15px;padding:14px 0;border-bottom:1px solid #f0e2d6;cursor:pointer}
 .ev:last-child{border-bottom:0}
+.evc{display:flex;gap:7px}
+.evc button{padding:7px 13px;border:1px solid var(--gold-line);border-radius:15px;background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s}
+.evc button:hover{border-color:var(--gold)}
+.evc button.on{background:var(--foil);border-color:var(--gold);color:#46392b;font-weight:500}
 .box{width:17px;height:17px;border:1px solid var(--gold);flex:none;margin:4px 0 0 5px;transform:rotate(45deg);transition:background .2s;background:#fff}
 .ev.on .box{background:var(--foil)}
 .ev .t{font:500 18px 'Cormorant Garamond',serif;letter-spacing:.04em;color:var(--ink)}
@@ -86,23 +90,27 @@ body{background:#1a1410}
   <div class="when"><span style="white-space:nowrap">Saturday, March 13, 2027</span><br><b><span style="white-space:nowrap">Hacienda del Mar</span> &middot; <span style="white-space:nowrap">Puerto Aventuras, Mexico</span></b></div>
   <p class="note">We can&rsquo;t wait to celebrate with you. Please respond once per invitation, for the guests named upon it.</p>
   <form id="f" novalidate>
-      <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
+   <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
     <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
-   <div class="grid2"><div class="f"><label>First name <span class="req">*</span></label><input type="text" id="first" placeholder="As on your invitation" autocomplete="given-name"></div><div class="f"><label>Last name <span class="req">*</span></label><input type="text" id="last" autocomplete="family-name"></div></div>
    <div id="more">
-    <p class="kids">Our celebration at the Hacienda is intimate and every seat is counted, so we kindly ask that your party include only those named on your invitation. If your little ones can&rsquo;t stay home, they&rsquo;re more than welcome &mdash; just include them in your count.</p>
-    <div class="f"><span class="lg">How many will attend, including yourself?</span>
+    <div class="f"><span class="lg">How many will attend, including yourself? <span class="req">*</span></span>
      <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
-    <div id="extras"></div>
-    <div class="f"><label>Best phone number <span style="text-transform:none;letter-spacing:.04em;color:var(--muted)">&mdash; optional</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="So the couple can reach you about the weekend"></div>
-    <div class="f"><span class="lg">Weekend celebrations you&rsquo;ll attend</span>
-     <div class="ev" data-v="Welcome Party — Friday, March 12"><div class="box"></div><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div></div>
-     <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div class="box"></div><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div></div>
-     <div class="ev" data-v="Beach &amp; Pool Day — Sunday, March 14"><div class="box"></div><div><div class="t">Beach &amp; Pool Day</div><div class="d">Sunday, March 14</div></div></div></div>
+    <div id="after" hidden>
+     <div id="slotA"></div>
+     <div id="extras"></div>
+     <p class="kids">Seats are counted, so please include only those named on your invitation &mdash; little ones welcome if they can&rsquo;t stay home.</p>
+     <div class="f"><span class="lg">Weekend celebrations <span class="req">*</span></span>
+      <div class="ev" data-v="Welcome Party — Friday, March 12"><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div>
+      <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div>
+      <div class="ev" data-v="Beach &amp; Pool Day — Sunday, March 14"><div><div class="t">Beach &amp; Pool Day</div><div class="d">Sunday, March 14</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div></div>
+     <div class="f"><label>Best phone number <span style="text-transform:none;letter-spacing:.04em;color:var(--muted)">&mdash; optional</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="So the couple can reach you about the weekend"></div>
+    </div>
    </div>
+   <div id="primary" hidden><div class="f"><span class="lg">Your name <span class="req">*</span></span><div class="grid2"><div><input type="text" id="first" placeholder="First name" autocomplete="given-name"></div><div><input type="text" id="last" placeholder="Last name" autocomplete="family-name"></div></div></div></div>
+   <div id="slotB"></div>
    <div class="f"><label>Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
-   <div class="err" id="err">Please tell us whether you&rsquo;ll be joining us, and your first and last name.</div>
+   <div class="err" id="err"></div>
   </form>
  </div>
  <div id="done">
@@ -116,41 +124,53 @@ body{background:#1a1410}
 <script>
 var A="",C="";
 function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return[].slice.call((r||document).querySelectorAll(s))}
-var WORDS=["Two","Three","Four","Five","Six","Seven"];
+var LBL=["Your plus one","Guest three","Guest four","Guest five","Guest six","Guest seven"];
 function setExtras(n){
  var box=q('#extras');
- var old=qa('#extras .f').map(function(d){return {name:q('input',d).value,type:q('.gt .on',d).getAttribute('data-t')}});
+ var old=qa('#extras .f').map(function(d){return {name:q('input',d).value,type:q('.gt .on',d)&&q('.gt .on',d).getAttribute('data-t')}});
  box.innerHTML='';
  var count=Math.min(n-1,6);
  for(var i=0;i<count;i++){
   var d=document.createElement('div');d.className='f';
-  d.innerHTML='<label>Guest '+WORDS[i]+' \u2014 full name</label><input type="text" placeholder="Your plus one or family member"><div class="gt"><button type="button" data-t="Adult" class="on">Adult</button><button type="button" data-t="Teen">Teen</button><button type="button" data-t="Child">Child</button></div>';
+  d.innerHTML='<label>'+LBL[i]+' <span class="req">*</span></label><input type="text" placeholder="Full name"><div class="gt"><button type="button" data-t="Adult">Adult</button><button type="button" data-t="Teen">Teen</button><button type="button" data-t="Child">Child</button></div>';
   box.appendChild(d);
   q('input',d).value=(old[i]&&old[i].name)||'';
   var dflt=(old[i]&&old[i].type)||(i===0?'Adult':'Child');
-  qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===dflt)});
-  qa('.gt button',d).forEach(function(b){b.onclick=function(){qa('.gt button',b.parentNode).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
+  qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===dflt);
+   b.onclick=function(){qa('.gt button',b.parentNode).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
  }
 }
-q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open')}
-q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open')}
-qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}})
-qa('.ev').forEach(function(e){e.onclick=function(){e.classList.toggle('on')}})
+function place(where){var p=q('#primary');p.hidden=false;q(where).appendChild(p)}
+q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');q('#after').hidden=!C;if(C)place('#slotA');else q('#primary').hidden=true;q('#err').style.display='none'};
+q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');q('#err').style.display='none'};
+qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');q('#after').hidden=false;place('#slotA');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}});
+qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'))}})});
 q('#f').onsubmit=function(ev){ev.preventDefault();
- var fn=q('#first').value.trim(),ln=q('#last').value.trim(),n=(fn+' '+ln).trim();
- if(!fn||!ln||!A){q('#err').style.display='block';return}
- q('#err').style.display='none';var b=q('#send');b.disabled=true;b.textContent='Sending…';
- var body={first:fn,last:ln,attending:A,count:'',others:[],events:[],note:q('#msg').value.trim(),look:(document.title.split('·')[1]||'Blush').trim()};
- if(A==="Joyfully accept"){
-  body.count=C;
-  body.others=qa('#extras .f').map(function(d){var n=q('input',d).value.trim();return n?{name:n,type:q('.gt .on',d).getAttribute('data-t')}:null}).filter(Boolean);
-  body.events=qa('.ev.on').map(function(e){return e.getAttribute('data-v')});
+ var miss=[];
+ if(!A)miss.push('whether you&rsquo;ll be joining us');
+ var fn=q('#first').value.trim(),ln=q('#last').value.trim();
+ if(A==="Joyfully accept"&&!C)miss.push('how many are attending');
+ if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name')}
+ var others=[];
+ if(A==="Joyfully accept"&&C){
+  var need=(C.charAt(0)==='5')?4:((parseInt(C,10)||1)-1);
+  var rows=qa('#extras .f');var filled=0;
+  rows.forEach(function(d,i){var n=q('input',d).value.trim();if(n){filled++;others.push({name:n,type:q('.gt .on',d).getAttribute('data-t')})}else if(i<need)miss.push((LBL[i]||'guest').toLowerCase()+'&rsquo;s name')});
+  var unanswered=qa('.ev').filter(function(e){return !e.getAttribute('data-a')});
+  if(unanswered.length)miss.push('Yes / No / Maybe for each celebration');
+ }
+ var err=q('#err');
+ if(miss.length){err.innerHTML='Almost there &mdash; still needed: '+miss.join(', ')+'.';err.style.display='block';return}
+ err.style.display='none';var b=q('#send');b.disabled=true;b.textContent='Sending…';
+ var body={first:fn,last:ln,attending:A,count:'',others:[],events:[],note:q('#msg').value.trim(),look:(document.title.split('·')[1]||'Blush').trim(),phone:''};
+ if(A==="Joyfully accept"){body.count=C;body.others=others;
+  body.events=qa('.ev').map(function(e){return e.getAttribute('data-v')+': '+e.getAttribute('data-a')});
   body.phone=q('#phone').value.trim();}
  fetch('/api/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(r){
   if(!r||!r.ok)throw new Error('save');
   if(A==="Regretfully decline")q('#dbig').textContent='You will be dearly missed';
   q('#cardview').style.display='none';q('#done').style.display='block';window.scrollTo(0,0);
- }).catch(function(){q('#err').textContent='Something went wrong sending your RSVP. Please try again in a moment.';q('#err').style.display='block';b.disabled=false;b.textContent='Send RSVP';});
+ }).catch(function(){err.textContent='Something went wrong sending your RSVP. Please try again in a moment.';err.style.display='block';b.disabled=false;b.textContent='Send RSVP';});
  return false}
 </script><script>
 (function(){var r=document.documentElement;function f(){var t=Math.min(1,(window.scrollY||window.pageYOffset||0)/360);r.style.setProperty('--hja',(0.30+0.58*t).toFixed(3));r.style.setProperty('--hjb',(4+8*t).toFixed(1)+'px')}window.addEventListener('scroll',f,{passive:true});window.addEventListener('resize',f);f()})();
