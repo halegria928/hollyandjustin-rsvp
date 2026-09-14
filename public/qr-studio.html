@@ -57,6 +57,8 @@ label{display:block;font-size:10px;letter-spacing:.24em;text-transform:uppercase
    <div class="stage" id="stage"><canvas id="cv" width="900" height="900"></canvas></div>
    <button class="dl" id="dl">Download transparent PNG</button>
    <div class="hint" style="text-align:center;margin-top:8px">2000 &times; 2000 px &middot; 300-dpi print quality</div>
+   <button class="dl" id="cp" style="background:transparent;border:1px solid var(--gold-line);color:var(--ink)">Copy guest link</button>
+   <div class="hint" id="cpd" style="text-align:center;margin-top:6px"></div>
   </div>
  </div></div>
  <a class="back" href="/manage.html">&lsaquo; Back to the guest manager</a>
@@ -121,6 +123,7 @@ document.getElementById('dl').onclick=function(){
  var big=document.createElement('canvas'); draw(big,2000);
  big.toBlob(function(bl){var a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='hollyandjustin-rsvp-qr.png';a.click()},'image/png');
 };
+document.getElementById('cp').onclick=function(){var u=URLTXT;function d(){document.getElementById('cpd').textContent='Copied \u2713';setTimeout(function(){document.getElementById('cpd').textContent=''},2500)}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(d,function(){prompt('Copy the link:',u)})}else prompt('Copy the link:',u)};
 if(document.fonts&&document.fonts.ready){document.fonts.ready.then(refresh)}
 refresh();
 </script></body></html>
