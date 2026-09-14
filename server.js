@@ -50,6 +50,7 @@ async function init() {
     lodging text NOT NULL DEFAULT 'Unsure', room text NOT NULL DEFAULT '', headcount integer, room_charge numeric, food_charge numeric,
     offsite_place text NOT NULL DEFAULT '', offsite_details text NOT NULL DEFAULT '', created timestamptz NOT NULL DEFAULT now())`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS priority integer NOT NULL DEFAULT 1000000`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS paid numeric`);
   await q(`CREATE TABLE IF NOT EXISTS guests (id serial PRIMARY KEY, household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE,
     name text NOT NULL, type text NOT NULL DEFAULT 'Adult', phone text NOT NULL DEFAULT '', pos integer NOT NULL DEFAULT 0)`);
   await q(`CREATE TABLE IF NOT EXISTS responses (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(), first_name text NOT NULL DEFAULT '',
@@ -91,7 +92,7 @@ async function loadAll() {
   const hh = (await q('SELECT * FROM households ORDER BY name')).rows.map(r => ({
     id: String(r.id), name: r.name, tier: r.tier, invited: r.invited, priority: r.priority == null ? 1000000 : r.priority, plusOne: r.plus_one, likelihood: r.likelihood, notes: r.notes, lodging: r.lodging,
     room: r.room, headcount: r.headcount == null ? '' : r.headcount, roomCharge: r.room_charge == null ? '' : Number(r.room_charge),
-    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, guests: []
+    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, guests: []
   }));
   const byId = Object.fromEntries(hh.map(h => [h.id, h]));
   for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone }); }
@@ -115,13 +116,13 @@ async function loadAll() {
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
   const vals = [h.name || '', OPTIONS.tier.includes(h.tier) ? h.tier : 'A', h.invited !== false, !!h.plusOne, h.likelihood || 'Unknown', h.notes || '', h.lodging || 'Unsure', h.room || '',
-    numOrNull(h.headcount), numOrNull(h.roomCharge), numOrNull(h.foodCharge), h.offsitePlace || '', h.offsiteDetails || ''];
+    numOrNull(h.headcount), numOrNull(h.roomCharge), numOrNull(h.foodCharge), numOrNull(h.paid), h.offsitePlace || '', h.offsiteDetails || ''];
   let id = Number(h.id) || 0;
   if (id) {
-    const r = await q(`UPDATE households SET name=$1,tier=$2,invited=$3,plus_one=$4,likelihood=$5,notes=$6,lodging=$7,room=$8,headcount=$9,room_charge=$10,food_charge=$11,offsite_place=$12,offsite_details=$13 WHERE id=$14 RETURNING id`, [...vals, id]);
+    const r = await q(`UPDATE households SET name=$1,tier=$2,invited=$3,plus_one=$4,likelihood=$5,notes=$6,lodging=$7,room=$8,headcount=$9,room_charge=$10,food_charge=$11,paid=$12,offsite_place=$13,offsite_details=$14 WHERE id=$15 RETURNING id`, [...vals, id]);
     if (!r.rows.length) id = 0;
   }
-  if (!id) id = (await q(`INSERT INTO households(name,tier,invited,plus_one,likelihood,notes,lodging,room,headcount,room_charge,food_charge,offsite_place,offsite_details) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`, vals)).rows[0].id;
+  if (!id) id = (await q(`INSERT INTO households(name,tier,invited,plus_one,likelihood,notes,lodging,room,headcount,room_charge,food_charge,paid,offsite_place,offsite_details) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`, vals)).rows[0].id;
   if (Array.isArray(h.guests)) {
     await q('DELETE FROM guests WHERE household_id=$1', [id]);
     let pos = 0;
@@ -249,7 +250,7 @@ app.post('/api/admin', async (req, res) => {
       case 'exportCsv': {
         const data = await loadAll();
         const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Events','Lodging','Villa room','Headcount','Room charge','Food charge','Off-site place','Notes']];
+        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Events','Lodging','Villa room','Headcount','Room charge','Food charge','Paid','Owed','Off-site place','Notes']];
         for (const h of data.households) {
           const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
           const acc = resps.filter(r => /accept/i.test(r.attending));
@@ -258,7 +259,7 @@ app.post('/api/admin', async (req, res) => {
           rows.push([h.name, h.tier, h.invited ? 'Yes' : 'No', h.plusOne ? 'Yes' : 'No', h.likelihood, status, heads || '',
             h.guests.map(g => g.name + (g.type !== 'Adult' ? ' (' + g.type + ')' : '')).join('; '),
             resps.map(r => r.name + (r.others.length ? ' + ' + r.others.map(o => o.name).join(', ') : '')).join(' | '),
-            resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.offsitePlace, h.notes]);
+            resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.paid, ((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || '', h.offsitePlace, h.notes]);
         }
         return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
       }
