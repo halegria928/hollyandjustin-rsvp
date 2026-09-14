@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 8080;
 const DEFAULT_PASSWORD = process.env.PORTAL_PASSWORD || 'Hacienda-0313';
 const LOOKS = [
   { id: 'blush', file: 'index.html', title: 'Blush' }, { id: 'rose', file: 'rose.html', title: 'Rose' }, { id: 'bouquet', file: 'bouquet.html', title: 'Blush Bouquet' }, { id: 'lace', file: 'lace.html', title: 'Blush Lace' }, { id: 'mauve', file: 'mauve.html', title: 'Mauve Roses' }, { id: 'together', file: 'together.html', title: 'Holly & Justin' },
-  { id: 'hacienda-dark', file: 'hacienda-dark.html', title: 'Hacienda Dark' }, { id: 'hacienda-light', file: 'hacienda-light.html', title: 'Hacienda Light' },
-  { id: 'shore-dark', file: 'shore-dark.html', title: 'Shore Dark' }, { id: 'shore-light', file: 'shore-light.html', title: 'Shore Light' }
+  { id: 'hacienda-dark', file: 'hacienda-dark.html', title: 'Hacienda Dark' }, { id: 'hacienda-light', file: 'hacienda-light.html', title: 'Hacienda' },
+  { id: 'shore-dark', file: 'shore-dark.html', title: 'Shore Dark' }, { id: 'shore-light', file: 'shore-light.html', title: 'Shore' }
 ];
 const OPTIONS = {
   likelihood: ['Unknown', 'Likely', '50-50', 'Leaning no'], lodging: ['Unsure', 'Villa', 'Off-site'],

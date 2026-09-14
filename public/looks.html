@@ -16,7 +16,7 @@ iframe{flex:1;width:100%;border:0;display:block}
 <div class="bar" id="bar"><a class="home" href="/">&lsaquo; Back to the site</a><span class="more" id="more">&rsaquo;</span></div>
 <iframe id="fr" title="Look preview"></iframe>
 <script>
-var LOOKS=[{id:'index',file:'index.html',title:'Blush'},{id:'rose',file:'rose.html',title:'Rose'},{id:'bouquet',file:'bouquet.html',title:'Blush Bouquet'},{id:'lace',file:'lace.html',title:'Blush Lace'},{id:'mauve',file:'mauve.html',title:'Mauve Roses'},{id:'together',file:'together.html',title:'Holly &amp; Justin'},{id:'hacienda-dark',file:'hacienda-dark.html',title:'Hacienda Dark'},{id:'hacienda-light',file:'hacienda-light.html',title:'Hacienda Light'},{id:'shore-dark',file:'shore-dark.html',title:'Shore Dark'},{id:'shore-light',file:'shore-light.html',title:'Shore Light'}];
+var LOOKS=[{id:'index',file:'index.html',title:'Blush'},{id:'rose',file:'rose.html',title:'Rose'},{id:'bouquet',file:'bouquet.html',title:'Blush Bouquet'},{id:'lace',file:'lace.html',title:'Blush Lace'},{id:'mauve',file:'mauve.html',title:'Mauve Roses'},{id:'together',file:'together.html',title:'Holly &amp; Justin'},{id:'hacienda-dark',file:'hacienda-dark.html',title:'Hacienda Dark'},{id:'hacienda-light',file:'hacienda-light.html',title:'Hacienda'},{id:'shore-dark',file:'shore-dark.html',title:'Shore Dark'},{id:'shore-light',file:'shore-light.html',title:'Shore Light'}];
 var bar=document.getElementById('bar'),fr=document.getElementById('fr'),more=document.getElementById('more');
 function upd(){more.style.display=(bar.scrollWidth-bar.clientWidth-bar.scrollLeft>8)?'':'none'}
 bar.addEventListener('scroll',upd);window.addEventListener('resize',upd);setTimeout(upd,300);

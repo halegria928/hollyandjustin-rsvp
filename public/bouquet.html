@@ -16,7 +16,9 @@ h1{font:400 clamp(56px,11vw,88px)/1.02 'Pinyon Script',cursive;text-align:center
  h1{background-size:220% 100%;animation:shimmer 7s ease-in-out infinite alternate}
  @keyframes shimmer{from{background-position:0% 0}to{background-position:100% 0}}
 }
-.flor{margin:10px auto 24px;display:block}
+.flor{display:flex;align-items:center;gap:12px;justify-content:center;margin:14px auto 22px;width:210px}
+.flor i{flex:1;height:1px;background:#c9b08b}
+.flor b{width:8px;height:8px;transform:rotate(45deg);background:var(--foil);flex:none}
 .when{font-size:13px;letter-spacing:.3em;text-transform:uppercase;text-align:center;line-height:2.3;color:var(--ink)}
 .when b{font-weight:400;color:var(--muted);letter-spacing:.24em}
 .note{font:italic 400 19px/1.75 'Cormorant Garamond',Georgia,serif;color:var(--muted);max-width:440px;margin:26px auto 0;text-align:center}
@@ -66,18 +68,14 @@ textarea{resize:vertical;min-height:36px}
 body{background:#1a1410}
 .arch{background:rgba(253,250,245,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .foot{color:#b89a86}
+@media (max-width:659px){.arch{background:rgba(253,250,245,.78)!important;margin-left:3vw;margin-right:3vw;padding-left:22px;padding-right:22px}}
 </style></head><body>
 <div class="bg"></div>
 <div class="arch">
  <div id="cardview">
   <div class="eyebrow">RSVP</div>
   <h1>Holly &amp; Justin</h1>
-  <svg class="flor" width="240" height="24" viewBox="0 0 240 24" fill="none" aria-hidden="true">
-   <path d="M8 12 C52 3,92 3,112 12" stroke="#b3924a" stroke-width="1"/>
-   <path d="M232 12 C188 3,148 3,128 12" stroke="#b3924a" stroke-width="1"/>
-   <path d="M120 4.5 L126.5 12 L120 19.5 L113.5 12 Z" fill="#b3924a"/>
-   <circle cx="8" cy="12" r="1.7" fill="#b3924a"/><circle cx="232" cy="12" r="1.7" fill="#b3924a"/>
-  </svg>
+  <div class="flor"><i></i><b></b><i></i></div>
   <div class="when"><span style="white-space:nowrap">Saturday, March 13, 2027</span><br><b><span style="white-space:nowrap">Hacienda del Mar</span> &middot; <span style="white-space:nowrap">Puerto Aventuras, Mexico</span></b></div>
   <p class="note">We can&rsquo;t wait to celebrate with you. Please respond once per invitation, for the guests named upon it.</p>
   <form id="f" novalidate>
