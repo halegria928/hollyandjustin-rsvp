@@ -36,6 +36,10 @@ textarea{resize:vertical;min-height:36px}
 .choice button{flex:1;min-width:180px;padding:16px 10px;background:transparent;border:1px solid var(--gold-line);font:400 11.5px 'Jost',sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .25s}
 .choice button:hover{border-color:var(--gold);background:#faf0e9}
 .choice button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+.stepper{display:flex;align-items:center;gap:24px}
+.stepper button{width:46px;height:46px;border-radius:50%;border:1px solid var(--gold-line);background:transparent;font:300 24px 'Jost',sans-serif;color:var(--ink);cursor:pointer;transition:all .2s;line-height:1}
+.stepper button:hover{border-color:var(--gold);background:#faf0e9}
+#cnum{font:500 34px 'Cormorant Garamond',serif;min-width:34px;text-align:center;color:var(--ink)}
 .pills{display:flex;gap:10px;flex-wrap:wrap}
 .pills button{width:48px;height:48px;border-radius:50%;border:1px solid var(--gold-line);background:transparent;font:400 17px 'Cormorant Garamond',serif;color:var(--ink);cursor:pointer;transition:all .25s}
 .pills button.wide{width:auto;border-radius:24px;padding:0 22px;font-size:15px;letter-spacing:.05em}
@@ -79,13 +83,13 @@ textarea{resize:vertical;min-height:36px}
   <h1>Holly &amp; Justin</h1>
   <div class="flor"><i></i><b></b><i></i></div>
   <div class="when"><span style="white-space:nowrap">Saturday, March 13, 2027</span><br><b><span style="white-space:nowrap">Hacienda del Mar</span> &middot; <span style="white-space:nowrap">Puerto Aventuras, Mexico</span></b></div>
-  <p class="note">We can&rsquo;t wait to celebrate with you. Please respond once per invitation, for the guests named upon it.</p>
+  <p class="note">We can&rsquo;t wait to celebrate with you. Please respond once per invitation.</p>
   <form id="f" novalidate>
    <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
     <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
    <div id="more">
     <div class="f"><span class="lg">How many of you will be joining us? <span class="req">*</span></span>
-     <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
+     <div class="stepper"><button type="button" id="dec" aria-label="Fewer">&minus;</button><span id="cnum">2</span><button type="button" id="inc" aria-label="More">+</button></div></div>
     <div id="after" hidden>
      <div id="slotA"></div>
      <div id="extras"></div>
@@ -114,17 +118,18 @@ textarea{resize:vertical;min-height:36px}
 </div>
 
 <script>
-var A="",C="";
+var A="",C="2";
 function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return[].slice.call((r||document).querySelectorAll(s))}
 var LBL=["Your plus one","Guest three","Guest four","Guest five","Guest six","Guest seven"];
 function setExtras(n){
  var box=q('#extras');
  var old=qa('#extras .f').map(function(d){return {name:q('input',d).value,type:q('.gt .on',d)&&q('.gt .on',d).getAttribute('data-t')}});
  box.innerHTML='';
- var count=Math.min(n-1,6);
+ var count=Math.min(n-1,7);
  for(var i=0;i<count;i++){
   var d=document.createElement('div');d.className='f';
-  d.innerHTML='<label>'+LBL[i]+' <span class="req">*</span></label><input type="text" placeholder="Full name"><div class="gt"><button type="button" data-t="Adult">Adult</button><button type="button" data-t="Teen">Teen</button><button type="button" data-t="Child">Child</button></div>';
+  var chips=(i===0)?['Adult','Child']:['Child','Adult'];
+  d.innerHTML='<label>'+LBL[i]+' <span class="req">*</span></label><input type="text" placeholder="Full name"><div class="gt">'+chips.map(function(t2){return '<button type="button" data-t="'+t2+'">'+t2+'</button>'}).join('')+'</div>';
   box.appendChild(d);
   q('input',d).value=(old[i]&&old[i].name)||'';
   var dflt=(old[i]&&old[i].type)||(i===0?'Adult':'Child');
@@ -135,22 +140,24 @@ function setExtras(n){
 function place(where){var p=q('#primary');p.hidden=false;q(where).appendChild(p)}
 function placePhone(where){var p=q('#phoneBlock');p.hidden=false;q(where).appendChild(p)}
 function setNote(a){var l=q('#noteLbl'),m=q('#msg'),pl=q('#phoneLbl'),p=q('#phone');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='';pl.textContent='Phone number';p.placeholder=''}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all';pl.innerHTML='Phone number <span class="req">*</span>';p.placeholder='(555) 123-4567'}}
-q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');q('#after').hidden=!C;if(C){place('#slotA');placePhone('#slotP')}else q('#primary').hidden=true;setNote('accept');q('#err').style.display='none'};
+q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');setCount(parseInt(C,10)||2);setNote('accept');q('#err').style.display='none'};
 q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#err').style.display='none'};
-qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}});
+function setCount(n){n=Math.max(1,Math.min(8,n));C=String(n);q('#cnum').textContent=C;q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(n)}
+q('#dec').onclick=function(){setCount((parseInt(C,10)||2)-1)};
+q('#inc').onclick=function(){setCount((parseInt(C,10)||2)+1)};
 q('#phone').addEventListener('input',function(){var v=this.value;if(v.trim().charAt(0)==='+')return;var d=v.replace(/\D/g,'').slice(0,10);var o=d;if(d.length>6)o='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);else if(d.length>3)o='('+d.slice(0,3)+') '+d.slice(3);else if(d.length>0)o='('+d;this.value=o});
 qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'))}})});
 q('#f').onsubmit=function(ev){ev.preventDefault();
  var miss=[];
  if(!A)miss.push('whether you&rsquo;ll be joining us');
  var fn=q('#first').value.trim(),ln=q('#last').value.trim();
- if(A==="Joyfully accept"&&!C)miss.push('how many are attending');
+ 
  if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name')}
  if(A==="Joyfully accept"&&C){var pd=q('#phone').value.replace(/\D/g,'');
   if(!(pd.length>=10||(q('#phone').value.trim().charAt(0)==='+'&&pd.length>=8)))miss.push('a phone number')}
  var others=[];
  if(A==="Joyfully accept"&&C){
-  var need=(C.charAt(0)==='5')?4:((parseInt(C,10)||1)-1);
+  var need=(parseInt(C,10)||1)-1;
   var rows=qa('#extras .f');var filled=0;
   rows.forEach(function(d,i){var n=q('input',d).value.trim();if(n){filled++;others.push({name:n,type:q('.gt .on',d).getAttribute('data-t')})}else if(i<need)miss.push((LBL[i]||'guest').toLowerCase()+'&rsquo;s name')});
   var unanswered=qa('.ev').filter(function(e){return !e.getAttribute('data-a')});
