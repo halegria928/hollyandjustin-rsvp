@@ -37,6 +37,8 @@ textarea{resize:vertical;min-height:36px}
 .pills button.wide{width:auto;border-radius:24px;padding:0 22px;font-size:15px;letter-spacing:.05em}
 .pills button:hover{border-color:var(--gold);background:#faf0e9}
 .pills button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
 .gt{display:flex;gap:8px;margin-top:8px}
 .gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
 .gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
@@ -72,14 +74,14 @@ textarea{resize:vertical;min-height:36px}
   <div class="when">Saturday, March 13, 2027<br><b>Hacienda del Mar &middot; Puerto Aventuras, Mexico</b></div>
   <p class="note">We can&rsquo;t wait to celebrate with you. Please respond once per invitation, for the guests named upon it.</p>
   <form id="f" novalidate>
-   <div class="f"><label>Your full name <span class="req">*</span></label><input type="text" id="name" placeholder="As it appears on your invitation"></div>
-   <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
+      <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
     <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
+   <div class="grid2"><div class="f"><label>First name <span class="req">*</span></label><input type="text" id="first" placeholder="As on your invitation" autocomplete="given-name"></div><div class="f"><label>Last name <span class="req">*</span></label><input type="text" id="last" autocomplete="family-name"></div></div>
    <div id="more">
     <div class="f"><span class="lg">How many will attend, including yourself?</span>
      <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
     <div id="extras"></div>
-    <p class="kids" id="kids" hidden>If your little ones can&rsquo;t stay home, they&rsquo;re more than welcome &mdash; we&rsquo;d rather have your whole crew than miss you. Just include them in your count and names.</p>
+    <p class="kids" id="kids" hidden>If your little ones can&rsquo;t stay home, they&rsquo;re more than welcome &mdash; we&rsquo;d rather have your whole crew than miss you. Just include them in your count and names, tagged Teen or Child.</p>
     <div class="f"><span class="lg">Weekend celebrations you&rsquo;ll attend</span>
      <div class="ev" data-v="Welcome Party — Friday, March 12"><div class="box"></div><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div></div>
      <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div class="box"></div><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div></div>
@@ -88,7 +90,7 @@ textarea{resize:vertical;min-height:36px}
    </div>
    <div class="f"><label>Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
-   <div class="err" id="err">Please add your name and whether you&rsquo;ll be joining us.</div>
+   <div class="err" id="err">Please tell us whether you&rsquo;ll be joining us, and your first and last name.</div>
   </form>
  </div>
  <div id="done">
@@ -109,10 +111,10 @@ function setExtras(n){
  var count=Math.min(n-1,6);
  for(var i=0;i<count;i++){
   var d=document.createElement('div');d.className='f';
-  d.innerHTML='<label>Guest '+WORDS[i]+' \u2014 full name</label><input type="text" placeholder="Your plus one or family member"><div class="gt"><button type="button" data-t="Adult" class="on">Adult</button><button type="button" data-t="Child">Child</button></div>';
+  d.innerHTML='<label>Guest '+WORDS[i]+' \u2014 full name</label><input type="text" placeholder="Your plus one or family member"><div class="gt"><button type="button" data-t="Adult" class="on">Adult</button><button type="button" data-t="Teen">Teen</button><button type="button" data-t="Child">Child</button></div>';
   box.appendChild(d);
   q('input',d).value=(old[i]&&old[i].name)||'';
-  if(old[i]&&old[i].type==='Child'){qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')==='Child')})}
+  if(old[i]&&old[i].type){qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===old[i].type)})}
   qa('.gt button',d).forEach(function(b){b.onclick=function(){qa('.gt button',b.parentNode).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
  }
  q('#kids').hidden=(n<2);
@@ -122,8 +124,8 @@ q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('
 qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}})
 qa('.ev').forEach(function(e){e.onclick=function(){e.classList.toggle('on')}})
 q('#f').onsubmit=function(ev){ev.preventDefault();
- var n=q('#name').value.trim();
- if(!n||!A){q('#err').style.display='block';return}
+ var fn=q('#first').value.trim(),ln=q('#last').value.trim(),n=(fn+' '+ln).trim();
+ if(!fn||!ln||!A){q('#err').style.display='block';return}
  q('#err').style.display='none';var b=q('#send');b.disabled=true;b.textContent='Sending…';
  var p=new URLSearchParams();
  p.append('entry.1923252760',n);p.append('entry.174967632',A);

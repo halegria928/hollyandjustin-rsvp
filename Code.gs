@@ -111,7 +111,7 @@ function readResponses_() {
     var v = vals[r]; if (!v[0] && !v[cName]) continue;
     var ts = v[0] instanceof Date ? v[0].toISOString() : String(v[0]);
     var others = String(cOth >= 0 ? v[cOth] : '').split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean).map(function (s) {
-      var m = s.match(/^(.*?)\s*[—–-]\s*(adult|child)\s*$/i);
+      var m = s.match(/^(.*?)\s*[—–-]\s*(adult|teen|child)\s*$/i);
       return m ? { name: m[1].trim(), type: m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase() } : { name: s, type: 'Adult' };
     });
     out.push({ key: ts + '|' + String(v[cName]), ts: ts, name: String(v[cName]), attending: String(cAtt >= 0 ? v[cAtt] : ''),
