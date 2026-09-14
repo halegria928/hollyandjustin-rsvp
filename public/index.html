@@ -23,8 +23,11 @@ h1{font:400 clamp(56px,11vw,88px)/1.02 'Pinyon Script',cursive;text-align:center
 .when b{font-weight:400;color:var(--muted);letter-spacing:.24em}
 .note{font:italic 400 19px/1.75 'Cormorant Garamond',Georgia,serif;color:var(--muted);max-width:440px;margin:26px auto 0;text-align:center}
 form{margin-top:48px}
-.f{margin-bottom:30px}
-label,.lg{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.f{margin-bottom:28px;position:relative;padding-left:20px;border-left:1px solid #d9c2ae}
+.f:before{content:"";position:absolute;left:-4.5px;top:1px;width:8px;height:8px;transform:rotate(45deg);background:var(--foil)}
+#extras .f{margin-bottom:22px}
+.kids{padding-left:20px}
+label,.lg{display:block;font:500 11px 'Jost',sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
 label .req,.lg .req{color:var(--muted)}
 input[type=text],textarea{width:100%;border:0;border-bottom:1px solid var(--blush-line);background:transparent;padding:9px 2px;font:400 18px 'Cormorant Garamond',Georgia,serif;color:var(--ink);border-radius:0;outline:none;transition:border-color .25s}
 input[type=text]:focus,textarea:focus{border-bottom-color:var(--gold)}
@@ -44,7 +47,11 @@ textarea{resize:vertical;min-height:36px}
 .gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
 .gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
 .kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:0 0 26px}
-.ev{display:flex;align-items:flex-start;gap:15px;padding:14px 0;border-bottom:1px solid #f0e2d6;cursor:pointer}
+.ev{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 0;border-bottom:1px solid #f0e2d6}
+.evc{display:flex;gap:7px;justify-self:end}
+.evc button{min-width:58px;text-align:center;padding:7px 0;border:1px solid var(--gold-line);border-radius:15px;background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s}
+.evc button:hover{border-color:var(--gold)}
+.evc button.on{background:var(--foil);border-color:var(--gold);color:#46392b;font-weight:500}
 .ev:last-child{border-bottom:0}
 .evc{display:flex;gap:7px}
 .evc button{padding:7px 13px;border:1px solid var(--gold-line);border-radius:15px;background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s}
@@ -92,7 +99,7 @@ textarea{resize:vertical;min-height:36px}
     </div>
    </div>
    <div id="primary" hidden><div class="f"><span class="lg">Your name <span class="req">*</span></span><div class="grid2"><div><input type="text" id="first" placeholder="First name" autocomplete="given-name"></div><div><input type="text" id="last" placeholder="Last name" autocomplete="family-name"></div></div></div></div>
-   <div id="phoneBlock" hidden><div class="f"><label>Best phone number <span style="text-transform:none;letter-spacing:.04em;color:var(--muted)">&mdash; optional</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="So the couple can reach you about the weekend"></div></div>
+   <div id="phoneBlock" hidden><div class="f"><label>Phone number <span class="req">*</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567"></div></div>
    <div id="slotB"></div>
    <div class="f"><label id="noteLbl">Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
@@ -132,13 +139,16 @@ function setNote(a){var l=q('#noteLbl'),m=q('#msg');if(a==='decline'){l.innerHTM
 q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');q('#after').hidden=!C;if(C){place('#slotA');placePhone('#slotP')}else q('#primary').hidden=true;setNote('accept');q('#err').style.display='none'};
 q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#err').style.display='none'};
 qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}});
+q('#phone').addEventListener('input',function(){var v=this.value;if(v.trim().charAt(0)==='+')return;var d=v.replace(/\D/g,'').slice(0,10);var o=d;if(d.length>6)o='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);else if(d.length>3)o='('+d.slice(0,3)+') '+d.slice(3);else if(d.length>0)o='('+d;this.value=o});
 qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'))}})});
 q('#f').onsubmit=function(ev){ev.preventDefault();
  var miss=[];
  if(!A)miss.push('whether you&rsquo;ll be joining us');
  var fn=q('#first').value.trim(),ln=q('#last').value.trim();
  if(A==="Joyfully accept"&&!C)miss.push('how many are attending');
- if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name')}
+ if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name');
+  var pd=q('#phone').value.replace(/\D/g,'');
+  if(!(pd.length>=10||(q('#phone').value.trim().charAt(0)==='+'&&pd.length>=8)))miss.push('a phone number')}
  var others=[];
  if(A==="Joyfully accept"&&C){
   var need=(C.charAt(0)==='5')?4:((parseInt(C,10)||1)-1);
