@@ -37,6 +37,9 @@ textarea{resize:vertical;min-height:36px}
 .pills button.wide{width:auto;border-radius:24px;padding:0 22px;font-size:15px;letter-spacing:.05em}
 .pills button:hover{border-color:var(--gold);background:#faf0e9}
 .pills button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+.gt{display:flex;gap:8px;margin-top:8px}
+.gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
+.gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
 .kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:-6px 0 30px}
 .ev{display:flex;align-items:flex-start;gap:15px;padding:14px 0;border-bottom:1px solid #f0e2d6;cursor:pointer}
 .ev:last-child{border-bottom:0}
@@ -97,24 +100,26 @@ textarea{resize:vertical;min-height:36px}
 <div class="foot">H &nbsp;&middot;&nbsp; 03 &middot; 13 &middot; 27 &nbsp;&middot;&nbsp; J</div>
 <script>
 var A="",C="";
-function q(s){return document.querySelector(s)}function qa(s){return[].slice.call(document.querySelectorAll(s))}
-var WORDS=["Two","Three","Four","Five"];
+function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return[].slice.call((r||document).querySelectorAll(s))}
+var WORDS=["Two","Three","Four","Five","Six","Seven"];
 function setExtras(n){
  var box=q('#extras');
- var old=qa('#extras input').map(function(i){return i.value});
+ var old=qa('#extras .f').map(function(d){return {name:q('input',d).value,type:q('.gt .on',d).getAttribute('data-t')}});
  box.innerHTML='';
- var count=Math.min(n-1,4);
+ var count=Math.min(n-1,6);
  for(var i=0;i<count;i++){
   var d=document.createElement('div');d.className='f';
-  d.innerHTML='<label>Guest '+WORDS[i]+' — full name</label><input type="text" placeholder="Your plus one or family member">';
+  d.innerHTML='<label>Guest '+WORDS[i]+' \u2014 full name</label><input type="text" placeholder="Your plus one or family member"><div class="gt"><button type="button" data-t="Adult" class="on">Adult</button><button type="button" data-t="Child">Child</button></div>';
   box.appendChild(d);
-  d.querySelector('input').value=old[i]||'';
+  q('input',d).value=(old[i]&&old[i].name)||'';
+  if(old[i]&&old[i].type==='Child'){qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')==='Child')})}
+  qa('.gt button',d).forEach(function(b){b.onclick=function(){qa('.gt button',b.parentNode).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
  }
  q('#kids').hidden=(n<2);
 }
 q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open')}
 q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open')}
-qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');setExtras(parseInt(C,10)||5)}})
+qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}})
 qa('.ev').forEach(function(e){e.onclick=function(){e.classList.toggle('on')}})
 q('#f').onsubmit=function(ev){ev.preventDefault();
  var n=q('#name').value.trim();
@@ -124,7 +129,7 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  p.append('entry.1923252760',n);p.append('entry.174967632',A);
  if(A==="Joyfully accept"){
   if(C)p.append('entry.1828750429',C);
-  var oth=qa('#extras input').map(function(i){return i.value.trim()}).filter(Boolean);
+  var oth=qa('#extras .f').map(function(d){var n=q('input',d).value.trim();return n?n+' \u2014 '+q('.gt .on',d).getAttribute('data-t'):''}).filter(Boolean);
   if(oth.length)p.append('entry.220301343',oth.join('\n'));
   qa('.ev.on').forEach(function(e){p.append('entry.373522947',e.getAttribute('data-v'))});
   if(q('#diet').value.trim())p.append('entry.1027420598',q('#diet').value.trim());}
