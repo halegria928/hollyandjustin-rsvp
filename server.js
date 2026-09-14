@@ -109,12 +109,13 @@ app.use(express.json({ limit: '200kb' }));
 const PUB = path.join(__dirname, 'public');
 
 app.get('/', async (req, res, next) => {
-  try { const theme = await getSetting('theme', 'blush'); const look = LOOKS.find(l => l.id === theme) || LOOKS[0]; res.set('Cache-Control', 'no-cache'); res.sendFile(path.join(PUB, look.file)); }
+  try { const theme = dbReady ? await getSetting('theme', 'blush') : 'blush'; const look = LOOKS.find(l => l.id === theme) || LOOKS[0]; res.set('Cache-Control', 'no-cache'); res.sendFile(path.join(PUB, look.file)); }
   catch (e) { next(e); }
 });
 app.use(express.static(PUB, { extensions: ['html'] }));
 
 app.post('/api/rsvp', async (req, res) => {
+  if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
   try {
     const b = req.body || {};
     const first = String(b.first || '').trim().slice(0, 80), last = String(b.last || '').trim().slice(0, 80), attending = String(b.attending || '').slice(0, 40);
@@ -129,6 +130,7 @@ app.post('/api/rsvp', async (req, res) => {
 
 app.post('/api/admin', async (req, res) => {
   const b = req.body || {};
+  if (!dbReady) return res.status(503).json({ ok: false, error: 'Database unavailable: ' + dbError });
   try {
     const pw = await getSetting('password', DEFAULT_PASSWORD);
     if (String(b.pw || '') !== pw) return res.status(401).json({ ok: false, error: 'bad_password' });
@@ -151,5 +153,10 @@ app.post('/api/admin', async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
 });
 
-app.get('/healthz', (req, res) => res.json({ ok: true }));
-init().then(() => app.listen(PORT, () => console.log('RSVP site listening on ' + PORT))).catch(e => { console.error('DB init failed', e); process.exit(1); });
+let dbReady = false, dbError = null;
+async function initLoop() {
+  try { await init(); dbReady = true; dbError = null; console.log('Database ready'); }
+  catch (e) { dbReady = false; dbError = String(e && e.message || e); console.error('DB init failed:', dbError); setTimeout(initLoop, 30000); }
+}
+app.get('/healthz', (req, res) => res.json({ ok: dbReady, db: dbReady ? 'ready' : 'unavailable', error: dbError, hasUrl: !!process.env.DATABASE_URL }));
+app.listen(PORT, () => { console.log('RSVP site listening on ' + PORT); initLoop(); });
