@@ -96,12 +96,13 @@ body{background:#1a1410}
       <div class="ev" data-v="Welcome Party — Friday, March 12"><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div>
       <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div>
       <div class="ev" data-v="Beach &amp; Pool Day — Sunday, March 14"><div><div class="t">Beach &amp; Pool Day</div><div class="d">Sunday, March 14</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div></div>
-     <div class="f"><label>Best phone number <span style="text-transform:none;letter-spacing:.04em;color:var(--muted)">&mdash; optional</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="So the couple can reach you about the weekend"></div>
+     <div id="slotP"></div>
     </div>
    </div>
    <div id="primary" hidden><div class="f"><span class="lg">Your name <span class="req">*</span></span><div class="grid2"><div><input type="text" id="first" placeholder="First name" autocomplete="given-name"></div><div><input type="text" id="last" placeholder="Last name" autocomplete="family-name"></div></div></div></div>
+   <div id="phoneBlock" hidden><div class="f"><label>Best phone number <span style="text-transform:none;letter-spacing:.04em;color:var(--muted)">&mdash; optional</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="So the couple can reach you about the weekend"></div></div>
    <div id="slotB"></div>
-   <div class="f"><label>Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
+   <div class="f"><label id="noteLbl">Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
    <div class="err" id="err"></div>
   </form>
@@ -134,9 +135,11 @@ function setExtras(n){
  }
 }
 function place(where){var p=q('#primary');p.hidden=false;q(where).appendChild(p)}
-q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');q('#after').hidden=!C;if(C)place('#slotA');else q('#primary').hidden=true;q('#err').style.display='none'};
-q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');q('#err').style.display='none'};
-qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');q('#after').hidden=false;place('#slotA');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}});
+function placePhone(where){var p=q('#phoneBlock');p.hidden=false;q(where).appendChild(p)}
+function setNote(a){var l=q('#noteLbl'),m=q('#msg');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='They&rsquo;ll be so sorry to miss you — send a little love'}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all'}}
+q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');q('#after').hidden=!C;if(C){place('#slotA');placePhone('#slotP')}else q('#primary').hidden=true;setNote('accept');q('#err').style.display='none'};
+q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#err').style.display='none'};
+qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}});
 qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'))}})});
 q('#f').onsubmit=function(ev){ev.preventDefault();
  var miss=[];
@@ -155,10 +158,10 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  var err=q('#err');
  if(miss.length){err.innerHTML='Almost there &mdash; still needed: '+miss.join(', ')+'.';err.style.display='block';return}
  err.style.display='none';var b=q('#send');b.disabled=true;b.textContent='Sending…';
- var body={first:fn,last:ln,attending:A,count:'',others:[],events:[],note:q('#msg').value.trim(),look:(document.title.split('·')[1]||'Blush').trim(),phone:''};
+ var body={first:fn,last:ln,attending:A,count:'',others:[],events:[],note:q('#msg').value.trim(),look:(document.title.split('·')[1]||'Blush').trim(),phone:q('#phone').value.trim()};
  if(A==="Joyfully accept"){body.count=C;body.others=others;
   body.events=qa('.ev').map(function(e){return e.getAttribute('data-v')+': '+e.getAttribute('data-a')});
-  body.phone=q('#phone').value.trim();}
+}
  fetch('/api/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(r){
   if(!r||!r.ok)throw new Error('save');
   if(A==="Regretfully decline")q('#dbig').textContent='You will be dearly missed';
