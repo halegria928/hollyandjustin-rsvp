@@ -28,7 +28,20 @@ function dbConfig() {
 const pool = new Pool(dbConfig());
 const q = (text, params) => pool.query(text, params);
 
+// One-time bootstrap: when the app is connected as the cluster admin, hand this database to the
+// low-privilege 'wedding' user so the app can run as that user afterwards. Skipped/harmless otherwise.
+async function bootstrapPrivileges() {
+  const who = (await q('SELECT current_user AS u, current_database() AS d')).rows[0];
+  if (who.u === 'wedding') return;
+  const tryq = async sql => { try { await q(sql); } catch (e) { console.log('bootstrap skip:', sql.slice(0, 40), '-', e.message); } };
+  await tryq(`ALTER DATABASE "${who.d}" OWNER TO wedding`);
+  await tryq('GRANT ALL ON SCHEMA public TO wedding');
+  await tryq('GRANT ALL ON ALL TABLES IN SCHEMA public TO wedding');
+  await tryq('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO wedding');
+  for (const t of ['households', 'guests', 'responses', 'matches', 'settings']) await tryq(`ALTER TABLE IF EXISTS ${t} OWNER TO wedding`);
+}
 async function init() {
+  await bootstrapPrivileges();
   await q(`CREATE TABLE IF NOT EXISTS households (
     id serial PRIMARY KEY, name text NOT NULL DEFAULT '', tier text NOT NULL DEFAULT 'A', invited boolean NOT NULL DEFAULT true,
     plus_one boolean NOT NULL DEFAULT false, likelihood text NOT NULL DEFAULT 'Unknown', notes text NOT NULL DEFAULT '',
@@ -42,6 +55,7 @@ async function init() {
   await q(`CREATE TABLE IF NOT EXISTS matches (response_id integer PRIMARY KEY REFERENCES responses(id) ON DELETE CASCADE,
     household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE, approved boolean NOT NULL DEFAULT false, method text NOT NULL DEFAULT 'auto')`);
   await q(`CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL)`);
+  await bootstrapPrivileges();
 }
 async function getSetting(key, dflt) { const r = await q('SELECT value FROM settings WHERE key=$1', [key]); return r.rows.length ? r.rows[0].value : dflt; }
 async function setSetting(key, value) { await q('INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value', [key, value]); }
