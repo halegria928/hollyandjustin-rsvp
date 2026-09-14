@@ -63,15 +63,17 @@ textarea{resize:vertical;min-height:36px}
 @media (max-width:560px){.arch{border-radius:200px 200px 0 0;padding:64px 22px 46px}.arch:before{border-radius:194px 194px 0 0}}
 @media (max-width:659px){.arch{background:rgba(253,250,245,.85)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}}
 
-.bg{position:fixed;inset:0;z-index:-1;background:#1a1410 url(together.jpg) left center/cover no-repeat;filter:saturate(.9) brightness(.9)}
+.bg{position:fixed;inset:0;z-index:-1;background:#1a1410 url(together.jpg) 30% center/cover no-repeat;filter:saturate(.9) brightness(.9)}
 .bg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(38,24,16,.34) 0%,rgba(32,20,13,.50) 55%,rgba(24,14,9,.68) 100%)}
 body{background:#1a1410}
 .arch{background:rgba(253,250,245,.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .foot{color:#e8d3bd}
 @media (max-width:659px){.arch{background:rgba(253,250,245,.78)!important;margin-left:3vw;margin-right:3vw;padding-left:22px;padding-right:22px}}
 </style><style>
-.bg:after{background:linear-gradient(90deg,rgba(30,18,12,.18) 0%,rgba(28,17,11,.42) 52%,rgba(22,13,8,.62) 100%),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(20,12,8,.35) 100%)}
-@media (max-width:659px){.arch{background:rgba(253,250,245,.68)!important;margin-left:3vw;margin-right:3vw;padding-left:22px;padding-right:22px}}
+.bg{background-position:30% center}
+.bg:after{background:linear-gradient(90deg,rgba(30,18,12,.16) 0%,rgba(28,17,11,.38) 52%,rgba(22,13,8,.58) 100%),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(20,12,8,.32) 100%)}
+.arch{background:rgba(253,250,245,var(--hja,.30))!important;-webkit-backdrop-filter:blur(var(--hjb,4px));backdrop-filter:blur(var(--hjb,4px));transition:background .12s linear}
+@media (max-width:659px){.arch{margin-left:3vw;margin-right:3vw;padding-left:22px;padding-right:22px}.bg{background-position:22% center}}
 @media (min-width:1000px){.arch{margin-left:auto;margin-right:5vw}.foot{max-width:660px;margin-left:auto;margin-right:5vw}}
 @media (min-width:660px) and (max-width:999px){.arch{max-width:530px;padding:60px 28px 44px;margin-left:auto;margin-right:14px}.foot{max-width:530px;margin-left:auto;margin-right:14px}}
 </style></head><body>
@@ -150,4 +152,6 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
   q('#cardview').style.display='none';q('#done').style.display='block';window.scrollTo(0,0);
  }).catch(function(){q('#err').textContent='Something went wrong sending your RSVP. Please try again in a moment.';q('#err').style.display='block';b.disabled=false;b.textContent='Send RSVP';});
  return false}
+</script><script>
+(function(){var r=document.documentElement;function f(){var t=Math.min(1,(window.scrollY||window.pageYOffset||0)/360);r.style.setProperty('--hja',(0.30+0.58*t).toFixed(3));r.style.setProperty('--hjb',(4+8*t).toFixed(1)+'px')}window.addEventListener('scroll',f,{passive:true});window.addEventListener('resize',f);f()})();
 </script></body></html>
