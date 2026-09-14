@@ -9,7 +9,7 @@ const archiver = require('archiver');
 const PORT = process.env.PORT || 8080;
 const DEFAULT_PASSWORD = process.env.PORTAL_PASSWORD || 'Hacienda-0313';
 const LOOKS = [
-  { id: 'blush', file: 'index.html', title: 'Blush' }, { id: 'rose', file: 'rose.html', title: 'Rose' }, { id: 'rose-lace', file: 'rose-lace.html', title: 'Rose Lace' },
+  { id: 'blush', file: 'index.html', title: 'Blush' }, { id: 'rose', file: 'rose.html', title: 'Rose' }, { id: 'bouquet', file: 'bouquet.html', title: 'Blush Bouquet' }, { id: 'garland', file: 'garland.html', title: 'Candlelit Garland' },
   { id: 'hacienda-dark', file: 'hacienda-dark.html', title: 'Hacienda Dark' }, { id: 'hacienda-light', file: 'hacienda-light.html', title: 'Hacienda Light' },
   { id: 'shore-dark', file: 'shore-dark.html', title: 'Shore Dark' }, { id: 'shore-light', file: 'shore-light.html', title: 'Shore Light' }
 ];
