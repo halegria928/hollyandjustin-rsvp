@@ -54,6 +54,7 @@ async function init() {
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS billing text NOT NULL DEFAULT 'charged'`);
   await q(`CREATE TABLE IF NOT EXISTS guests (id serial PRIMARY KEY, household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE,
     name text NOT NULL, type text NOT NULL DEFAULT 'Adult', phone text NOT NULL DEFAULT '', pos integer NOT NULL DEFAULT 0)`);
+  await q(`ALTER TABLE guests ADD COLUMN IF NOT EXISTS room integer`);
   await q(`CREATE TABLE IF NOT EXISTS responses (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(), first_name text NOT NULL DEFAULT '',
     last_name text NOT NULL DEFAULT '', attending text NOT NULL DEFAULT '', count text NOT NULL DEFAULT '', others jsonb NOT NULL DEFAULT '[]',
     events text NOT NULL DEFAULT '', note text NOT NULL DEFAULT '', look text NOT NULL DEFAULT '')`);
@@ -96,7 +97,7 @@ async function loadAll() {
     foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, guests: []
   }));
   const byId = Object.fromEntries(hh.map(h => [h.id, h]));
-  for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone }); }
+  for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone, room: g.room == null ? '' : g.room }); }
   const responses = (await q('SELECT * FROM responses ORDER BY created DESC')).rows.map(r => ({
     key: String(r.id), ts: r.created, name: (r.first_name + ' ' + r.last_name).trim(), first: r.first_name, last: r.last_name, attending: r.attending, count: r.count,
     others: Array.isArray(r.others) ? r.others : [], events: r.events, note: r.note, look: r.look
@@ -127,7 +128,7 @@ async function saveHousehold(h) {
   if (Array.isArray(h.guests)) {
     await q('DELETE FROM guests WHERE household_id=$1', [id]);
     let pos = 0;
-    for (const g of h.guests) { const name = String(g.name || '').trim(); if (!name) continue; await q('INSERT INTO guests(household_id,name,type,phone,pos) VALUES($1,$2,$3,$4,$5)', [id, name, OPTIONS.guestType.includes(g.type) ? g.type : 'Adult', g.phone || '', pos++]); }
+    for (const g of h.guests) { const name = String(g.name || '').trim(); if (!name) continue; const rm = Number(g.room); await q('INSERT INTO guests(household_id,name,type,phone,pos,room) VALUES($1,$2,$3,$4,$5,$6)', [id, name, OPTIONS.guestType.includes(g.type) ? g.type : 'Adult', g.phone || '', pos++, rm >= 1 && rm <= 15 ? rm : null]); }
   }
   return { ok: true, id: String(id) };
 }
