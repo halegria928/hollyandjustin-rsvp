@@ -90,6 +90,11 @@ body{background:#1a1410}
 @media (max-width:659px){.arch{margin-left:3vw;margin-right:3vw;padding-left:22px;padding-right:22px}.bg{background-position:22% center}}
 @media (min-width:1000px){.arch{margin-left:auto;margin-right:5vw}.foot{max-width:660px;margin-left:auto;margin-right:5vw}}
 @media (min-width:660px) and (max-width:999px){.arch{max-width:530px;padding:60px 28px 44px;margin-left:auto;margin-right:14px}.foot{max-width:530px;margin-left:auto;margin-right:14px}}
+.when{font-weight:500;color:color-mix(in srgb, #54423b var(--dk,0%), #241b15)}
+.when b{font-weight:500;color:color-mix(in srgb, #a68d82 var(--dk,0%), #33271f)}
+.note{color:color-mix(in srgb, #a68d82 var(--dk,0%), #3a2c22)}
+label,.lg,.eyebrow{color:color-mix(in srgb, #9c7c54 var(--dk,0%), #5f4a2c)}
+.kids{color:color-mix(in srgb, #54423b var(--dk,0%), #2f241c)}
 </style></head><body>
 <div class="bg"></div>
 <div class="arch">
@@ -192,5 +197,5 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  }).catch(function(){err.textContent='Something went wrong sending your RSVP. Please try again in a moment.';err.style.display='block';b.disabled=false;b.textContent='Send RSVP';});
  return false}
 </script><script>
-(function(){var r=document.documentElement;function f(){var t=Math.min(1,(window.scrollY||window.pageYOffset||0)/360);r.style.setProperty('--hja',(0.30+0.58*t).toFixed(3));r.style.setProperty('--hjb',(4+8*t).toFixed(1)+'px')}window.addEventListener('scroll',f,{passive:true});window.addEventListener('resize',f);f()})();
+(function(){var r=document.documentElement;function f(){var t=Math.min(1,(window.scrollY||window.pageYOffset||0)/360);r.style.setProperty('--hja',(0.30+0.58*t).toFixed(3));r.style.setProperty('--hjb',(4+8*t).toFixed(1)+'px');r.style.setProperty('--dk',(t*100).toFixed(0)+'%')}window.addEventListener('scroll',f,{passive:true});window.addEventListener('resize',f);f()})();
 </script></body></html>
