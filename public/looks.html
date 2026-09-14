@@ -1,5 +1,26 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Holly &amp; Justin — Looks</title><meta name="robots" content="noindex">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Pinyon+Script&family=Jost:wght@300;400&display=swap">
-<style>*{box-sizing:border-box;margin:0}body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:#54423b;font:300 15px/1.5 'Jost',sans-serif;padding:40px 16px 80px}
-.w{max-width:560px;margin:0 auto;text-align:center}.e{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:#a8842c}h1{font:400 56px/1.05 'Pinyon Script',cursive;color:#a8842c;margin:8px 0 6px}p{font:italic 400 18px/1.6 'Cormorant Garamond',serif;color:#a68d82;margin-bottom:28px}
-.lk{display:block;background:#fdfaf5;border:1px solid #b3924a99;padding:16px 20px;margin-bottom:10px;text-decoration:none;color:#54423b;text-align:left}.lk .t{display:block;font:500 22px 'Cormorant Garamond',serif;letter-spacing:.02em}.lk .d{display:block;font-size:12.5px;color:#a68d82;letter-spacing:.06em;margin-top:2px}.lk:hover{border-color:#a8842c}</style></head><body><div class="w"><div class="e">Pick a look</div><h1>Holly &amp; Justin</h1><p>Tap any look to see the live RSVP page. Every one is fully working — same form, same answers.</p><a class="lk" href="index.html"><span class="t">Blush</span><span class="d">Soft blush glow, ivory card — the original</span></a><a class="lk" href="rose.html"><span class="t">Rose</span><span class="d">Dusty rose, just color, with depth</span></a><a class="lk" href="bouquet.html"><span class="t">Blush Bouquet</span><span class="d">Champagne roses and baby&rsquo;s breath, soft focus</span></a><a class="lk" href="lace.html"><span class="t">Blush Lace</span><span class="d">Ivory floral lace on soft blush</span></a><a class="lk" href="mauve.html"><span class="t">Mauve Roses</span><span class="d">Moody mauve and maroon roses, rich and dark</span></a><a class="lk" href="together.html"><span class="t">Holly &amp; Justin</span><span class="d">The two of them, a quiet moment in the stables</span></a><a class="lk" href="hacienda-dark.html"><span class="t">Hacienda Dark</span><span class="d">The arches at dusk, moody and mystical</span></a><a class="lk" href="hacienda-light.html"><span class="t">Hacienda Light</span><span class="d">The arches under a blush veil</span></a><a class="lk" href="shore-dark.html"><span class="t">Shore Dark</span><span class="d">The villa pool and sea, after dark</span></a><a class="lk" href="shore-light.html"><span class="t">Shore Light</span><span class="d">The villa pool and sea, faded and soft</span></a></div></body></html>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400&family=Jost:wght@300;400;500&display=swap">
+<style>*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{display:flex;flex-direction:column;background:#f3dcd2;font:300 14px 'Jost',sans-serif}
+.bar{flex:none;display:flex;align-items:center;gap:4px;background:#fdfaf5;border-bottom:1px solid #b39a76;padding:0 10px;height:46px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.bar::-webkit-scrollbar{display:none}
+.bar .lbl{flex:none;font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:#9c7c54;margin-right:8px}
+.bar button{flex:none;border:1px solid transparent;background:transparent;padding:7px 12px;font:400 10.5px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#54423b;cursor:pointer;border-radius:16px;white-space:nowrap}
+.bar button:hover{border-color:#b39a76}
+.bar button.on{background:linear-gradient(100deg,#8f7350,#c0a37e 45%,#ecdcc4 75%,#b3936c);color:#3d3222;font-weight:500}
+.bar .note{flex:none;margin-left:auto;font:italic 400 13px 'Cormorant Garamond',serif;color:#a68d82;padding-left:12px;white-space:nowrap}
+iframe{flex:1;width:100%;border:0;display:block}
+</style></head><body>
+<div class="bar" id="bar"><span class="lbl">Looks</span><span class="note" id="note"></span></div>
+<iframe id="fr" title="Look preview"></iframe>
+<script>
+var LOOKS=[{id:'index',file:'index.html',title:'Blush',d:'Soft blush glow, ivory card — the original'},{id:'rose',file:'rose.html',title:'Rose',d:'Dusty rose, just color, with depth'},{id:'bouquet',file:'bouquet.html',title:'Blush Bouquet',d:'Champagne roses and baby&rsquo;s breath, soft focus'},{id:'lace',file:'lace.html',title:'Blush Lace',d:'Ivory floral lace on soft blush'},{id:'mauve',file:'mauve.html',title:'Mauve Roses',d:'Moody mauve and maroon roses, rich and dark'},{id:'together',file:'together.html',title:'Holly &amp; Justin',d:'The two of them, a quiet moment in the stables'},{id:'hacienda-dark',file:'hacienda-dark.html',title:'Hacienda Dark',d:'The arches at dusk, moody and mystical'},{id:'hacienda-light',file:'hacienda-light.html',title:'Hacienda Light',d:'The arches under a blush veil'},{id:'shore-dark',file:'shore-dark.html',title:'Shore Dark',d:'The villa pool and sea, after dark'},{id:'shore-light',file:'shore-light.html',title:'Shore Light',d:'The villa pool and sea, faded and soft'}];
+var bar=document.getElementById('bar'),fr=document.getElementById('fr'),note=document.getElementById('note');
+function show(id){var l=LOOKS.find(function(x){return x.id===id})||LOOKS[0];
+ fr.src='/'+l.file;location.hash=l.id;note.textContent=l.d;
+ [].forEach.call(bar.querySelectorAll('button'),function(b){b.classList.toggle('on',b.getAttribute('data-id')===l.id)});}
+LOOKS.forEach(function(l){var b=document.createElement('button');b.textContent=l.title.replace(/&amp;/g,'&');b.setAttribute('data-id',l.id);b.onclick=function(){show(l.id)};bar.insertBefore(b,note);});
+var h=(location.hash||'').slice(1);
+if(h){show(h)}else{fetch('/api/theme').then(function(r){return r.json()}).then(function(r){var map={blush:'index'};show(map[r.theme]||r.theme||'index')}).catch(function(){show('index')});}
+</script></body></html>

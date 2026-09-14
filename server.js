@@ -277,5 +277,6 @@ async function initLoop() {
   try { await init(); dbReady = true; dbError = null; console.log('Database ready'); }
   catch (e) { dbReady = false; dbError = String(e && e.message || e); console.error('DB init failed:', dbError); setTimeout(initLoop, 30000); }
 }
+app.get('/api/theme', async (req, res) => { try { res.json({ ok: true, theme: dbReady ? await getSetting('theme', 'blush') : 'blush' }); } catch (e) { res.json({ ok: true, theme: 'blush' }); } });
 app.get('/healthz', (req, res) => res.json({ ok: dbReady, db: dbReady ? 'ready' : 'unavailable', error: dbError, hasUrl: !!process.env.DATABASE_URL }));
 app.listen(PORT, () => { console.log('RSVP site listening on ' + PORT); initLoop(); });
