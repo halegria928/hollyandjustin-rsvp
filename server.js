@@ -252,7 +252,7 @@ app.post('/api/admin', async (req, res) => {
       case 'exportCsv': {
         const data = await loadAll();
         const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Events','Lodging','Villa room','Headcount','Room charge','Food charge','Billing','Paid','Owed','Off-site place','Notes']];
+        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Owed','Off-site place','Notes']];
         for (const h of data.households) {
           const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
           const acc = resps.filter(r => /accept/i.test(r.attending));

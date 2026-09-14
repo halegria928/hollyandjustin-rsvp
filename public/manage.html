@@ -29,6 +29,14 @@ select{appearance:none;-webkit-appearance:none;background:#fff url("data:image/s
 .err{color:var(--bad);font-size:13px;margin-top:10px;min-height:18px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px}
 .sect{margin-bottom:12px}
+.acc{margin-bottom:12px}
+.acc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;cursor:pointer}
+.acc-sum{flex:1;min-width:0}
+.chev{color:var(--gold);font-size:17px;margin-top:2px;flex:none;transition:transform .2s}
+.acc.open .chev{transform:rotate(180deg)}
+.acc-body{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
+.acc-body .card{border:1px solid var(--line);box-shadow:none;padding:16px 16px;margin-bottom:10px}
+.cnt2{display:inline-block;padding:2px 9px;margin-left:10px;border-radius:11px;background:#b56a5a;color:#fff;font:400 10px 'Jost';letter-spacing:.12em}
 .dash{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
 .gwrap{text-align:center;flex:none}
 .gnum{font:500 30px 'Cormorant Garamond',serif;fill:#54423b}
@@ -110,22 +118,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <div class="r"><span class="hint" id="updated"></span><button class="btn sm" id="refresh">Refresh</button><button class="btn sm" id="logout">Log out</button></div>
   </div>
   <div class="card" style="margin-bottom:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><label>Site look (what guests see at the main link)</label><select id="theme"></select></div><button class="btn gold sm" id="saveTheme">Make it live</button><a class="btn sm" href="/looks.html" target="_blank" rel="noopener">Preview all looks</a><span class="saved" id="themeSaved"></span></div>
-  <div id="tiles"></div>
-  <div class="tabs">
-   <button data-t="review" class="on">Needs review<span class="cnt" id="reviewCnt">0</span></button>
-   <button data-t="households">Households</button>
-   <button data-t="backup">Backup list</button>
-   <button data-t="villa">Villa &amp; lodging</button>
-   <button data-t="photos">Photos</button>
-  </div>
-  <div id="tab-review"></div>
-  <div id="tab-households" hidden>
-   <div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button></div>
-   <div id="hhList"></div>
-  </div>
-  <div id="tab-backup" hidden></div>
-  <div id="tab-villa" hidden></div>
-  <div id="tab-photos" hidden></div>
+  <div id="secs"><div class="card acc" data-name="rsvp"><div class="acc-head"><div class="acc-sum" id="sum-rsvp"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="inv"><div class="acc-head"><div class="acc-sum" id="sum-inv"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-backup"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="photos"><div class="acc-head"><div class="acc-sum" id="sum-photos"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-photos"></div></div></div></div>
   <div class="foot"><a id="changePw">Change password</a>·<a href="/" target="_blank" rel="noopener">Open the guest site</a></div>
  </div>
 </div>
@@ -178,18 +171,19 @@ function render(){
  var noHH=d.households.filter(function(h){return h.invited!==false&&h.status==='declined'}).length;
  var awaitHH=Math.max(inv.length-yesHH-noHH,0);
  var pct=inv.length?(yesHH+noHH)/inv.length:0;
+ var teens=coming.reduce(function(s,h){return s+(h.teens||0)},0);
+ var adults=Math.max(headsN-kids-teens,0);
  function arcPath(p){if(p<=0)p=0.0001;if(p>1)p=1;var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);return 'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x+' '+y}
  var seg=function(n,c){return inv.length?'<span style="width:'+(n/inv.length*100)+'%;background:'+c+'"></span>':''};
- var gauge='<div class="card sect"><div class="eyebrow">RSVP progress</div><div class="dash" style="margin-top:12px">'
-  +'<div class="gwrap"><svg width="200" height="112" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a6a2f"/><stop offset=".5" stop-color="#c9a960"/><stop offset="1" stop-color="#e9d8a4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
-  +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span data-go="hh:coming" style="cursor:pointer"><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>Yes — '+headsN+' people</span><span data-go="hh:declined" style="cursor:pointer"><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>Declined</span><span data-go="hh:none" style="cursor:pointer"><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>Awaiting</span></div></div></div></div>';
- q('#tiles').innerHTML=gauge
-  +'<div class="card sect"><div class="eyebrow">Who&rsquo;s coming</div><div class="tiles">'+[[headsN,'People coming','hh:coming'],[adults,'Adults','hh:coming'],[kids+teens,'Kids &amp; teens','hh:kids'],[declined,'Declined','hh:declined'],[none,'No reply yet','hh:none']].map(tile).join('')+'</div></div>'
-  +'<div class="card sect"><div class="eyebrow">Invitations</div><div class="tiles">'+[[inv.length,'Households invited','hh:'],[invited,'Guests invited','hh:'],[waiting,'Backup list','tab:backup']].map(tile).join('')+'</div></div>'
-  +'<div class="card sect"><div class="eyebrow">Villa &amp; money</div><div class="tiles">'+[[(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})()+' / 15','Rooms in use','tab:villa'],['$'+money0(vExp),'Expected in','tab:villa'],['$'+money0(vPaid),'Collected','tab:villa'],['$'+money0(vExp-vPaid),'Still owed','tab:villa']].map(tile).join('')+'</div></div>';
- qa('[data-go]').forEach(function(el){el.onclick=function(){var g=el.getAttribute('data-go');if(!g)return;if(g==='tab:backup')showTab('backup');else if(g==='tab:villa')showTab('villa');else if(g.indexOf('hh:')===0){showTab('households');q('#filter').value=g.slice(3);renderHouseholds()}}});
- q('#reviewCnt').textContent=d.review.length;q('#reviewCnt').style.display=d.review.length?'':'none';
- renderReview();renderHouseholds();renderVilla();if(S.tab==='backup')renderBackup();
+ q('#sum-rsvp').innerHTML='<div class="eyebrow">RSVP progress'+(d.review.length?'<span class="cnt2">'+d.review.length+' to review</span>':'')+'</div><div class="dash" style="margin-top:12px">'
+  +'<div class="gwrap"><svg width="180" height="102" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a6a2f"/><stop offset=".5" stop-color="#c9a960"/><stop offset="1" stop-color="#e9d8a4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
+  +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>Yes — '+headsN+' people</span><span><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>Declined</span><span><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>Awaiting</span></div></div></div>';
+ q('#sum-coming').innerHTML='<div class="eyebrow">Who&rsquo;s coming &middot; the guest list</div><div class="tiles">'+[[headsN,'People coming','hh:coming'],[adults,'Adults','hh:coming'],[kids+teens,'Kids &amp; teens','hh:kids'],[declined,'Declined','hh:declined'],[none,'No reply yet','hh:none']].map(tile).join('')+'</div>';
+ q('#sum-inv').innerHTML='<div class="eyebrow">Invitations &amp; backup list</div><div class="tiles">'+[[inv.length,'Households invited','hh:'],[invited,'Guests invited','hh:'],[waiting,'Backup list','sec:inv']].map(tile).join('')+'</div>';
+ q('#sum-villa').innerHTML='<div class="eyebrow">Villa accommodations</div><div class="tiles">'+[[(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})()+' / 15','Rooms in use','sec:villa'],['$'+money0(vExp),'Expected in','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Still owed','sec:villa']].map(tile).join('')+'</div>';
+ q('#sum-photos').innerHTML='<div class="eyebrow">Guest photos</div><div class="hint" style="margin-top:6px">Everything guests have shared &mdash; tap to view, hide, or download all.</div>';
+ qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g==='sec:inv')openSec('inv',true);else if(g==='sec:villa')openSec('villa',true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
+ renderReview();renderHouseholds();renderVilla();renderBackup();
  q('#updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
 }
 function respBlock(r,extra){
@@ -231,7 +225,7 @@ function renderHouseholds(){
 }
 function hhCard(h){
  var o=S.options,open=S.open[h.id]?' open':'';
- var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false? ' — backup list':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(h.room?' rm '+esc(h.room):''):'');
+ var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false?' — backup list':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(rms.length?' · Rm '+rms.join(', '):' · no room yet'):h.lodging==='Off-site'?' · Off-site'+(h.offsitePlace?' · '+esc(h.offsitePlace):''):'');
  var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
  var resps=h.resps.map(function(r){return respBlock(r,'<div class="row">'+(r.match.approved?'<span class="pill ok">approved</span>':'<span class="pill gold">needs approval</span> <button class="btn sm rApprove" data-key="'+esc(r.key)+'">Approve</button>')+' <button class="btn sm danger rUnlink" data-key="'+esc(r.key)+'">Unlink</button></div>')}).join('');
  return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">backup</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
@@ -239,7 +233,7 @@ function hhCard(h){
  '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ Add name</button>'+
  '<div class="sec">Private notes</div><textarea class="fNotes" placeholder="Only you see this — e.g. waiting on school schedule, will confirm Nov 15…">'+esc(h.notes)+'</textarea>'+
  '<div class="sec">Lodging</div><div class="grid"><div><label>Staying</label><select class="fLodge">'+o.lodging.map(function(x){return '<option'+(x===h.lodging?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
- '<div class="villaOnly"><label>Villa room</label><select class="fRoom"><option value="">— none yet —</option>'+Array.from({length:15},function(_,i){return '<option'+(String(h.room)===String(i+1)?' selected':'')+'>'+(i+1)+'</option>'}).join('')+'</select></div><div class="villaOnly"><label>Room billing</label><select class="fBilling"><option value="charged"'+(h.billing==='included'?'':' selected')+'>Charged</option><option value="included"'+(h.billing==='included'?' selected':'')+'>Included — our gift</option></select></div><div class="villaOnly"><label>Headcount in room</label><input type="number" class="fHeads" value="'+esc(h.headcount)+'" min="0"></div><div class="villaOnly"><label>Room charge ($)</label><input type="number" class="fRoomC" value="'+esc(h.roomCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Food charge ($)</label><input type="number" class="fFoodC" value="'+esc(h.foodCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Paid so far ($)</label><input type="number" class="fPaid" value="'+esc(h.paid)+'" min="0" step="1"></div>'+
+ '<div class="villaOnly"><label>Villa room</label><select class="fRoom"><option value="">— none yet —</option>'+Array.from({length:15},function(_,i){return '<option'+(String(h.room)===String(i+1)?' selected':'')+'>'+(i+1)+'</option>'}).join('')+'</select></div><div class="villaOnly"><label>Room billing</label><select class="fBilling"><option value="charged"'+(h.billing==='included'?'':' selected')+'>Charged</option><option value="included"'+(h.billing==='included'?' selected':'')+'>Included — our gift</option></select></div><div class="villaOnly"><label>Headcount in room</label><input type="number" class="fHeads" value="'+esc(h.headcount)+'" min="0"></div><div class="villaOnly"><label>Room charge ($)</label><input type="number" class="fRoomC" value="'+esc(h.roomCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Food &amp; tips ($)</label><input type="number" class="fFoodC" value="'+esc(h.foodCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Paid so far ($)</label><input type="number" class="fPaid" value="'+esc(h.paid)+'" min="0" step="1"></div>'+
  '<div class="offOnly"><label>Where</label><select class="fOffP"><option value="">—</option>'+o.offsite.map(function(x){return '<option'+(x===h.offsitePlace?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div class="offOnly"><label>Details</label><input type="text" class="fOffD" value="'+esc(h.offsiteDetails)+'" placeholder="Condo name, dates, anything"></div></div>'+
  (resps?'<div class="sec">RSVP received</div>'+resps:'<div class="sec">RSVP</div><div class="hint">Nothing received yet. If they text Holly, pick a status in "Holly\'s guess" and note it above.</div>')+
  '<div class="acts"><button class="btn gold save">Save</button><span class="saved"></span><span style="flex:1"></span><button class="btn sm danger del">Delete household</button></div></div></div>';
@@ -284,7 +278,7 @@ function renderVilla(){
  });
  el.innerHTML='<div class="card"><div class="eyebrow">Who sleeps where &middot; 15 villa rooms</div><div class="hint" style="margin-top:6px">Set a room on the whole household, or per person on their name row (that wins) &mdash; so families can split rooms, and roommates can come from different households.</div><div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th style="width:60px">Room</th><th>Staying here</th><th style="width:70px">Heads</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td></td><td>Total sleeping at the villa</td><td>'+heads+'</td></tr></tfoot></table></div>'
   +(homeless.length?'<div class="hint" style="margin-top:12px">Villa, but no room yet: '+homeless.map(esc).join(', ')+'</div>':'')+'</div>'
-  +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing &mdash; by household</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food $</th><th>Total</th><th>Paid</th><th>Owed</th><th>Payment</th><th>RSVP</th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Totals (charged)</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
+  +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing &mdash; by household</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food+tips</th><th>Total</th><th>Paid</th><th>Owed</th><th>Payment</th><th>RSVP</th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Totals (charged)</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Off-site</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th>Status</th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'—')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">No off-site stays recorded yet.</div>')+'<div class="hint" style="margin-top:12px">'+un.length+' household'+(un.length===1?'':'s')+' still marked Unsure.</div></div>';
 }
 function renderBackup(){
@@ -326,21 +320,27 @@ function renderPhotos(){
  });
 }
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
-function showTab(t){S.tab=t;if(t==='photos')renderPhotos();if(t==='backup')renderBackup();qa('.tabs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t)});['review','households','backup','villa','photos'].forEach(function(x){q('#tab-'+x).hidden=x!==t})}
+function openSec(n,force){
+ qa('.acc').forEach(function(a){var is=a.getAttribute('data-name')===n;var willOpen=is&&(force||!a.classList.contains('open'));a.classList.toggle('open',willOpen);q('.acc-body',a).hidden=!willOpen});
+ var opened=q('.acc[data-name="'+n+'"]');
+ if(n==='photos'&&opened.classList.contains('open'))renderPhotos();
+ if(opened.classList.contains('open'))opened.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+qa('.acc-head').forEach(function(h){h.addEventListener('click',function(e){if(e.target.closest('[data-go],button,select,input,a'))return;openSec(h.parentElement.getAttribute('data-name'))})});
 function enter(){var pw=q('#pw').value;if(!pw)return;var b=q('#loginBtn');b.disabled=true;q('#loginErr').textContent='';
- api('login',{pw:pw}).then(function(r){if(!r.ok)throw 'That password isn\'t right.';S.pw=pw;try{sessionStorage.setItem('hjpw',pw)}catch(e){}q('#loginView').hidden=true;q('#app').hidden=false;return load()}).catch(function(e){q('#loginErr').textContent=String(e);b.disabled=false})}
+ api('login',{pw:pw}).then(function(r){if(!r.ok)throw 'That password isn\'t right.';S.pw=pw;try{sessionStorage.setItem('hjpw',pw)}catch(e){}q('#loginView').hidden=true;q('#app').hidden=false;return load().then(function(){if(S.data&&S.data.review.length)openSec('rsvp',true)})}).catch(function(e){q('#loginErr').textContent=String(e);b.disabled=false})}
 q('#loginBtn').onclick=enter;q('#pw').addEventListener('keydown',function(e){if(e.key==='Enter')enter()});
 q('#refresh').onclick=load;q('#logout').onclick=function(){try{sessionStorage.removeItem('hjpw')}catch(e){}location.reload()};
-qa('.tabs button').forEach(function(b){b.onclick=function(){showTab(b.getAttribute('data-t'))}});
+
 q('#search').oninput=renderHouseholds;q('#filter').onchange=renderHouseholds;q('#tierF').onchange=renderHouseholds;
 q('#saveTheme').onclick=function(){var b=this;busy(b);api('setTheme',{theme:q('#theme').value}).then(function(r){b.disabled=false;q('#themeSaved').textContent=r.ok?'Live ✓ — guests now see this look':('Failed: '+r.error)})};
-q('#addHH').onclick=function(){var name=prompt('Household name (e.g. "The Boelhaufs" or "Mom & Grandma")');if(!name)return;api('saveHousehold',{household:{name:name.trim(),tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:[]}}).then(function(r){S.open[r.id]=true;showTab('households');return load()})};
+q('#addHH').onclick=function(){var name=prompt('Household name (e.g. "The Boelhaufs" or "Mom & Grandma")');if(!name)return;api('saveHousehold',{household:{name:name.trim(),tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:[]}}).then(function(r){S.open[r.id]=true;openSec('coming',true);return load()})};
 q('#importHH').onclick=function(){
  var txt=prompt('Paste one household per line:\n\nHousehold name | Guest One, Guest Two (child) | +1 | B\n\n"| +1" and the tier letter (A/B/C) are optional. Add (child) or (teen) after kids.');
  if(!txt)return;var lines=txt.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);
  var chain=Promise.resolve();lines.forEach(function(l){var p=l.split('|').map(function(s){return s.trim()});var name=p[0],guests=(p[1]||'').split(',').map(function(s){return s.trim()}).filter(Boolean).map(function(s){var ty=/\(child\)/i.test(s)?'Child':(/\(teen\)/i.test(s)?'Teen':'Adult');return {name:s.replace(/\((child|teen)\)/i,'').trim(),type:ty}}),plus=/\+\s*1/.test((p[2]||'')+(p[3]||''));var tier=(((p[2]||'')+' '+(p[3]||'')).match(/\b([ABC])\b/)||[])[1]||'A';
   if(!guests.length)guests=[{name:name,type:'Adult'}];chain=chain.then(function(){return api('saveHousehold',{household:{name:name,tier:tier,invited:tier==='A',plusOne:plus,likelihood:'Unknown',guests:guests}})})});
- chain.then(function(){showTab('households');return load()});
+ chain.then(function(){openSec('coming',true);return load()});
 };
 q('#csvBtn').onclick=function(){var b=this;busy(b);api('exportCsv').then(function(r){b.disabled=false;if(!r.ok){alert(r.error);return}var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.csv],{type:'text/csv'}));a.download='holly-justin-guests.csv';a.click()})};
 q('#changePw').onclick=function(){var np=prompt('New portal password (6+ characters):');if(!np)return;api('changePassword',{newPw:np}).then(function(r){if(!r.ok){alert(r.error);return}S.pw=np;try{sessionStorage.setItem('hjpw',np)}catch(e){}alert('Password changed. Share the new one with whoever needs it.')})};
