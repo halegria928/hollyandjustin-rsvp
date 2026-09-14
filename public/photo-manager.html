@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holly &amp; Justin — Photos</title><meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&family=Jost:wght@300;400;500&display=swap">
+<style>
+:root{--card:#fdfaf5;--ink:#54423b;--gold:#9c7c54;--gold-line:#b39a7699;--muted:#a68d82;--line:#eddfd3;--ok:#5f8a5e;--warn:#b98a3a;--bad:#b56a5a;--soft:#faf1ea;
+--foil:linear-gradient(100deg,#8f7350 0%,#c0a37e 24%,#ecdcc4 46%,#c8a87f 64%,#8f7350 88%,#b3936c 100%)}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:var(--ink);font:300 15px/1.55 'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:22px 14px 70px}
+.wrap{max-width:1060px;margin:0 auto}
+.eyebrow{font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold)}
+.eyebrow a{color:var(--gold);text-decoration:none}
+h1{font:400 clamp(34px,7vw,50px)/1.05 'Pinyon Script',cursive;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;padding:4px 0 6px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.top .r{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-block;padding:9px 15px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);cursor:pointer;text-decoration:none;transition:all .2s}
+.btn:hover{border-color:var(--gold);background:var(--soft)}
+.btn.gold{background:var(--foil);border-color:var(--gold);color:#46392b;font-weight:500}
+.btn.danger{color:var(--bad);border-color:#e3c4bc}
+.btn[disabled]{opacity:.5;cursor:wait}
+.pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;border:1px solid}
+.pill.ok{color:var(--ok);border-color:#bcd2ba;background:#f1f6f0}
+.pill.warn{color:var(--warn);border-color:#e6d3ad;background:#fbf5e9}
+.hint{font-size:12.5px;color:var(--muted)}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}
+.ph .p{background:#fff;border:1px solid var(--gold-line);padding:8px}
+.ph img{width:100%;height:130px;object-fit:cover;display:block}
+.ph .meta{font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin:7px 0 6px;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.ph .row{display:flex;gap:6px}
+.ph .row .btn{padding:6px 9px;font-size:8.5px;flex:1;text-align:center}
+.empty{color:var(--muted);font:italic 400 17px 'Cormorant Garamond',serif;padding:26px 0;text-align:center}
+@media (max-width:600px){.ph{grid-template-columns:repeat(2,1fr);gap:9px}}
+</style></head><body>
+<div class="wrap">
+ <div class="top">
+  <div><div class="eyebrow"><a href="/manage.html">&lsaquo; Manager</a></div><h1>Guest photos</h1></div>
+  <div class="r"><span class="hint" id="stat"></span><a class="btn" href="/photos.html" target="_blank" rel="noopener">Guest upload page</a><button class="btn gold" id="zipBtn">Download all</button></div>
+ </div>
+ <div class="ph" id="grid"><span class="hint">Loading&hellip;</span></div>
+</div>
+<script>
+var PW=null;try{PW=sessionStorage.getItem('hjpw')}catch(e){}
+if(!PW){location.replace('/manage.html')}
+function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return [].slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function api(action,payload){var body=Object.assign({pw:PW,action:action},payload||{});
+ return fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()})}
+q('#zipBtn').onclick=function(){var b=this;b.disabled=true;
+ fetch('/api/photos.zip',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pw:PW})}).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(bl){b.disabled=false;var a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='holly-justin-photos.zip';a.click()}).catch(function(){b.disabled=false;alert('Download failed — try again.')})};
+function loadPhotos(){
+ api('listPhotos').then(function(r){
+  var g=q('#grid');
+  if(!r.ok){if(String(r.error||'').match(/password|auth/i)){location.replace('/manage.html');return}g.innerHTML='<div class="empty">Could not load.</div>';return}
+  q('#stat').textContent=r.photos.length?r.photos.length+' photo'+(r.photos.length===1?'':'s'):'';
+  if(!r.photos.length){g.innerHTML='<div class="empty">No photos yet. Guests upload from the QR on their table &mdash; or share the guest upload page.</div>';return}
+  g.innerHTML=r.photos.map(function(p){return '<div class="p" data-id="'+p.id+'"><img loading="lazy" src="/photo/'+p.id+'/'+p.token+'"><div class="meta"><span>'+esc(p.uploader||'guest')+'</span>'+(p.visibility==='couple'?'<span class="pill warn">private</span>':'<span class="pill ok">everyone</span>')+'</div><div class="row"><button class="btn pVis">'+(p.visibility==='couple'?'Make public':'Make private')+'</button><button class="btn danger pDel">Delete</button></div></div>'}).join('');
+  qa('.p',g).forEach(function(card){
+   var id=card.getAttribute('data-id'),p=r.photos.find(function(x){return String(x.id)===id});
+   q('.pVis',card).onclick=function(){this.disabled=true;api('setPhotoVisibility',{id:id,visibility:p.visibility==='couple'?'public':'couple'}).then(loadPhotos)};
+   q('.pDel',card).onclick=function(){if(!confirm('Delete this photo permanently?'))return;this.disabled=true;api('deletePhoto',{id:id}).then(loadPhotos)};
+  });
+ });
+}
+loadPhotos();
+</script></body></html>

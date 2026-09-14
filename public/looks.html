@@ -10,12 +10,13 @@ body{display:flex;flex-direction:column;background:#f3dcd2;font:300 14px 'Jost',
 .bar button:hover{border-color:#b39a76}
 .bar button.on{background:linear-gradient(100deg,#8f7350,#c0a37e 45%,#ecdcc4 75%,#b3936c);color:#3d3222;font-weight:500}
 .bar .home{flex:none;font:400 10.5px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#9c7c54;text-decoration:none;padding:7px 12px 7px 4px;border-right:1px solid #eddfd3;margin-right:6px;white-space:nowrap}
-#setLive{flex:none;margin-left:6px;background:linear-gradient(100deg,#8f7350,#c0a37e 45%,#ecdcc4 75%,#b3936c);border:1px solid #9c7c54;color:#3d3222;font:500 9.5px 'Jost',sans-serif;letter-spacing:.16em;text-transform:uppercase;padding:8px 14px;border-radius:16px;cursor:pointer;white-space:nowrap}
-.lv{flex:none;font-size:10px;letter-spacing:.14em;color:#5f8a5e;text-transform:uppercase;white-space:nowrap}
+#setLive{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9;background:linear-gradient(100deg,#8f7350,#c0a37e 45%,#ecdcc4 75%,#b3936c);border:1px solid #9c7c54;color:#3d3222;font:500 10.5px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;padding:13px 24px;border-radius:26px;cursor:pointer;white-space:nowrap;box-shadow:0 8px 28px rgba(80,50,30,.35)}
+#setLive[disabled]{opacity:.78;cursor:default}
 .more{position:fixed;top:0;right:0;height:46px;line-height:44px;padding:0 10px 0 26px;font-size:22px;color:#9c7c54;background:linear-gradient(90deg,rgba(253,250,245,0),#fdfaf5 55%);pointer-events:none}
 iframe{flex:1;width:100%;border:0;display:block}
 </style></head><body>
-<div class="bar" id="bar"><a class="home" id="home" href="/">&lsaquo; Back to the site</a><button id="setLive" hidden>Make this look live</button><span class="lv" id="lv"></span><span class="more" id="more">&rsaquo;</span></div>
+<div class="bar" id="bar"><a class="home" id="home" href="/">&lsaquo; Back</a><span class="more" id="more">&rsaquo;</span></div>
+<button id="setLive" hidden>Set as default design</button>
 <iframe id="fr" title="Look preview"></iframe>
 <script>
 var LOOKS=[{id:'index',file:'index.html',title:'Blush'},{id:'rose',file:'rose.html',title:'Rose'},{id:'bouquet',file:'bouquet.html',title:'Blush Bouquet'},{id:'lace',file:'lace.html',title:'Blush Lace'},{id:'mauve',file:'mauve.html',title:'Mauve Roses'},{id:'together',file:'together.html',title:'Holly &amp; Justin'},{id:'hacienda-dark',file:'hacienda-dark.html',title:'Hacienda Dark'},{id:'hacienda-light',file:'hacienda-light.html',title:'Hacienda'},{id:'shore-dark',file:'shore-dark.html',title:'Shore Dark'},{id:'shore-light',file:'shore-light.html',title:'Shore Light'}];
@@ -24,14 +25,15 @@ function upd(){more.style.display=(bar.scrollWidth-bar.clientWidth-bar.scrollLef
 bar.addEventListener('scroll',upd);window.addEventListener('resize',upd);setTimeout(upd,300);
 function show(id){var l=LOOKS.find(function(x){return x.id===id})||LOOKS[0];
  fr.src='/'+l.file;location.hash=l.id;
- [].forEach.call(bar.querySelectorAll('button'),function(b){b.classList.toggle('on',b.getAttribute('data-id')===l.id)});}
+ [].forEach.call(bar.querySelectorAll('button'),function(b){b.classList.toggle('on',b.getAttribute('data-id')===l.id)});updBtn();}
 LOOKS.forEach(function(l){var b=document.createElement('button');b.textContent=l.title.replace(/&amp;/g,'&');b.setAttribute('data-id',l.id);b.onclick=function(){show(l.id)};bar.appendChild(b);});
 var PW=null;try{PW=sessionStorage.getItem('hjpw')}catch(e){}
-var setLive=document.getElementById('setLive'),home=document.getElementById('home'),lv=document.getElementById('lv');
-if(PW){home.href='/manage.html';home.innerHTML='&lsaquo; Back to the manager';setLive.hidden=false;
- setLive.onclick=function(){var id=(location.hash||'').slice(1)||LOOKS[0].id;var theme=(id==='index')?'blush':id;setLive.disabled=true;
-  fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pw:PW,action:'setTheme',theme:theme})}).then(function(r){return r.json()}).then(function(r){setLive.disabled=false;lv.textContent=r.ok?'Live ✓':'Failed';setTimeout(function(){lv.textContent=''},3000)}).catch(function(){setLive.disabled=false;lv.textContent='Failed'});
+var setLive=document.getElementById('setLive'),home=document.getElementById('home'),CUR=null;
+function updBtn(){if(!PW)return;var id=(location.hash||'').slice(1)||LOOKS[0].id;var isCur=(id===CUR);setLive.textContent=isCur?'Default design ✓':'Set as default design';setLive.disabled=isCur;setLive.hidden=false}
+if(PW){home.href='/manage.html';home.innerHTML='&lsaquo; Manager';
+ setLive.onclick=function(){var id=(location.hash||'').slice(1)||LOOKS[0].id;var theme=(id==='index')?'blush':id;setLive.disabled=true;setLive.textContent='Saving…';
+  fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pw:PW,action:'setTheme',theme:theme})}).then(function(r){return r.json()}).then(function(r){if(r.ok){CUR=id}else{alert('Could not save — try again.')}updBtn()}).catch(function(){alert('Could not save — try again.');updBtn()});
  };}
 var h=(location.hash||'').slice(1);
-if(h){show(h)}else{fetch('/api/theme').then(function(r){return r.json()}).then(function(r){var map={blush:'index'};show(map[r.theme]||r.theme||'index')}).catch(function(){show('index')});}
+fetch('/api/theme').then(function(r){return r.json()}).then(function(r){var map={blush:'index'};CUR=map[r.theme]||r.theme||'index';show(h||CUR)}).catch(function(){show(h||'index')});
 </script></body></html>
