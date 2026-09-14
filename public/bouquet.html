@@ -107,7 +107,7 @@ body{background:#1a1410}
     </div>
    </div>
    <div id="primary" hidden><div class="f"><span class="lg">Your name <span class="req">*</span></span><div class="grid2"><div><input type="text" id="first" placeholder="First name" autocomplete="given-name"></div><div><input type="text" id="last" placeholder="Last name" autocomplete="family-name"></div></div></div></div>
-   <div id="phoneBlock" hidden><div class="f"><label>Phone number <span class="req">*</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567"></div></div>
+   <div id="phoneBlock" hidden><div class="f"><label id="phoneLbl">Phone number <span class="req">*</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567"></div></div>
    <div id="slotB"></div>
    <div class="f"><label id="noteLbl">Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
@@ -143,7 +143,7 @@ function setExtras(n){
 }
 function place(where){var p=q('#primary');p.hidden=false;q(where).appendChild(p)}
 function placePhone(where){var p=q('#phoneBlock');p.hidden=false;q(where).appendChild(p)}
-function setNote(a){var l=q('#noteLbl'),m=q('#msg');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='They&rsquo;ll be so sorry to miss you — send a little love'}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all'}}
+function setNote(a){var l=q('#noteLbl'),m=q('#msg'),pl=q('#phoneLbl'),p=q('#phone');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='';pl.textContent='Phone number';p.placeholder=''}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all';pl.innerHTML='Phone number <span class="req">*</span>';p.placeholder='(555) 123-4567'}}
 q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');q('#after').hidden=!C;if(C){place('#slotA');placePhone('#slotP')}else q('#primary').hidden=true;setNote('accept');q('#err').style.display='none'};
 q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#err').style.display='none'};
 qa('#pills button').forEach(function(b){b.onclick=function(){C=b.getAttribute('data-v');qa('#pills button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(C.charAt(0)==='5'?7:(parseInt(C,10)||1))}});
@@ -154,8 +154,8 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  if(!A)miss.push('whether you&rsquo;ll be joining us');
  var fn=q('#first').value.trim(),ln=q('#last').value.trim();
  if(A==="Joyfully accept"&&!C)miss.push('how many are attending');
- if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name');
-  var pd=q('#phone').value.replace(/\D/g,'');
+ if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name')}
+ if(A==="Joyfully accept"&&C){var pd=q('#phone').value.replace(/\D/g,'');
   if(!(pd.length>=10||(q('#phone').value.trim().charAt(0)==='+'&&pd.length>=8)))miss.push('a phone number')}
  var others=[];
  if(A==="Joyfully accept"&&C){
