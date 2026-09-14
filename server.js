@@ -17,7 +17,15 @@ const OPTIONS = {
   guestType: ['Adult', 'Teen', 'Child'], tier: ['A', 'B', 'C']
 };
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: /ondigitalocean|sslmode=require/.test(process.env.DATABASE_URL || '') ? { rejectUnauthorized: false } : false });
+function dbConfig() {
+  const raw = process.env.DATABASE_URL || 'postgres://localhost/hj_test';
+  let url; try { url = new URL(raw); } catch (e) { return { connectionString: raw }; }
+  const local = /^(localhost|127\.0\.0\.1)$/.test(url.hostname);
+  url.searchParams.delete('sslmode');
+  const ssl = local ? false : (process.env.DB_CA_CERT ? { ca: process.env.DB_CA_CERT, rejectUnauthorized: true } : { rejectUnauthorized: false });
+  return { connectionString: url.toString(), ssl };
+}
+const pool = new Pool(dbConfig());
 const q = (text, params) => pool.query(text, params);
 
 async function init() {
