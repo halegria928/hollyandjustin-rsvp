@@ -84,6 +84,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <div><div class="eyebrow">Guest Manager</div><h1>Holly &amp; Justin</h1></div>
    <div class="r"><span class="hint" id="updated"></span><button class="btn sm" id="refresh">Refresh</button><button class="btn sm" id="logout">Log out</button></div>
   </div>
+  <div class="card" style="margin-bottom:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><label>Site look (what guests see at the main link)</label><select id="theme"></select></div><button class="btn gold sm" id="saveTheme">Make it live</button><a class="btn sm" href="/looks.html" target="_blank" rel="noopener">Preview all looks</a><span class="saved" id="themeSaved"></span></div>
   <div class="tiles" id="tiles"></div>
   <div class="tabs">
    <button data-t="review" class="on">Needs review<span class="cnt" id="reviewCnt">0</span></button>
@@ -92,21 +93,21 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
   </div>
   <div id="tab-review"></div>
   <div id="tab-households" hidden>
-   <div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button></div>
+   <div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Not invited yet</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button></div>
    <div id="hhList"></div>
   </div>
   <div id="tab-villa" hidden></div>
-  <div class="foot"><a id="changePw">Change password</a>·<a href="https://docs.google.com/spreadsheets/d/17OAtJ3FILPshxqa6RI4fPfweS9k-l5_dHwHacdgtavY/edit" target="_blank" rel="noopener">Open the spreadsheet</a></div>
+  <div class="foot"><a id="changePw">Change password</a>·<a href="/" target="_blank" rel="noopener">Open the guest site</a></div>
  </div>
 </div>
 <script>
-var API='__APPS_SCRIPT_URL__';
+var API='/api/admin';
 var S={pw:'',data:null,open:{},tab:'review'};
 function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return [].slice.call((r||document).querySelectorAll(s))}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function api(action,payload){
  var body=Object.assign({pw:S.pw,action:action},payload||{});
- return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow'}).then(function(r){return r.json()});
+ return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()});
 }
 function heads(resp){var n=parseInt(resp.count,10)||0;return Math.max(n,1+resp.others.length)}
 function derive(){
@@ -120,6 +121,7 @@ function derive(){
  d.review=d.responses.filter(function(r){return !r.match||!r.match.approved});
 }
 function pill(h){
+ if(h.invited===false&&h.status==='none')return '<span class="pill mute">Not invited yet</span>';
  if(h.status==='coming')return '<span class="pill ok">Coming · '+h.heads+'</span>';
  if(h.status==='declined')return '<span class="pill bad">Declined</span>';
  var l=h.likelihood||'Unknown';
@@ -130,13 +132,14 @@ function pill(h){
 }
 function render(){
  derive();var d=S.data;
- var invited=d.households.reduce(function(s,h){return s+h.guests.length},0);
+ var inv=d.households.filter(function(h){return h.invited!==false});var invited=inv.reduce(function(s,h){return s+h.guests.length},0);var waiting=d.households.length-inv.length;
  var coming=d.households.filter(function(h){return h.status==='coming'});
  var headsN=coming.reduce(function(s,h){return s+h.heads},0),kids=coming.reduce(function(s,h){return s+h.kids},0);
  var declined=d.households.filter(function(h){return h.status==='declined'}).length;
  var none=d.households.filter(function(h){return h.status==='none'}).length;
  var villa=d.households.filter(function(h){return h.lodging==='Villa'});
- q('#tiles').innerHTML=[[d.households.length,'Households invited'],[invited,'Guests invited'],[headsN,'Coming'],[kids,'Kids coming'],[declined,'Declined'],[none,'No reply yet'],[villa.length,'Villa rooms']].map(function(t){return '<div class="tile"><div class="n">'+t[0]+'</div><div class="l">'+t[1]+'</div></div>'}).join('');
+ q('#tiles').innerHTML=[[inv.length,'Households invited'],[invited,'Guests invited'],[waiting,'Waiting (B/C list)'],[headsN,'Coming'],[kids,'Kids coming'],[declined,'Declined'],[none,'No reply yet'],[villa.length,'Villa rooms']].map(function(t){return '<div class="tile"><div class="n">'+t[0]+'</div><div class="l">'+t[1]+'</div></div>'}).join('');
+ var th=q('#theme');th.innerHTML=d.looks.map(function(l){return '<option value="'+l.id+'"'+(l.id===d.theme?' selected':'')+'>'+l.title+'</option>'}).join('');
  q('#reviewCnt').textContent=d.review.length;q('#reviewCnt').style.display=d.review.length?'':'none';
  renderReview();renderHouseholds();renderVilla();
  q('#updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
@@ -163,27 +166,28 @@ function renderReview(){
   var key=card.getAttribute('data-key'),r=d.responses.find(function(x){return x.key===key});
   q('.mApprove',card).onclick=function(){var hid=q('.mSel',card).value;if(!hid){alert('Choose a household first, or create one.');return}busy(this);api('setMatch',{key:key,hid:hid,approved:true,method:'manual'}).then(load)};
   q('.mCreate',card).onclick=function(){busy(this);var guests=[{name:r.name,type:'Adult'}].concat(r.others.map(function(o){return {name:o.name,type:o.type}}));
-   api('saveHousehold',{household:{name:r.name,plusOne:false,likelihood:'Unknown',guests:guests}}).then(function(res){if(!res.ok)throw res.error;return api('setMatch',{key:key,hid:res.id,approved:true,method:'manual'})}).then(load)};
+   api('saveHousehold',{household:{name:r.name,tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:guests}}).then(function(res){if(!res.ok)throw res.error;return api('setMatch',{key:key,hid:res.id,approved:true,method:'manual'})}).then(load)};
   var u=q('.mUnlink',card);if(u)u.onclick=function(){busy(this);api('setMatch',{key:key,hid:'',approved:false}).then(load)};
+  q('.mDel',card).onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
  });
 }
 function busy(b){if(b){b.disabled=true}}
 function renderHouseholds(){
- var d=S.data,term=(q('#search').value||'').toLowerCase(),f=q('#filter').value,el=q('#hhList');
+ var d=S.data,term=(q('#search').value||'').toLowerCase(),f=q('#filter').value,tf=q('#tierF').value,el=q('#hhList');
  var list=d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).filter(function(h){
   if(term&&!(h.name+' '+h.guests.map(function(g){return g.name}).join(' ')+' '+h.resps.map(function(r){return r.name}).join(' ')).toLowerCase().includes(term))return false;
-  if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
+  if(tf&&h.tier!==tf)return false;if(f==='notinvited')return h.invited===false;if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
  if(!list.length){el.innerHTML='<div class="card"><div class="empty">'+(d.households.length?'No households match that search.':'No households yet. Add one, or import the guest list.')+'</div></div>';return}
  el.innerHTML=list.map(function(h){return hhCard(h)}).join('');
  qa('.hh',el).forEach(bindCard);
 }
 function hhCard(h){
  var o=S.options,open=S.open[h.id]?' open':'';
- var meta=h.guests.length+' invited'+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(h.room?' rm '+esc(h.room):''):'');
+ var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false?' waiting':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(h.room?' rm '+esc(h.room):''):'');
  var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
  var resps=h.resps.map(function(r){return respBlock(r,'<div class="row">'+(r.match.approved?'<span class="pill ok">approved</span>':'<span class="pill gold">needs approval</span> <button class="btn sm rApprove" data-key="'+esc(r.key)+'">Approve</button>')+' <button class="btn sm danger rUnlink" data-key="'+esc(r.key)+'">Unlink</button></div>')}).join('');
- return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
- '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>Plus-one allowed</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
+ return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">waiting</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
+ '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>List</label><select class="fTier">'+o.tier.map(function(x){return '<option'+(x===(h.tier||'A')?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div><label>Invitation sent?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes — invited</option><option value="N"'+(h.invited===false?' selected':'')+'>Not yet (waiting list)</option></select></div><div><label>Plus-one allowed</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
  '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ Add name</button>'+
  '<div class="sec">Private notes</div><textarea class="fNotes" placeholder="Only you see this — e.g. waiting on school schedule, will confirm Nov 15…">'+esc(h.notes)+'</textarea>'+
  '<div class="sec">Lodging</div><div class="grid"><div><label>Staying</label><select class="fLodge">'+o.lodging.map(function(x){return '<option'+(x===h.lodging?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
@@ -201,7 +205,7 @@ function bindCard(card){
  q('.addM',card).onclick=function(){var w=document.createElement('div');w.innerHTML=memberRow({name:'',type:'Adult'});var row=w.firstChild;q('.members',card).appendChild(row);bindX(row);q('.mName',row).focus()};
  qa('.member',card).forEach(bindX);
  q('.save',card).onclick=function(){var b=this;busy(b);
-  var hh={id:id,name:q('.fName',card).value.trim(),plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
+  var hh={id:id,name:q('.fName',card).value.trim(),tier:q('.fTier',card).value,invited:q('.fInv',card).value==='Y',plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
    guests:qa('.member',card).map(function(m){return {name:q('.mName',m).value,type:q('.mType',m).value}}).filter(function(g){return g.name.trim()})};
   api('saveHousehold',{household:hh}).then(function(r){if(!r.ok)throw r.error;q('.saved',card).textContent='Saved ✓';return load()}).catch(function(e){alert('Save failed: '+e);b.disabled=false})};
  q('.del',card).onclick=function(){if(!confirm('Delete "'+h.name+'" and its guests? RSVPs stay in the sheet.'))return;busy(this);api('deleteHousehold',{id:id}).then(load)};
@@ -226,13 +230,14 @@ function enter(){var pw=q('#pw').value;if(!pw)return;var b=q('#loginBtn');b.disa
 q('#loginBtn').onclick=enter;q('#pw').addEventListener('keydown',function(e){if(e.key==='Enter')enter()});
 q('#refresh').onclick=load;q('#logout').onclick=function(){try{sessionStorage.removeItem('hjpw')}catch(e){}location.reload()};
 qa('.tabs button').forEach(function(b){b.onclick=function(){showTab(b.getAttribute('data-t'))}});
-q('#search').oninput=renderHouseholds;q('#filter').onchange=renderHouseholds;
-q('#addHH').onclick=function(){var name=prompt('Household name (e.g. "The Boelhaufs" or "Mom & Grandma")');if(!name)return;api('saveHousehold',{household:{name:name.trim(),plusOne:false,likelihood:'Unknown',guests:[]}}).then(function(r){S.open[r.id]=true;showTab('households');return load()})};
+q('#search').oninput=renderHouseholds;q('#filter').onchange=renderHouseholds;q('#tierF').onchange=renderHouseholds;
+q('#saveTheme').onclick=function(){var b=this;busy(b);api('setTheme',{theme:q('#theme').value}).then(function(r){b.disabled=false;q('#themeSaved').textContent=r.ok?'Live ✓ — guests now see this look':('Failed: '+r.error)})};
+q('#addHH').onclick=function(){var name=prompt('Household name (e.g. "The Boelhaufs" or "Mom & Grandma")');if(!name)return;api('saveHousehold',{household:{name:name.trim(),tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:[]}}).then(function(r){S.open[r.id]=true;showTab('households');return load()})};
 q('#importHH').onclick=function(){
- var txt=prompt('Paste one household per line:\n\nHousehold name | Guest One, Guest Two (child) | +1\n\nThe "| +1" part is optional. Add (child) after any kid.');
+ var txt=prompt('Paste one household per line:\n\nHousehold name | Guest One, Guest Two (child) | +1 | B\n\n"| +1" and the tier letter (A/B/C) are optional. Add (child) or (teen) after kids.');
  if(!txt)return;var lines=txt.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);
- var chain=Promise.resolve();lines.forEach(function(l){var p=l.split('|').map(function(s){return s.trim()});var name=p[0],guests=(p[1]||'').split(',').map(function(s){return s.trim()}).filter(Boolean).map(function(s){var c=/\(child\)/i.test(s);return {name:s.replace(/\(child\)/i,'').trim(),type:c?'Child':'Adult'}}),plus=/\+\s*1/.test(p[2]||'');
-  if(!guests.length)guests=[{name:name,type:'Adult'}];chain=chain.then(function(){return api('saveHousehold',{household:{name:name,plusOne:plus,likelihood:'Unknown',guests:guests}})})});
+ var chain=Promise.resolve();lines.forEach(function(l){var p=l.split('|').map(function(s){return s.trim()});var name=p[0],guests=(p[1]||'').split(',').map(function(s){return s.trim()}).filter(Boolean).map(function(s){var ty=/\(child\)/i.test(s)?'Child':(/\(teen\)/i.test(s)?'Teen':'Adult');return {name:s.replace(/\((child|teen)\)/i,'').trim(),type:ty}}),plus=/\+\s*1/.test((p[2]||'')+(p[3]||''));var tier=(((p[2]||'')+' '+(p[3]||'')).match(/\b([ABC])\b/)||[])[1]||'A';
+  if(!guests.length)guests=[{name:name,type:'Adult'}];chain=chain.then(function(){return api('saveHousehold',{household:{name:name,tier:tier,invited:tier==='A',plusOne:plus,likelihood:'Unknown',guests:guests}})})});
  chain.then(function(){showTab('households');return load()});
 };
 q('#changePw').onclick=function(){var np=prompt('New portal password (6+ characters):');if(!np)return;api('changePassword',{newPw:np}).then(function(r){if(!r.ok){alert(r.error);return}S.pw=np;try{sessionStorage.setItem('hjpw',np)}catch(e){}alert('Password changed. Share the new one with whoever needs it.')})};
