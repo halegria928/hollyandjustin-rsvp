@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holly &amp; Justin — QR Studio</title><meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400&family=Pinyon+Script&family=Jost:wght@300;400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--card:#fdfaf5;--ink:#54423b;--gold:#9c7c54;--gold-line:#b39a7699;--muted:#a68d82;--line:#eddfd3;
+--foil:linear-gradient(100deg,#8f7350,#c0a37e 45%,#ecdcc4 75%,#b3936c)}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:var(--ink);font:300 14.5px/1.55 'Jost',sans-serif;padding:30px 14px 80px}
+.wrap{max-width:900px;margin:0 auto}
+.eyebrow{font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold)}
+h1{font:400 44px/1.05 'Pinyon Script',cursive;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;padding:4px 0 8px}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.5}
+.card{background:var(--card);border:1px solid var(--gold-line);box-shadow:0 8px 40px rgba(160,110,90,.10);padding:22px 24px;margin-top:16px}
+.cols{display:grid;grid-template-columns:1fr 340px;gap:26px;align-items:start}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+label{display:block;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin:18px 0 8px}
+.sw{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sw button{width:34px;height:34px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--gold-line);cursor:pointer}
+.sw button.on{box-shadow:0 0 0 2px var(--gold)}
+.sw input[type=color]{width:34px;height:34px;border:0;padding:0;background:none;cursor:pointer}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips button{padding:9px 16px;border:1px solid var(--gold-line);border-radius:16px;background:transparent;font:400 10.5px 'Jost';letter-spacing:.18em;text-transform:uppercase;color:var(--ink);cursor:pointer}
+.chips button.on{background:var(--foil);border-color:var(--gold);color:#46392b;font-weight:500}
+.stage{border:1px solid var(--line);padding:26px;display:flex;justify-content:center;background:#fff;transition:background .2s}
+.stage canvas{width:100%;max-width:280px;height:auto;display:block}
+.dl{display:block;width:100%;margin-top:14px;padding:15px;background:var(--foil);border:1px solid var(--gold);color:#46392b;font:500 11.5px 'Jost';letter-spacing:.3em;text-transform:uppercase;cursor:pointer;text-align:center}
+.back{display:inline-block;margin-top:20px;font:400 10.5px 'Jost';letter-spacing:.2em;text-transform:uppercase;color:var(--gold);text-decoration:none}
+</style></head><body>
+<div class="wrap">
+ <div class="eyebrow">QR Studio</div>
+ <h1>Holly &amp; Justin</h1>
+ <div class="hint">Style the code, preview it on different papers, then download a print-quality PNG with a <b>transparent background</b> for the invitation designer. Every version scans to the RSVP site.</div>
+ <div class="card"><div class="cols">
+  <div>
+   <label>Color</label>
+   <div class="sw" id="sw">
+    <button data-c="#9c7c54" title="Champagne" style="background:#9c7c54"></button>
+    <button data-c="#a8842c" title="Gold" style="background:#a8842c"></button>
+    <button data-c="#b76e79" title="Rose gold" style="background:#b76e79"></button>
+    <button data-c="#c48981" title="Dusty rose" style="background:#c48981"></button>
+    <button data-c="#7a3b3f" title="Maroon" style="background:#7a3b3f"></button>
+    <button data-c="#2b2320" title="Near black" style="background:#2b2320"></button>
+    <input type="color" id="custom" value="#9c7c54" title="Custom color">
+   </div>
+   <label>Center</label>
+   <div class="chips" id="center">
+    <button data-v="heart" class="on">Heart</button><button data-v="hj">H &amp; J</button><button data-v="rings">Rings</button><button data-v="none">Plain</button>
+   </div>
+   <label>Preview on</label>
+   <div class="chips" id="paper">
+    <button data-b="#ffffff" class="on">White</button><button data-b="#fdfaf5">Ivory</button><button data-b="#f8e8e0">Blush</button><button data-b="#2b2320">Dark</button>
+   </div>
+   <div class="hint" style="margin-top:20px">Tips for the designer: keep the three corner squares crisp, print it at least 1&nbsp;inch wide, and always test-scan a proof. Light colors on dark paper can fail &mdash; test first.</div>
+  </div>
+  <div>
+   <div class="stage" id="stage"><canvas id="cv" width="900" height="900"></canvas></div>
+   <button class="dl" id="dl">Download transparent PNG</button>
+   <div class="hint" style="text-align:center;margin-top:8px">2000 &times; 2000 px &middot; 300-dpi print quality</div>
+  </div>
+ </div></div>
+ <a class="back" href="/manage.html">&lsaquo; Back to the guest manager</a>
+</div>
+<script>
+var URLTXT='https://hollyandjustin-y554u.ondigitalocean.app/';
+var COLOR='#9c7c54', CENTER='heart';
+var qr=qrcode(0,'H'); qr.addData(URLTXT); qr.make(); var N=qr.getModuleCount();
+function isFinder(r,c){return (r<7&&c<7)||(r<7&&c>=N-7)||(r>=N-7&&c<7)}
+function draw(cv,size){
+ var ctx=cv.getContext('2d'); cv.width=size; cv.height=size; ctx.clearRect(0,0,size,size);
+ var quiet=4, mod=size/(N+2*quiet), ox=quiet*mod, oy=quiet*mod, cx=size/2, cy=size/2;
+ var hole=(CENTER==='none')?0:5.0*mod;
+ ctx.fillStyle=COLOR; ctx.strokeStyle=COLOR;
+ for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+  if(!qr.isDark(r,c)||isFinder(r,c))continue;
+  var x=ox+(c+.5)*mod, y=oy+(r+.5)*mod;
+  if(hole&&Math.hypot(x-cx,y-cy)<hole+mod*.3)continue;
+  ctx.beginPath(); ctx.arc(x,y,mod*.44,0,7); ctx.fill();
+ }
+ [[0,0],[0,N-7],[N-7,0]].forEach(function(p){
+  var x0=ox+p[1]*mod, y0=oy+p[0]*mod;
+  ctx.fillRect(x0,y0,7*mod,7*mod);
+  ctx.clearRect(x0+mod,y0+mod,5*mod,5*mod);
+  ctx.fillRect(x0+2*mod,y0+2*mod,3*mod,3*mod);
+ });
+ if(!hole)return;
+ var R=hole-mod*.15;
+ ctx.lineWidth=Math.max(2,size/450); ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.stroke();
+ ctx.lineWidth=Math.max(1,size/900); ctx.beginPath(); ctx.arc(cx,cy,R-size/110,0,7); ctx.stroke();
+ if(CENTER==='heart'){
+  var s=R*.62, hx=cx, hy=cy+R*.05;
+  ctx.beginPath();
+  for(var k=0;k<=360;k+=3){var t=k*Math.PI/180;
+   var px=hx+16*Math.pow(Math.sin(t),3)*s/17;
+   var py=hy-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*s/17;
+   k?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+  ctx.closePath(); ctx.fill();
+ }else if(CENTER==='hj'){
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='400 '+(R*1.0)+'px "Pinyon Script", cursive';
+  ctx.fillText('H', cx-R*.42, cy-R*.05);
+  ctx.fillText('J', cx+R*.45, cy+R*.10);
+  ctx.font='500 '+(R*.42)+'px "Cormorant Garamond", Georgia, serif';
+  ctx.fillText('&', cx+R*.01, cy+R*.02);
+ }else if(CENTER==='rings'){
+  var rr=R*.40, w=Math.max(3,size/160);
+  ctx.lineWidth=w;
+  ctx.beginPath(); ctx.arc(cx-rr*.55, cy+R*.10, rr,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx+rr*.55, cy-R*.06, rr,0,7); ctx.stroke();
+  var dx=cx+rr*.55, dy=cy-R*.06-rr, ds=R*.14;
+  ctx.beginPath(); ctx.moveTo(dx,dy-ds); ctx.lineTo(dx+ds*.8,dy); ctx.lineTo(dx,dy+ds*1.1); ctx.lineTo(dx-ds*.8,dy); ctx.closePath(); ctx.fill();
+ }
+}
+var cv=document.getElementById('cv');
+function refresh(){draw(cv,900)}
+document.querySelectorAll('#sw button').forEach(function(b){b.onclick=function(){COLOR=b.getAttribute('data-c');document.querySelectorAll('#sw button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');refresh()}});
+document.getElementById('custom').addEventListener('input',function(){COLOR=this.value;document.querySelectorAll('#sw button').forEach(function(x){x.classList.remove('on')});refresh()});
+document.querySelectorAll('#center button').forEach(function(b){b.onclick=function(){CENTER=b.getAttribute('data-v');document.querySelectorAll('#center button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');refresh()}});
+document.querySelectorAll('#paper button').forEach(function(b){b.onclick=function(){document.getElementById('stage').style.background=b.getAttribute('data-b');document.querySelectorAll('#paper button').forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
+document.getElementById('dl').onclick=function(){
+ var big=document.createElement('canvas'); draw(big,2000);
+ big.toBlob(function(bl){var a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='hollyandjustin-rsvp-qr.png';a.click()},'image/png');
+};
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(refresh)}
+refresh();
+</script></body></html>
