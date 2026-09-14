@@ -168,6 +168,11 @@ function render(){
  var none=d.households.filter(function(h){return h.status==='none'}).length;
  var teens=coming.reduce(function(s,h){return s+(h.teens||0)},0);
  var adults=Math.max(headsN-kids-teens,0);
+ var villa=d.households.filter(function(h){return h.lodging==='Villa'});
+ var chgd=villa.filter(function(h){return h.billing!=='included'});
+ var vExp=chgd.reduce(function(s,h){return s+(Number(h.roomCharge)||0)+(Number(h.foodCharge)||0)},0);
+ var vPaid=chgd.reduce(function(s,h){return s+(Number(h.paid)||0)},0);
+ var money0=function(n){return Number(n||0).toLocaleString()};
  var tile=function(t){return '<div class="tile" data-go="'+(t[2]||'')+'"><div class="n">'+t[0]+'</div><div class="l">'+t[1]+'</div></div>'};
  var yesHH=d.households.filter(function(h){return h.invited!==false&&h.status==='coming'}).length;
  var noHH=d.households.filter(function(h){return h.invited!==false&&h.status==='declined'}).length;
