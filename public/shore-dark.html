@@ -24,9 +24,8 @@ h1{font:400 clamp(56px,11vw,88px)/1.02 'Pinyon Script',cursive;text-align:center
 .note{font:italic 400 19px/1.75 'Cormorant Garamond',Georgia,serif;color:var(--muted);max-width:440px;margin:26px auto 0;text-align:center}
 form{margin-top:48px}
 .f{margin-bottom:28px;position:relative;padding-left:20px;border-left:1px solid #d9c2ae}
-.f:before{content:"";position:absolute;left:-4.5px;top:1px;width:8px;height:8px;transform:rotate(45deg);background:var(--foil)}
 #extras .f{margin-bottom:22px}
-.kids{padding-left:20px}
+
 label,.lg{display:block;font:500 11px 'Jost',sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
 label .req,.lg .req{color:var(--muted)}
 input[type=text],textarea{width:100%;border:0;border-bottom:1px solid var(--blush-line);background:transparent;padding:9px 2px;font:400 18px 'Cormorant Garamond',Georgia,serif;color:var(--ink);border-radius:0;outline:none;transition:border-color .25s}
@@ -46,7 +45,7 @@ textarea{resize:vertical;min-height:36px}
 .gt{display:flex;gap:8px;margin-top:8px}
 .gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
 .gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
-.kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:0 0 26px}
+.kids{font:italic 400 16.5px/1.65 'Cormorant Garamond',Georgia,serif;color:var(--ink);margin:0 0 26px;background:#faf0e9;border:1px solid var(--blush-line);padding:13px 16px}
 .ev{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 0;border-bottom:1px solid #f0e2d6}
 .evc{display:flex;gap:7px;justify-self:end}
 .evc button{min-width:58px;text-align:center;padding:7px 0;border:1px solid var(--gold-line);border-radius:15px;background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s}
@@ -93,12 +92,12 @@ body{background:#1a1410}
    <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
     <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
    <div id="more">
-    <div class="f"><span class="lg">How many will attend, including yourself? <span class="req">*</span></span>
+    <div class="f"><span class="lg">How many of you will be joining us? <span class="req">*</span></span>
      <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
     <div id="after" hidden>
      <div id="slotA"></div>
      <div id="extras"></div>
-     <p class="kids">Seats are counted, so please include only those named on your invitation &mdash; little ones welcome if they can&rsquo;t stay home.</p>
+     <p class="kids">Seats are limited, so please include just those named on your invitation &mdash; but if your little ones can&rsquo;t stay home, bring them. We&rsquo;d rather have your whole crew than miss you.</p>
      <div class="f"><span class="lg">Weekend celebrations <span class="req">*</span></span>
       <div class="ev" data-v="Welcome Party — Friday, March 12"><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div>
       <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div><div class="evc"><button type="button" data-a="Yes">Yes</button><button type="button" data-a="No">No</button><button type="button" data-a="Maybe">Maybe</button></div></div>
