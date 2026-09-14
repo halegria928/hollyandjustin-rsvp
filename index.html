@@ -42,7 +42,7 @@ textarea{resize:vertical;min-height:36px}
 .gt{display:flex;gap:8px;margin-top:8px}
 .gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
 .gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
-.kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:-6px 0 30px}
+.kids{font:italic 400 16.5px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);margin:0 0 26px}
 .ev{display:flex;align-items:flex-start;gap:15px;padding:14px 0;border-bottom:1px solid #f0e2d6;cursor:pointer}
 .ev:last-child{border-bottom:0}
 .box{width:17px;height:17px;border:1px solid var(--gold);flex:none;margin:4px 0 0 5px;transform:rotate(45deg);transition:background .2s;background:#fff}
@@ -78,15 +78,14 @@ textarea{resize:vertical;min-height:36px}
     <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
    <div class="grid2"><div class="f"><label>First name <span class="req">*</span></label><input type="text" id="first" placeholder="As on your invitation" autocomplete="given-name"></div><div class="f"><label>Last name <span class="req">*</span></label><input type="text" id="last" autocomplete="family-name"></div></div>
    <div id="more">
+    <p class="kids">Our celebration at the Hacienda is intimate and every seat is counted, so we kindly ask that your party include only those named on your invitation. If your little ones can&rsquo;t stay home, they&rsquo;re more than welcome &mdash; just include them in your count.</p>
     <div class="f"><span class="lg">How many will attend, including yourself?</span>
      <div class="pills" id="pills"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" class="wide" data-v="5 or more (please note names below)">5 or more</button></div></div>
     <div id="extras"></div>
-    <p class="kids" id="kids" hidden>If your little ones can&rsquo;t stay home, they&rsquo;re more than welcome &mdash; we&rsquo;d rather have your whole crew than miss you. Just include them in your count and names, tagged Teen or Child.</p>
     <div class="f"><span class="lg">Weekend celebrations you&rsquo;ll attend</span>
      <div class="ev" data-v="Welcome Party — Friday, March 12"><div class="box"></div><div><div class="t">Welcome Party</div><div class="d">Friday, March 12</div></div></div>
      <div class="ev" data-v="Wedding Ceremony &amp; Reception — Saturday, March 13"><div class="box"></div><div><div class="t">Wedding Ceremony &amp; Reception</div><div class="d">Saturday, March 13</div></div></div>
      <div class="ev" data-v="Beach &amp; Pool Day — Sunday, March 14"><div class="box"></div><div><div class="t">Beach &amp; Pool Day</div><div class="d">Sunday, March 14</div></div></div></div>
-    <div class="f"><label>Dietary restrictions or allergies</label><input type="text" id="diet" placeholder="Anything we should know"></div>
    </div>
    <div class="f"><label>Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
@@ -114,10 +113,10 @@ function setExtras(n){
   d.innerHTML='<label>Guest '+WORDS[i]+' \u2014 full name</label><input type="text" placeholder="Your plus one or family member"><div class="gt"><button type="button" data-t="Adult" class="on">Adult</button><button type="button" data-t="Teen">Teen</button><button type="button" data-t="Child">Child</button></div>';
   box.appendChild(d);
   q('input',d).value=(old[i]&&old[i].name)||'';
-  if(old[i]&&old[i].type){qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===old[i].type)})}
+  var dflt=(old[i]&&old[i].type)||(i===0?'Adult':'Child');
+  qa('.gt button',d).forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===dflt)});
   qa('.gt button',d).forEach(function(b){b.onclick=function(){qa('.gt button',b.parentNode).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
  }
- q('#kids').hidden=(n<2);
 }
 q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open')}
 q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open')}
@@ -134,7 +133,7 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
   var oth=qa('#extras .f').map(function(d){var n=q('input',d).value.trim();return n?n+' \u2014 '+q('.gt .on',d).getAttribute('data-t'):''}).filter(Boolean);
   if(oth.length)p.append('entry.220301343',oth.join('\n'));
   qa('.ev.on').forEach(function(e){p.append('entry.373522947',e.getAttribute('data-v'))});
-  if(q('#diet').value.trim())p.append('entry.1027420598',q('#diet').value.trim());}
+}
  if(q('#msg').value.trim())p.append('entry.1289249600',q('#msg').value.trim());
  fetch('https://docs.google.com/forms/d/e/1FAIpQLScGF9Gws1g_Nx0RKPdTUWqkCj3pF3Gh-9ZBKeOLbO-c2yz90Q/formResponse',{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:p.toString()}).catch(function(){}).then(function(){
   if(A==="Regretfully decline")q('#dbig').textContent='You will be dearly missed';
