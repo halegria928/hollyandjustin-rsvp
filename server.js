@@ -3,6 +3,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { Pool } = require('pg');
+const crypto = require('crypto');
+const archiver = require('archiver');
 
 const PORT = process.env.PORT || 8080;
 const DEFAULT_PASSWORD = process.env.PORTAL_PASSWORD || 'Hacienda-0313';
@@ -38,7 +40,7 @@ async function bootstrapPrivileges() {
   await tryq('GRANT ALL ON SCHEMA public TO wedding');
   await tryq('GRANT ALL ON ALL TABLES IN SCHEMA public TO wedding');
   await tryq('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO wedding');
-  for (const t of ['households', 'guests', 'responses', 'matches', 'settings']) await tryq(`ALTER TABLE IF EXISTS ${t} OWNER TO wedding`);
+  for (const t of ['households', 'guests', 'responses', 'matches', 'settings', 'photos']) await tryq(`ALTER TABLE IF EXISTS ${t} OWNER TO wedding`);
 }
 async function init() {
   await bootstrapPrivileges();
@@ -47,6 +49,7 @@ async function init() {
     plus_one boolean NOT NULL DEFAULT false, likelihood text NOT NULL DEFAULT 'Unknown', notes text NOT NULL DEFAULT '',
     lodging text NOT NULL DEFAULT 'Unsure', room text NOT NULL DEFAULT '', headcount integer, room_charge numeric, food_charge numeric,
     offsite_place text NOT NULL DEFAULT '', offsite_details text NOT NULL DEFAULT '', created timestamptz NOT NULL DEFAULT now())`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS priority integer NOT NULL DEFAULT 1000000`);
   await q(`CREATE TABLE IF NOT EXISTS guests (id serial PRIMARY KEY, household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE,
     name text NOT NULL, type text NOT NULL DEFAULT 'Adult', phone text NOT NULL DEFAULT '', pos integer NOT NULL DEFAULT 0)`);
   await q(`CREATE TABLE IF NOT EXISTS responses (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(), first_name text NOT NULL DEFAULT '',
@@ -55,6 +58,9 @@ async function init() {
   await q(`CREATE TABLE IF NOT EXISTS matches (response_id integer PRIMARY KEY REFERENCES responses(id) ON DELETE CASCADE,
     household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE, approved boolean NOT NULL DEFAULT false, method text NOT NULL DEFAULT 'auto')`);
   await q(`CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL)`);
+  await q(`CREATE TABLE IF NOT EXISTS photos (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(),
+    uploader text NOT NULL DEFAULT '', visibility text NOT NULL DEFAULT 'public', mime text NOT NULL DEFAULT 'image/jpeg',
+    size integer NOT NULL DEFAULT 0, token text NOT NULL, data bytea NOT NULL)`);
   await bootstrapPrivileges();
 }
 async function getSetting(key, dflt) { const r = await q('SELECT value FROM settings WHERE key=$1', [key]); return r.rows.length ? r.rows[0].value : dflt; }
@@ -83,7 +89,7 @@ function suggest(resp, households) {
 // ---------- data ----------
 async function loadAll() {
   const hh = (await q('SELECT * FROM households ORDER BY name')).rows.map(r => ({
-    id: String(r.id), name: r.name, tier: r.tier, invited: r.invited, plusOne: r.plus_one, likelihood: r.likelihood, notes: r.notes, lodging: r.lodging,
+    id: String(r.id), name: r.name, tier: r.tier, invited: r.invited, priority: r.priority == null ? 1000000 : r.priority, plusOne: r.plus_one, likelihood: r.likelihood, notes: r.notes, lodging: r.lodging,
     room: r.room, headcount: r.headcount == null ? '' : r.headcount, roomCharge: r.room_charge == null ? '' : Number(r.room_charge),
     foodCharge: r.food_charge == null ? '' : Number(r.food_charge), offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, guests: []
   }));
@@ -150,6 +156,64 @@ app.post('/api/rsvp', async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
 });
 
+
+// ---------- photos ----------
+const PHOTO_MAX = 8 * 1024 * 1024, PHOTO_TOTAL_MAX = 8 * 1024 * 1024 * 1024;
+app.post('/api/photos', express.raw({ type: 'image/*', limit: '9mb' }), async (req, res) => {
+  if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
+  try {
+    const bytes = req.body;
+    if (!Buffer.isBuffer(bytes) || !bytes.length) return res.status(400).json({ ok: false, error: 'no_image' });
+    if (bytes.length > PHOTO_MAX) return res.status(413).json({ ok: false, error: 'too_large' });
+    const mime = String(req.headers['content-type'] || 'image/jpeg').split(';')[0];
+    if (!/^image\//.test(mime)) return res.status(400).json({ ok: false, error: 'not_image' });
+    const uploader = decodeURIComponent(String(req.headers['x-uploader'] || '')).slice(0, 80);
+    const visibility = String(req.headers['x-visibility']) === 'couple' ? 'couple' : 'public';
+    const total = Number((await q('SELECT COALESCE(SUM(size),0) AS t FROM photos')).rows[0].t);
+    if (total + bytes.length > PHOTO_TOTAL_MAX) return res.status(507).json({ ok: false, error: 'album_full' });
+    const token = crypto.randomBytes(12).toString('hex');
+    const r = await q('INSERT INTO photos(uploader,visibility,mime,size,token,data) VALUES($1,$2,$3,$4,$5,$6) RETURNING id',
+      [uploader, visibility, mime, bytes.length, token, bytes]);
+    res.json({ ok: true, id: r.rows[0].id, token });
+  } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
+});
+app.get('/api/photos', async (req, res) => {
+  if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
+  try {
+    const r = await q(`SELECT id, uploader, created, token FROM photos WHERE visibility='public' ORDER BY created DESC LIMIT 800`);
+    res.json({ ok: true, photos: r.rows });
+  } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
+});
+app.get('/photo/:id/:token', async (req, res) => {
+  if (!dbReady) return res.status(503).end();
+  try {
+    const r = await q('SELECT mime, data FROM photos WHERE id=$1 AND token=$2', [Number(req.params.id) || 0, String(req.params.token)]);
+    if (!r.rows.length) return res.status(404).end();
+    res.set('Content-Type', r.rows[0].mime).set('Cache-Control', 'public, max-age=86400').send(r.rows[0].data);
+  } catch (e) { console.error(e); res.status(500).end(); }
+});
+app.post('/api/photos.zip', async (req, res) => {
+  if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
+  try {
+    const pw = await getSetting('password', DEFAULT_PASSWORD);
+    if (String((req.body || {}).pw || '') !== pw) return res.status(401).json({ ok: false, error: 'bad_password' });
+    const ids = (await q('SELECT id FROM photos ORDER BY created')).rows.map(r => r.id);
+    res.set('Content-Type', 'application/zip').set('Content-Disposition', 'attachment; filename="holly-justin-photos.zip"');
+    const zip = archiver('zip', { zlib: { level: 1 } });
+    zip.on('error', e => { console.error(e); try { res.end(); } catch (_) {} });
+    zip.pipe(res);
+    for (const id of ids) {
+      const r = await q('SELECT uploader, visibility, mime, created, data FROM photos WHERE id=$1', [id]);
+      if (!r.rows.length) continue;
+      const p = r.rows[0];
+      const ext = ({ 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/gif': 'gif' })[p.mime] || 'jpg';
+      const who = (p.uploader || 'guest').replace(/[^A-Za-z0-9 _-]/g, '').trim().replace(/\s+/g, '-') || 'guest';
+      zip.append(p.data, { name: `${p.visibility === 'couple' ? 'just-for-you' : 'everyone'}/${String(id).padStart(4, '0')}-${who}.${ext}` });
+    }
+    await zip.finalize();
+  } catch (e) { console.error(e); try { res.status(500).end(); } catch (_) {} }
+});
+
 app.post('/api/admin', async (req, res) => {
   const b = req.body || {};
   if (!dbReady) return res.status(503).json({ ok: false, error: 'Database unavailable: ' + dbError });
@@ -167,6 +231,36 @@ app.post('/api/admin', async (req, res) => {
         if (!hid) { await q('DELETE FROM matches WHERE response_id=$1', [rid]); return res.json({ ok: true }); }
         await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,$3,$4) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=EXCLUDED.approved, method=EXCLUDED.method', [rid, hid, !!b.approved, b.method || 'manual']);
         return res.json({ ok: true });
+      }
+      case 'reorderBackup': {
+        const ids = Array.isArray(b.ids) ? b.ids.map(Number).filter(Boolean) : [];
+        for (let i = 0; i < ids.length; i++) await q('UPDATE households SET priority=$1 WHERE id=$2', [i + 1, ids[i]]);
+        return res.json({ ok: true });
+      }
+      case 'listPhotos': {
+        const r = await q('SELECT id, uploader, created, visibility, size, token FROM photos ORDER BY created DESC LIMIT 2000');
+        return res.json({ ok: true, photos: r.rows });
+      }
+      case 'setPhotoVisibility': {
+        const vis = b.visibility === 'couple' ? 'couple' : 'public';
+        await q('UPDATE photos SET visibility=$1 WHERE id=$2', [vis, Number(b.id)]); return res.json({ ok: true });
+      }
+      case 'deletePhoto': await q('DELETE FROM photos WHERE id=$1', [Number(b.id)]); return res.json({ ok: true });
+      case 'exportCsv': {
+        const data = await loadAll();
+        const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Events','Lodging','Villa room','Headcount','Room charge','Food charge','Off-site place','Notes']];
+        for (const h of data.households) {
+          const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
+          const acc = resps.filter(r => /accept/i.test(r.attending));
+          const status = acc.length ? 'Coming' : (resps.some(r => /decline/i.test(r.attending)) ? 'Declined' : 'No reply');
+          const heads = acc.reduce((s2, r) => s2 + Math.max(parseInt(r.count, 10) || 0, 1 + r.others.length), 0);
+          rows.push([h.name, h.tier, h.invited ? 'Yes' : 'No', h.plusOne ? 'Yes' : 'No', h.likelihood, status, heads || '',
+            h.guests.map(g => g.name + (g.type !== 'Adult' ? ' (' + g.type + ')' : '')).join('; '),
+            resps.map(r => r.name + (r.others.length ? ' + ' + r.others.map(o => o.name).join(', ') : '')).join(' | '),
+            resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.offsitePlace, h.notes]);
+        }
+        return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
       }
       case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); return res.json({ ok: true }); }
       case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); await setSetting('password', np); return res.json({ ok: true }); }

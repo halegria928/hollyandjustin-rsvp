@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holly &amp; Justin — Photos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Pinyon+Script&family=Jost:wght@300;400;500&display=swap">
+<style>
+:root{--card:#fdfaf5;--ink:#54423b;--gold:#a8842c;--gold-line:#b3924a99;--muted:#a68d82;--line:#eddfd3;
+--foil:linear-gradient(100deg,#8a6a2f 0%,#c9a960 22%,#e9d8a4 42%,#c2a058 58%,#8f6f30 78%,#c9a960 100%)}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(1200px 700px at 50% -100px,#fdf4ef 0%,#f8e8e0 45%,#f3dcd2 100%) fixed,#f3dcd2;color:var(--ink);font:300 15.5px/1.6 'Jost',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding:44px 16px 90px}
+.wrap{max-width:820px;margin:0 auto}
+.eyebrow{font-size:11px;letter-spacing:.44em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:18px}
+h1{font:400 clamp(46px,9vw,68px)/1.05 'Pinyon Script',cursive;text-align:center;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;padding:4px 0 10px}
+.note{font:italic 400 18px/1.7 'Cormorant Garamond',Georgia,serif;color:var(--muted);max-width:480px;margin:6px auto 30px;text-align:center}
+.card{background:var(--card);border:1px solid var(--gold-line);box-shadow:0 8px 40px rgba(160,110,90,.12);padding:26px 24px}
+label{display:block;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+input[type=text]{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:9px 2px;font:400 18px 'Cormorant Garamond',Georgia,serif;color:var(--ink);border-radius:0;outline:none}
+input[type=text]:focus{border-bottom-color:var(--gold)}
+::placeholder{color:#c4a99b;font-style:italic}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:540px){.grid2{grid-template-columns:1fr}}
+.choice{display:flex;gap:10px;flex-wrap:wrap}
+.choice button{flex:1;min-width:150px;padding:13px 8px;background:transparent;border:1px solid var(--gold-line);font:400 10.5px 'Jost',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s}
+.choice button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+.pick{display:block;width:100%;margin-top:22px;padding:17px;background:var(--foil);border:1px solid var(--gold);color:#3d2f16;font:500 12px 'Jost',sans-serif;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;text-align:center}
+.pick:hover{filter:brightness(1.05)}
+#file{display:none}
+.stat{margin-top:14px;font-size:13px;color:var(--muted);text-align:center;letter-spacing:.06em;min-height:18px}
+.stat .okk{color:#5f8a5e}
+.galhead{margin:44px 0 6px;text-align:center}
+.flor{margin:8px auto 0;display:block}
+.gal{column-count:3;column-gap:12px;margin-top:20px}
+@media (max-width:700px){.gal{column-count:2}}
+.gal .g{break-inside:avoid;margin-bottom:12px;background:#fff;border:1px solid var(--gold-line);padding:7px 7px 9px;box-shadow:0 3px 14px rgba(160,110,90,.10)}
+.gal img{width:100%;display:block}
+.gal .who{font:italic 400 14px 'Cormorant Garamond',serif;color:var(--muted);margin-top:6px;text-align:center}
+.empty{font:italic 400 17px 'Cormorant Garamond',serif;color:var(--muted);text-align:center;margin-top:24px}
+.back{display:block;text-align:center;margin-top:36px;font-size:11px;letter-spacing:.28em;text-transform:uppercase}
+.back a{color:var(--gold);text-decoration:none}
+</style></head><body>
+<div class="wrap">
+ <div class="eyebrow">Share the Moment</div>
+ <h1>Holly &amp; Justin</h1>
+ <p class="note">Took a photo we&rsquo;d love? Add it here &mdash; straight from your phone. Choose whether everyone sees it, or just the two of us.</p>
+ <div class="card">
+  <div class="grid2">
+   <div><label>Your name</label><input type="text" id="who" placeholder="So we know who to thank"></div>
+   <div><label>Share with</label><div class="choice"><button type="button" id="vPub" class="on">Everyone</button><button type="button" id="vPriv">Just the couple</button></div></div>
+  </div>
+  <button class="pick" id="pick">Choose photos to share</button>
+  <input type="file" id="file" accept="image/*" multiple>
+  <div class="stat" id="stat"></div>
+ </div>
+ <div class="galhead">
+  <div class="eyebrow" style="margin-bottom:4px">The Gallery</div>
+  <svg class="flor" width="200" height="20" viewBox="0 0 200 20" fill="none" aria-hidden="true"><path d="M6 10 C42 3,76 3,92 10" stroke="#b3924a" stroke-width="1"/><path d="M194 10 C158 3,124 3,108 10" stroke="#b3924a" stroke-width="1"/><path d="M100 4 L105.5 10 L100 16 L94.5 10 Z" fill="#b3924a"/></svg>
+ </div>
+ <div class="gal" id="gal"></div>
+ <div class="empty" id="empty" hidden>No shared photos yet &mdash; be the first.</div>
+ <div class="back"><a href="/">&larr; Back to the RSVP</a></div>
+</div>
+<script>
+var VIS='public';
+function q(s){return document.querySelector(s)}
+q('#vPub').onclick=function(){VIS='public';this.classList.add('on');q('#vPriv').classList.remove('on')};
+q('#vPriv').onclick=function(){VIS='couple';this.classList.add('on');q('#vPub').classList.remove('on')};
+q('#pick').onclick=function(){q('#file').click()};
+function shrink(file){
+ return new Promise(function(res){
+  var img=new Image(),url=URL.createObjectURL(file);
+  img.onload=function(){
+   var M=1920,w=img.naturalWidth,h=img.naturalHeight,sc=Math.min(1,M/Math.max(w,h));
+   var c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);
+   c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+   URL.revokeObjectURL(url);
+   c.toBlob(function(b){res(b&&b.size<file.size?b:file)},'image/jpeg',0.82);
+  };
+  img.onerror=function(){URL.revokeObjectURL(url);res(file)};
+  img.src=url;
+ });
+}
+q('#file').addEventListener('change',function(){
+ var files=[].slice.call(this.files);this.value='';
+ if(!files.length)return;
+ var stat=q('#stat'),done=0,fail=0;
+ stat.textContent='Uploading 1 of '+files.length+'…';
+ var chain=Promise.resolve();
+ files.forEach(function(f,i){
+  chain=chain.then(function(){
+   stat.textContent='Uploading '+(i+1)+' of '+files.length+'…';
+   return shrink(f).then(function(blob){
+    return fetch('/api/photos',{method:'POST',headers:{'Content-Type':blob.type||'image/jpeg','x-uploader':encodeURIComponent(q('#who').value.trim()),'x-visibility':VIS},body:blob})
+     .then(function(r){return r.json()}).then(function(r){if(r&&r.ok)done++;else fail++}).catch(function(){fail++});
+   });
+  });
+ });
+ chain.then(function(){
+  stat.innerHTML=fail?done+' uploaded, '+fail+' failed — try those again.':'<span class="okk">'+(done===1?'Photo shared — thank you!':done+' photos shared — thank you!')+'</span>';
+  loadGal();
+ });
+});
+function loadGal(){
+ fetch('/api/photos').then(function(r){return r.json()}).then(function(r){
+  if(!r||!r.ok)return;
+  var g=q('#gal');
+  q('#empty').hidden=!!r.photos.length;
+  g.innerHTML=r.photos.map(function(p){
+   var who=(p.uploader||'').replace(/[&<>"']/g,'');
+   return '<div class="g"><img loading="lazy" src="/photo/'+p.id+'/'+p.token+'" alt="Guest photo">'+(who?'<div class="who">'+who+'</div>':'')+'</div>';
+  }).join('');
+ }).catch(function(){});
+}
+loadGal();
+</script></body></html>

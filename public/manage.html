@@ -27,8 +27,20 @@ select{appearance:none;-webkit-appearance:none;background:#fff url("data:image/s
 .login{max-width:420px;margin:70px auto 0;text-align:center}
 .login p{font:italic 400 17px/1.6 'Cormorant Garamond',serif;color:var(--muted);margin:10px 0 22px}
 .err{color:var(--bad);font-size:13px;margin-top:10px;min-height:18px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
-.tile{background:var(--card);border:1px solid var(--gold-line);padding:14px 16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px}
+.sect{margin-bottom:12px}
+.bk{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--line);background:#fff;cursor:grab}
+.bk.drag{opacity:.4}
+.bk .num{font:500 18px 'Cormorant Garamond',serif;color:var(--gold);width:26px;text-align:center;flex:none}
+.bk .nm{font:500 17px 'Cormorant Garamond',serif;flex:1}
+.bk .sub{font-size:11px;color:var(--muted);letter-spacing:.08em}
+.bk .grip{color:#cbb391;flex:none;font-size:15px;letter-spacing:2px}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.ph .p{background:#fff;border:1px solid var(--gold-line);padding:8px}
+.ph img{width:100%;height:130px;object-fit:cover;display:block}
+.ph .meta{font-size:10.5px;color:var(--muted);letter-spacing:.06em;margin:7px 0 6px;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.ph .row{display:flex;gap:6px}
+.tile{background:#fff;border:1px solid var(--line);padding:12px 14px}
 .tile .n{font:500 32px/1 'Cormorant Garamond',serif;color:var(--ink);font-variant-numeric:tabular-nums}
 .tile .l{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:6px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
@@ -85,18 +97,22 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <div class="r"><span class="hint" id="updated"></span><button class="btn sm" id="refresh">Refresh</button><button class="btn sm" id="logout">Log out</button></div>
   </div>
   <div class="card" style="margin-bottom:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><label>Site look (what guests see at the main link)</label><select id="theme"></select></div><button class="btn gold sm" id="saveTheme">Make it live</button><a class="btn sm" href="/looks.html" target="_blank" rel="noopener">Preview all looks</a><span class="saved" id="themeSaved"></span></div>
-  <div class="tiles" id="tiles"></div>
+  <div id="tiles"></div>
   <div class="tabs">
    <button data-t="review" class="on">Needs review<span class="cnt" id="reviewCnt">0</span></button>
    <button data-t="households">Households</button>
+   <button data-t="backup">Backup list</button>
    <button data-t="villa">Villa &amp; lodging</button>
+   <button data-t="photos">Photos</button>
   </div>
   <div id="tab-review"></div>
   <div id="tab-households" hidden>
-   <div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Not invited yet</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button></div>
+   <div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button></div>
    <div id="hhList"></div>
   </div>
+  <div id="tab-backup" hidden></div>
   <div id="tab-villa" hidden></div>
+  <div id="tab-photos" hidden></div>
   <div class="foot"><a id="changePw">Change password</a>·<a href="/" target="_blank" rel="noopener">Open the guest site</a></div>
  </div>
 </div>
@@ -115,13 +131,13 @@ function derive(){
  d.responses.forEach(function(r){var m=d.matches[r.key];r.match=m||null;r.hh=m&&by[m.hid]||null;if(r.hh){r.hh.resps.push(r);if(!m.approved)r.hh.review=true}});
  d.households.forEach(function(h){
   var acc=h.resps.filter(function(r){return /accept/i.test(r.attending)}),dec=h.resps.filter(function(r){return /decline/i.test(r.attending)});
-  if(acc.length){h.status='coming';h.heads=acc.reduce(function(s,r){return s+heads(r)},0);h.kids=acc.reduce(function(s,r){return s+r.others.filter(function(o){return /child/i.test(o.type)}).length},0)}
-  else if(dec.length){h.status='declined';h.heads=0;h.kids=0}else{h.status='none';h.heads=0;h.kids=0}
+  if(acc.length){h.status='coming';h.heads=acc.reduce(function(s,r){return s+heads(r)},0);h.kids=acc.reduce(function(s,r){return s+r.others.filter(function(o){return o.type==='Child'}).length},0);h.teens=acc.reduce(function(s,r){return s+r.others.filter(function(o){return o.type==='Teen'}).length},0)}
+  else if(dec.length){h.status='declined';h.heads=0;h.kids=0;h.teens=0}else{h.status='none';h.heads=0;h.kids=0;h.teens=0}
  });
  d.review=d.responses.filter(function(r){return !r.match||!r.match.approved});
 }
 function pill(h){
- if(h.invited===false&&h.status==='none')return '<span class="pill mute">Not invited yet</span>';
+ if(h.invited===false&&h.status==='none')return '<span class="pill mute">Backup list</span>';
  if(h.status==='coming')return '<span class="pill ok">Coming · '+h.heads+'</span>';
  if(h.status==='declined')return '<span class="pill bad">Declined</span>';
  var l=h.likelihood||'Unknown';
@@ -137,11 +153,15 @@ function render(){
  var headsN=coming.reduce(function(s,h){return s+h.heads},0),kids=coming.reduce(function(s,h){return s+h.kids},0);
  var declined=d.households.filter(function(h){return h.status==='declined'}).length;
  var none=d.households.filter(function(h){return h.status==='none'}).length;
- var villa=d.households.filter(function(h){return h.lodging==='Villa'});
- q('#tiles').innerHTML=[[inv.length,'Households invited'],[invited,'Guests invited'],[waiting,'Waiting (B/C list)'],[headsN,'Coming'],[kids,'Kids coming'],[declined,'Declined'],[none,'No reply yet'],[villa.length,'Villa rooms']].map(function(t){return '<div class="tile"><div class="n">'+t[0]+'</div><div class="l">'+t[1]+'</div></div>'}).join('');
+ var teens=coming.reduce(function(s,h){return s+(h.teens||0)},0);
+ var adults=Math.max(headsN-kids-teens,0);
+ var tile=function(t){return '<div class="tile"><div class="n">'+t[0]+'</div><div class="l">'+t[1]+'</div></div>'};
+ q('#tiles').innerHTML=
+  '<div class="card sect"><div class="eyebrow">RSVPs so far</div><div class="tiles">'+[[headsN,'Coming'],[adults,'Adults'],[kids+teens,'Kids &amp; teens'],[declined,'Declined'],[none,'No reply yet']].map(tile).join('')+'</div></div>'+
+  '<div class="card sect"><div class="eyebrow">Invitations</div><div class="tiles">'+[[inv.length,'Households invited'],[invited,'Guests invited'],[waiting,'Backup list']].map(tile).join('')+'</div></div>';
  var th=q('#theme');th.innerHTML=d.looks.map(function(l){return '<option value="'+l.id+'"'+(l.id===d.theme?' selected':'')+'>'+l.title+'</option>'}).join('');
  q('#reviewCnt').textContent=d.review.length;q('#reviewCnt').style.display=d.review.length?'':'none';
- renderReview();renderHouseholds();renderVilla();
+ renderReview();renderHouseholds();renderVilla();if(S.tab==='backup')renderBackup();
  q('#updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
 }
 function respBlock(r,extra){
@@ -183,10 +203,10 @@ function renderHouseholds(){
 }
 function hhCard(h){
  var o=S.options,open=S.open[h.id]?' open':'';
- var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false?' waiting':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(h.room?' rm '+esc(h.room):''):'');
+ var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false? ' — backup list':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(h.room?' rm '+esc(h.room):''):'');
  var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
  var resps=h.resps.map(function(r){return respBlock(r,'<div class="row">'+(r.match.approved?'<span class="pill ok">approved</span>':'<span class="pill gold">needs approval</span> <button class="btn sm rApprove" data-key="'+esc(r.key)+'">Approve</button>')+' <button class="btn sm danger rUnlink" data-key="'+esc(r.key)+'">Unlink</button></div>')}).join('');
- return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">waiting</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
+ return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">backup</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
  '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>List</label><select class="fTier">'+o.tier.map(function(x){return '<option'+(x===(h.tier||'A')?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div><label>Invitation sent?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes — invited</option><option value="N"'+(h.invited===false?' selected':'')+'>Not yet (waiting list)</option></select></div><div><label>Plus-one allowed</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
  '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ Add name</button>'+
  '<div class="sec">Private notes</div><textarea class="fNotes" placeholder="Only you see this — e.g. waiting on school schedule, will confirm Nov 15…">'+esc(h.notes)+'</textarea>'+
@@ -223,8 +243,46 @@ function renderVilla(){
  el.innerHTML='<div class="card"><div class="eyebrow">Hacienda del Mar · Villa rooms</div>'+(v.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Room</th><th>Household</th><th>Heads</th><th>Room</th><th>Food</th><th>Total</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td></td><td>Totals</td><td>'+tot.heads+'</td><td>'+money(tot.room)+'</td><td>'+money(tot.food)+'</td><td>'+money(tot.room+tot.food)+'</td><td></td></tr></tfoot></table></div>':'<div class="empty">No one assigned to the villa yet. Open a household → Lodging → Villa.</div>')+'</div>'+
  '<div class="card" style="margin-top:12px"><div class="eyebrow">Off-site</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th>Status</th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'—')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">No off-site stays recorded yet.</div>')+'<div class="hint" style="margin-top:12px">'+un.length+' household'+(un.length===1?'':'s')+' still marked Unsure.</div></div>';
 }
+function renderBackup(){
+ var el=q('#tab-backup');
+ var list=S.data.households.filter(function(h){return h.invited===false}).sort(function(a,b){return (a.priority-b.priority)||a.name.localeCompare(b.name)});
+ var body=list.length?list.map(function(h,i){
+  return '<div class="bk" draggable="true" data-id="'+h.id+'"><span class="grip">⋮⋮</span><span class="num">'+(i+1)+'</span><span class="nm">'+esc(h.name)+'<div class="sub">Tier '+(h.tier||'A')+' · '+h.guests.length+' guest'+(h.guests.length===1?'':'s')+'</div></span><button class="btn sm bUp" title="Move up">↑</button><button class="btn sm bTop">Top</button><button class="btn sm gold bInv">Invite now</button></div>';
+ }).join(''):'<div class="empty">Nobody on the backup list. Set a household to &ldquo;No &mdash; backup list&rdquo; under Invitation sent and they&rsquo;ll appear here in priority order.</div>';
+ el.innerHTML='<div class="card"><div class="eyebrow">Backup list &mdash; first in line when spots open</div><div class="hint" style="margin-top:6px">Drag rows to reorder (or use ↑ / Top). &ldquo;Invite now&rdquo; moves them onto the invited list.</div><div id="bkList" style="margin-top:12px">'+body+'</div></div>';
+ var wrap=q('#bkList');if(!list.length)return;
+ function order(){return qa('.bk',wrap).map(function(r){return r.getAttribute('data-id')})}
+ function saveOrder(){api('reorderBackup',{ids:order()}).then(load)}
+ var dragging=null;
+ qa('.bk',wrap).forEach(function(row){
+  row.addEventListener('dragstart',function(){dragging=row;row.classList.add('drag')});
+  row.addEventListener('dragend',function(){row.classList.remove('drag')});
+  row.addEventListener('dragover',function(e){e.preventDefault();if(!dragging||dragging===row)return;var r=row.getBoundingClientRect();var before=(e.clientY-r.top)<r.height/2;wrap.insertBefore(dragging,before?row:row.nextSibling)});
+  row.addEventListener('drop',function(e){e.preventDefault();saveOrder()});
+  var id=row.getAttribute('data-id'),h=S.data.households.find(function(x){return x.id===id});
+  q('.bUp',row).onclick=function(){var prev=row.previousElementSibling;if(prev){wrap.insertBefore(row,prev);saveOrder()}};
+  q('.bTop',row).onclick=function(){wrap.insertBefore(row,wrap.firstChild);saveOrder()};
+  q('.bInv',row).onclick=function(){busy(this);var payload=JSON.parse(JSON.stringify(h));payload.invited=true;delete payload.resps;delete payload.status;api('saveHousehold',{household:payload}).then(load)};
+ });
+}
+function renderPhotos(){
+ var el=q('#tab-photos');
+ el.innerHTML='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div class="eyebrow">Guest photos</div><div style="display:flex;gap:10px"><a class="btn sm" href="/photos.html" target="_blank" rel="noopener">Open guest photo page</a><button class="btn sm gold" id="zipBtn">Download all (ZIP)</button></div></div><div class="hint" style="margin-top:8px">Guests upload at the photo page. &ldquo;Private&rdquo; photos are visible only here.</div><div class="ph" id="phGrid"><span class="hint">Loading&hellip;</span></div></div>';
+ q('#zipBtn').onclick=function(){var b=this;busy(b);fetch('/api/photos.zip',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pw:S.pw})}).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(bl){b.disabled=false;var a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='holly-justin-photos.zip';a.click()}).catch(function(){b.disabled=false;alert('Download failed — try again.')})};
+ api('listPhotos').then(function(r){
+  var g=q('#phGrid');
+  if(!r.ok){g.innerHTML='<span class="hint">Could not load photos.</span>';return}
+  if(!r.photos.length){g.innerHTML='<span class="hint">No photos yet.</span>';return}
+  g.innerHTML=r.photos.map(function(p){return '<div class="p" data-id="'+p.id+'"><img loading="lazy" src="/photo/'+p.id+'/'+p.token+'"><div class="meta"><span>'+esc(p.uploader||'guest')+'</span>'+(p.visibility==='couple'?'<span class="pill warn" style="padding:1px 7px">private</span>':'<span class="pill ok" style="padding:1px 7px">everyone</span>')+'</div><div class="row"><button class="btn sm pVis">'+(p.visibility==='couple'?'Make public':'Make private')+'</button><button class="btn sm danger pDel">Delete</button></div></div>'}).join('');
+  qa('.p',g).forEach(function(card){
+   var id=card.getAttribute('data-id'),p=r.photos.find(function(x){return String(x.id)===id});
+   q('.pVis',card).onclick=function(){busy(this);api('setPhotoVisibility',{id:id,visibility:p.visibility==='couple'?'public':'couple'}).then(renderPhotos)};
+   q('.pDel',card).onclick=function(){if(!confirm('Delete this photo permanently?'))return;busy(this);api('deletePhoto',{id:id}).then(renderPhotos)};
+  });
+ });
+}
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
-function showTab(t){S.tab=t;qa('.tabs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t)});['review','households','villa'].forEach(function(x){q('#tab-'+x).hidden=x!==t})}
+function showTab(t){S.tab=t;if(t==='photos')renderPhotos();if(t==='backup')renderBackup();qa('.tabs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===t)});['review','households','backup','villa','photos'].forEach(function(x){q('#tab-'+x).hidden=x!==t})}
 function enter(){var pw=q('#pw').value;if(!pw)return;var b=q('#loginBtn');b.disabled=true;q('#loginErr').textContent='';
  api('login',{pw:pw}).then(function(r){if(!r.ok)throw 'That password isn\'t right.';S.pw=pw;try{sessionStorage.setItem('hjpw',pw)}catch(e){}q('#loginView').hidden=true;q('#app').hidden=false;return load()}).catch(function(e){q('#loginErr').textContent=String(e);b.disabled=false})}
 q('#loginBtn').onclick=enter;q('#pw').addEventListener('keydown',function(e){if(e.key==='Enter')enter()});
@@ -240,6 +298,7 @@ q('#importHH').onclick=function(){
   if(!guests.length)guests=[{name:name,type:'Adult'}];chain=chain.then(function(){return api('saveHousehold',{household:{name:name,tier:tier,invited:tier==='A',plusOne:plus,likelihood:'Unknown',guests:guests}})})});
  chain.then(function(){showTab('households');return load()});
 };
+q('#csvBtn').onclick=function(){var b=this;busy(b);api('exportCsv').then(function(r){b.disabled=false;if(!r.ok){alert(r.error);return}var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.csv],{type:'text/csv'}));a.download='holly-justin-guests.csv';a.click()})};
 q('#changePw').onclick=function(){var np=prompt('New portal password (6+ characters):');if(!np)return;api('changePassword',{newPw:np}).then(function(r){if(!r.ok){alert(r.error);return}S.pw=np;try{sessionStorage.setItem('hjpw',np)}catch(e){}alert('Password changed. Share the new one with whoever needs it.')})};
 try{var saved=sessionStorage.getItem('hjpw');if(saved){q('#pw').value=saved;enter()}}catch(e){}
 </script></body></html>
