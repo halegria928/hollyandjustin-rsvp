@@ -101,7 +101,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .foot{margin-top:30px;text-align:center;font-size:11px;letter-spacing:.2em;color:#c0a08e}
 .foot a{color:var(--gold);cursor:pointer;text-decoration:none;margin:0 8px}
 .hint{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
-.appicons{display:grid;grid-template-columns:repeat(4,minmax(0,128px));gap:10px;margin-bottom:14px}
+.appicons{display:grid;grid-template-columns:repeat(3,minmax(0,128px));gap:10px;margin-bottom:14px}
 .ai{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;aspect-ratio:1/1;background:var(--card);border:1px solid var(--gold-line);box-shadow:0 8px 40px rgba(160,110,90,.10);text-decoration:none;cursor:pointer;transition:border-color .15s;padding:8px}
 .ai:hover{border-color:var(--gold)}
 .ai svg{width:32px;height:32px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
@@ -110,6 +110,11 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .tiles.t3{grid-template-columns:repeat(3,1fr)}
 .bigline{font:500 20px 'Cormorant Garamond',serif;color:var(--ink);margin-top:8px;cursor:pointer}
 .bigline i{font:italic 400 15px 'Cormorant Garamond',serif;color:var(--muted)}
+.pline{font:500 30px/1.2 'Cormorant Garamond',serif;color:var(--ink);margin-top:14px;cursor:pointer}
+.pline i{font:italic 400 16px 'Cormorant Garamond',serif;color:var(--muted)}
+.tkey span{cursor:pointer}
+.lo{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);cursor:pointer;text-decoration:none}
+.lo:hover{color:var(--gold)}
 .rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
 .rm{background:#fff;border:1px solid var(--line);padding:9px 11px}
 .rm.used{border-color:var(--gold-line);background:#fffdf9}
@@ -117,7 +122,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .rm .who{font:500 14.5px 'Cormorant Garamond',serif;line-height:1.4;margin-top:4px}
 .rm .who .kid{font:400 10px 'Jost';color:var(--warn);letter-spacing:.08em}
 .rm.openr .who{color:#c9b59d;font:italic 400 14.5px 'Cormorant Garamond',serif}
-@media (max-width:600px){.card{padding:16px 14px}.member{grid-template-columns:1fr 84px 74px 26px}.appicons{grid-template-columns:repeat(4,1fr);gap:8px}.ai svg{width:26px;height:26px}.ai .t{font-size:8.5px}.tile{padding:9px 10px}.tile .n{font-size:22px}.tile .l{font-size:8.5px;letter-spacing:.13em}.tiles{gap:8px;grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}.dash{gap:14px}body{padding:18px 10px 70px}.acc-body{margin-top:12px;padding-top:12px}.rooms{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.card{padding:16px 14px}.member{grid-template-columns:1fr 84px 74px 26px}.appicons{grid-template-columns:repeat(3,1fr);gap:8px}.ai svg{width:26px;height:26px}.ai .t{font-size:8.5px}.tile{padding:9px 10px}.tile .n{font-size:22px}.tile .l{font-size:8.5px;letter-spacing:.13em}.tiles{gap:8px;grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}.dash{gap:14px}body{padding:18px 10px 70px}.acc-body{margin-top:12px;padding-top:12px}.rooms{grid-template-columns:repeat(2,1fr)}}
 </style></head><body>
 <div class="wrap">
  <div id="loginView" class="card login">
@@ -132,16 +137,15 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
  <div id="app" hidden>
   <div class="top">
    <div><div class="eyebrow">Guest Manager</div><h1>Holly &amp; Justin</h1></div>
-   <div class="r"><span class="hint" id="updated"></span><button class="btn sm" id="refresh">Refresh</button><button class="btn sm" id="logout">Log out</button></div>
+   <div class="r"><a class="lo" id="logout">Log out</a></div>
   </div>
   <div class="appicons">
    <a class="ai" href="/looks.html"><svg viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="15" height="17" rx="1.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg><span class="t">RSVP form</span></a>
    <a class="ai" href="/qr-studio.html"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><path d="M13.5 13.5h3v3h-3zM20 13.5v6.5h-6.5M20 17h-2"/></svg><span class="t">QR code</span></a>
-   <a class="ai" href="/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c-2.8 2.4-4.2 5.2-4.2 8.5s1.4 6.1 4.2 8.5c2.8-2.4 4.2-5.2 4.2-8.5S14.8 5.9 12 3.5z"/></svg><span class="t">Guest site</span></a>
    <a class="ai" href="/photo-manager.html"><svg viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="13" rx="1.5"/><circle cx="12" cy="13.2" r="3.8"/><path d="M9 7l1.6-2.5h2.8L15 7"/></svg><span class="t">Photos</span></a>
   </div>
   <div class="card sumcard" id="summary"></div>
-  <div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="inv"><div class="acc-head"><div class="acc-sum" id="sum-inv"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-backup"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div></div>
+  <div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div></div>
   <div class="foot"><a id="changePw">Change password</a></div>
  </div>
 </div>
@@ -201,14 +205,13 @@ function render(){
  var roomsUsed=(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})();
  q('#summary').innerHTML='<div class="dash">'
   +'<div class="gwrap"><svg width="150" height="88" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f7350"/><stop offset=".5" stop-color="#c0a37e"/><stop offset="1" stop-color="#ecdcc4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
-  +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>Yes</span><span><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>No</span><span><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>Waiting</span></div></div></div>'
-  +'<div class="tiles" style="margin-top:14px">'+[[headsN,'Coming','hh:coming'],[adults,'Adults','hh:coming'],[kids+teens,'Kids','hh:kids'],[declined,'Declined','hh:declined'],[none,'No reply','hh:none']].map(tile).join('')+'</div>';
- q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households</i></div>';
- q('#sum-inv').innerHTML='<div class="eyebrow">Invitations</div><div class="tiles t3">'+[[inv.length,'Households','hh:'],[invited,'Guests','hh:'],[waiting,'Backup','sec:inv']].map(tile).join('')+'</div>';
+  +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span data-go="hh:coming"><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>Yes</span><span data-go="hh:declined"><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>No</span><span data-go="hh:none"><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>Waiting</span></div>'
+  +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
+  +'</div></div>';
+ q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
  q('#sum-villa').innerHTML='<div class="eyebrow">Villa</div><div class="bigline" data-go="sec:villa">'+roomsUsed+' of 15 <i>rooms in use</i></div><div class="tiles t3" style="margin-top:10px">'+[['$'+money0(vExp),'Expected','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Owed','sec:villa']].map(tile).join('')+'</div>';
- qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g==='sec:inv')openSec('inv',true);else if(g==='sec:villa')openSec('villa',true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
- renderReview();renderHouseholds();renderVilla();renderBackup();
- q('#updated').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+ qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g==='sec:villa')openSec('villa',true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
+ renderReview();renderHouseholds();renderVilla();
 }
 function respBlock(r,extra){
  var oth=r.others.map(function(o){return esc(o.name)+(/child/i.test(o.type)?' <span class="pill warn" style="padding:1px 7px">child</span>':'')}).join(', ');
@@ -242,6 +245,7 @@ function renderReview(){
 function busy(b){if(b){b.disabled=true}}
 function renderHouseholds(){
  var d=S.data,term=(q('#search').value||'').toLowerCase(),f=q('#filter').value,tf=q('#tierF').value,el=q('#hhList');
+ if(f==='notinvited'){renderBackup();return}
  var list=d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).filter(function(h){
   if(term&&!(h.name+' '+h.guests.map(function(g){return g.name}).join(' ')+' '+h.resps.map(function(r){return r.name}).join(' ')).toLowerCase().includes(term))return false;
   if(tf&&h.tier!==tf)return false;if(f==='notinvited')return h.invited===false;if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
@@ -308,12 +312,12 @@ function renderVilla(){
  qa('.hhLink',el).forEach(function(a){a.onclick=function(){var id=a.getAttribute('data-hh');S.open[id]=true;openSec('coming',true);q('#search').value='';q('#filter').value='';q('#tierF').value='';renderHouseholds();var c=q('.hh[data-id="'+id+'"]');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}});
 }
 function renderBackup(){
- var el=q('#tab-backup');
+ var el=q('#hhList');
  var list=S.data.households.filter(function(h){return h.invited===false}).sort(function(a,b){return (a.priority-b.priority)||a.name.localeCompare(b.name)});
  var body=list.length?list.map(function(h,i){
   return '<div class="bk" draggable="true" data-id="'+h.id+'"><span class="grip">⋮⋮</span><span class="num">'+(i+1)+'</span><span class="nm">'+esc(h.name)+'<div class="sub">Tier '+(h.tier||'A')+' · '+h.guests.length+' guest'+(h.guests.length===1?'':'s')+'</div></span><button class="btn sm bUp" title="Move up">↑</button><button class="btn sm bTop">Top</button><button class="btn sm gold bInv">Invite now</button></div>';
  }).join(''):'<div class="empty">Nobody waiting. Set a household&rsquo;s Invited? to &ldquo;Backup list&rdquo;.</div>';
- el.innerHTML='<div class="card"><div class="eyebrow">Backup list &middot; drag to reorder</div><div id="bkList" style="margin-top:12px">'+body+'</div></div>';
+ el.innerHTML='<div class="hint" style="margin-bottom:6px">Priority order &middot; drag to reorder</div><div id="bkList">'+body+'</div>';
  var wrap=q('#bkList');if(!list.length)return;
  function order(){return qa('.bk',wrap).map(function(r){return r.getAttribute('data-id')})}
  function saveOrder(){api('reorderBackup',{ids:order()}).then(load)}
@@ -339,8 +343,9 @@ qa('.acc-head').forEach(function(h){h.addEventListener('click',function(e){if(e.
 function enter(){var pw=q('#pw').value;if(!pw)return;var b=q('#loginBtn');b.disabled=true;q('#loginErr').textContent='';
  api('login',{pw:pw}).then(function(r){if(!r.ok)throw 'That password isn\'t right.';S.pw=pw;try{sessionStorage.setItem('hjpw',pw)}catch(e){}q('#loginView').hidden=true;q('#app').hidden=false;return load().then(function(){if(S.data&&S.data.review.length)openSec('review',true)})}).catch(function(e){q('#loginErr').textContent=String(e);b.disabled=false})}
 q('#loginBtn').onclick=enter;q('#pw').addEventListener('keydown',function(e){if(e.key==='Enter')enter()});
-q('#refresh').onclick=load;q('#logout').onclick=function(){try{sessionStorage.removeItem('hjpw')}catch(e){}location.reload()};
+q('#logout').onclick=function(){try{sessionStorage.removeItem('hjpw')}catch(e){}location.reload()};
 
+setInterval(function(){try{if(q('#app').hidden||document.visibilityState!=='visible')return;var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;if(qa('.hh.open').length)return;load()}catch(e){}},90000);
 q('#search').oninput=renderHouseholds;q('#filter').onchange=renderHouseholds;q('#tierF').onchange=renderHouseholds;
 q('#addHH').onclick=function(){var name=prompt('Household name (e.g. "The Boelhaufs" or "Mom & Grandma")');if(!name)return;api('saveHousehold',{household:{name:name.trim(),tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:[]}}).then(function(r){S.open[r.id]=true;openSec('coming',true);return load()})};
 q('#importHH').onclick=function(){
