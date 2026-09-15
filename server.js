@@ -144,6 +144,13 @@ app.get('/', async (req, res, next) => {
   try { const theme = dbReady ? await getSetting('theme', 'blush') : 'blush'; const look = LOOKS.find(l => l.id === theme) || LOOKS[0]; res.set('Cache-Control', 'no-cache'); res.sendFile(path.join(PUB, look.file)); }
   catch (e) { next(e); }
 });
+app.use((req, res, next) => {
+  const ch = process.env.CANONICAL_HOST;
+  if (ch && req.method === 'GET' && req.path !== '/healthz' && /ondigitalocean\.app$/.test(req.hostname || '')) {
+    return res.redirect(301, 'https://' + ch + req.originalUrl);
+  }
+  next();
+});
 app.use(express.static(PUB, { extensions: ['html'] }));
 
 app.post('/api/rsvp', async (req, res) => {
