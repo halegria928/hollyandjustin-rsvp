@@ -114,7 +114,8 @@ async function loadAll() {
     }
   }
   const theme = await getSetting('theme', 'blush');
-  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
+  let villa = {}; try { villa = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) { villa = {}; }
+  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
 }
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
@@ -274,6 +275,15 @@ app.post('/api/admin', async (req, res) => {
             resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.billing, h.paid, h.billing === 'included' ? '' : (((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || ''), h.offsitePlace, h.notes]);
         }
         return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
+      }
+      case 'setVilla': {
+        const src = b.villa || {}; const out = { rooms: {} };
+        const num = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
+        if (num(src.roomDefault) != null) out.roomDefault = num(src.roomDefault);
+        if (num(src.foodPerHead) != null) out.foodPerHead = num(src.foodPerHead);
+        const rs = src.rooms || {};
+        for (let i = 1; i <= 15; i++) { const r = rs[String(i)]; if (!r) continue; const o = {}; if (r.rollaway) o.rollaway = true; if (num(r.price) != null) o.price = num(r.price); if (Object.keys(o).length) out.rooms[String(i)] = o; }
+        await setSetting('villa', JSON.stringify(out)); return res.json({ ok: true });
       }
       case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); return res.json({ ok: true }); }
       case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); await setSetting('password', np); return res.json({ ok: true }); }
