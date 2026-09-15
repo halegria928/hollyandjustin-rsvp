@@ -205,11 +205,15 @@ app.get('/photo/:id/:token', async (req, res) => {
     res.set('Content-Type', r.rows[0].mime).set('Cache-Control', 'public, max-age=86400').send(r.rows[0].data);
   } catch (e) { console.error(e); res.status(500).end(); }
 });
+function pwMatch(given, actual) {
+  const norm = v => String(v == null ? '' : v).trim().replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-').toLowerCase();
+  return norm(given) === norm(actual) && norm(given).length > 0;
+}
 app.post('/api/photos.zip', async (req, res) => {
   if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
   try {
     const pw = await getSetting('password', DEFAULT_PASSWORD);
-    if (String((req.body || {}).pw || '') !== pw) return res.status(401).json({ ok: false, error: 'bad_password' });
+    if (!pwMatch((req.body || {}).pw, pw)) return res.status(401).json({ ok: false, error: 'bad_password' });
     const ids = (await q('SELECT id FROM photos ORDER BY created')).rows.map(r => r.id);
     res.set('Content-Type', 'application/zip').set('Content-Disposition', 'attachment; filename="holly-justin-photos.zip"');
     const zip = archiver('zip', { zlib: { level: 1 } });
@@ -232,7 +236,7 @@ app.post('/api/admin', async (req, res) => {
   if (!dbReady) return res.status(503).json({ ok: false, error: 'Database unavailable: ' + dbError });
   try {
     const pw = await getSetting('password', DEFAULT_PASSWORD);
-    if (String(b.pw || '') !== pw) return res.status(401).json({ ok: false, error: 'bad_password' });
+    if (!pwMatch(b.pw, pw)) return res.status(401).json({ ok: false, error: 'bad_password' });
     switch (b.action) {
       case 'login': return res.json({ ok: true });
       case 'load': return res.json(await loadAll());
