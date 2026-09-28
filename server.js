@@ -127,8 +127,9 @@ async function loadAll() {
   }
   const theme = await getSetting('theme', 'blush');
   let villa = {}; try { villa = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) { villa = {}; }
+  let budget = {}; try { budget = JSON.parse(await getSetting('budget', '{}')) || {}; } catch (e) { budget = {}; }
   const activity = (await q('SELECT id, ts, actor, detail FROM activity ORDER BY id DESC LIMIT 150')).rows;
-  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, activity, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
+  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, budget, activity, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
 }
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
@@ -438,6 +439,13 @@ app.post('/api/admin', async (req, res) => {
             resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.billing, h.paid, h.paidVia, h.billing === 'included' ? '' : (((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || ''), h.offsitePlace, ...splitAddr(h.address), h.notes]);
         }
         return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
+      }
+      case 'setBudget': {
+        const src = b.budget || {}; const num = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
+        const out = { total: num(src.total), items: (Array.isArray(src.items) ? src.items : []).slice(0, 200).map(it => ({ n: String((it && it.n) || '').slice(0, 140), c: num(it && it.c), p: num(it && it.p) })).filter(it => it.n) };
+        await setSetting('budget', JSON.stringify(out));
+        await logAct(actor, 'updated the budget');
+        return res.json({ ok: true });
       }
       case 'setVilla': {
         const src = b.villa || {}; const out = { rooms: {} };

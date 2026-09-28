@@ -139,6 +139,10 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .rmeta{font-size:10px;color:#9b8271;letter-spacing:.05em;text-transform:uppercase}
 .rnote{font:italic 400 13px 'Cormorant Garamond',serif;color:#7a5c38;margin-top:4px}
 .rfin{font-size:11px;letter-spacing:.04em;margin-top:4px;color:#6d5233}
+.brow{display:grid;grid-template-columns:1fr 84px 84px 70px 24px;gap:8px;align-items:center;margin-bottom:6px}
+.brow.bhead{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#85653c;font-weight:500;margin:10px 0 4px}
+.brow .bpill{text-align:center}
+@media (max-width:600px){.brow{grid-template-columns:1fr 66px 66px 58px 22px}}
 .bkr{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .bkc{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--gold-line);border-radius:15px;padding:5px 6px 5px 12px;font:500 14.5px 'Cormorant Garamond',serif;background:#fff}
 .bkc .x{font-size:15px}
@@ -205,7 +209,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <a class="ai" href="/photo-manager.html"><svg viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="13" rx="1.5"/><circle cx="12" cy="13.2" r="3.8"/><path d="M9 7l1.6-2.5h2.8L15 7"/></svg><span class="t">Photos</span></a>
   </div>
   <div class="card sumcard" id="summary"></div>
-  <datalist id="offplaces"></datalist><div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="inv">Invited</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No RSVP yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option><option value="">Everyone</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
+  <datalist id="offplaces"></datalist><div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="inv">Invited</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No RSVP yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option><option value="">Everyone</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="budget"><div class="acc-head"><div class="acc-sum" id="sum-budget"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-budget"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
   <div class="foot"><a id="changePw">Change password</a>·<a id="bkupBtn">Download backup</a></div>
  </div>
 </div>
@@ -294,11 +298,13 @@ function render(){
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
   +'</div></div>'+evHtml+todoHtml;
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
+ (function(){var B=d.budget||{},items=B.items||[];var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0);var paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);var left=(B.total!=null?B.total-spent:null);
+ q('#sum-budget').innerHTML='<div class="eyebrow">Budget</div><div class="bigline">$'+spent.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>of</i> '+(B.total!=null?'$'+B.total.toLocaleString():'\u2014')+(left!=null?' <i>\u00b7</i> $'+left.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>left</i>':'')+'</div>'})();
  q('#sum-act').innerHTML='<div class="eyebrow">Activity</div><div class="hint" style="margin-top:4px">'+((d.activity&&d.activity.length)?esc(d.activity[0].actor)+' \u00b7 '+new Date(d.activity[0].ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Nothing yet')+'</div>';
  q('#sum-villa').innerHTML='<div class="eyebrow">Villa</div><div class="bigline" data-go="sec:villa">'+roomsUsed+' of 15 <i>rooms in use</i></div><div class="tiles t3" style="margin-top:10px">'+[['$'+money0(vExp),'Expected','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Owed','sec:villa']].map(tile).join('')+'</div>';
  qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g.indexOf('sec:')===0)openSec(g.slice(4),true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
  (function(){var st={};d.households.forEach(function(h){if(h.offsitePlace&&h.offsitePlace.trim())st[h.offsitePlace.trim()]=1});q('#offplaces').innerHTML=Object.keys(st).sort().map(function(x){return '<option value="'+esc(x)+'">'}).join('')})();
- renderReview();renderHouseholds();renderVilla();renderActivity();
+ renderReview();renderHouseholds();renderVilla();renderBudget();renderActivity();
 }
 function respBlock(r,extra){
  var oth=r.others.map(function(o){return esc(o.name)+(o.type==='Child'?' <span class="pill warn" style="padding:1px 7px">child</span>':(o.type==='Adult child'?' <span class="pill mute" style="padding:1px 7px">adult child</span>':''))}).join(', ');
@@ -606,6 +612,24 @@ function renderBackup(){
  });
 }
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
+function renderBudget(){
+ var el=q('#tab-budget'),B=S.data.budget||{},items=B.items||[];
+ var rows=items.map(function(it,i){var owed=(it.c||0)-(it.p||0);var pl=(it.c==null||it.c<=0)?'<span class="pill mute">\u2014</span>':(it.p!=null&&it.p>=it.c?'<span class="pill ok">Paid</span>':(it.p?'<span class="pill warn">Partial</span>':'<span class="pill bad">Unpaid</span>'));
+  return '<div class="brow" data-i="'+i+'"><input type="text" class="bN" value="'+esc(it.n)+'"><input type="number" class="bC" value="'+(it.c!=null?it.c:'')+'" placeholder="$"><input type="number" class="bP" value="'+(it.p!=null?it.p:'')+'" placeholder="paid"><span class="bpill">'+pl+'</span><button class="x bDel">&times;</button></div>'}).join('');
+ var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0),paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);
+ el.innerHTML='<div class="card"><div class="grid" style="grid-template-columns:minmax(120px,160px);margin-bottom:4px"><div><label>Total budget ($)</label><input type="number" id="bTot" value="'+(B.total!=null?B.total:'')+'"></div></div>'
+  +'<div class="brow bhead"><span>Expense</span><span>Cost</span><span>Paid</span><span></span><span></span></div>'+rows
+  +'<div class="brow"><input type="text" id="bNewN" placeholder="Add an expense\u2026"><input type="number" id="bNewC" placeholder="$"><input type="number" id="bNewP" placeholder="paid"><span></span><button class="btn sm gold" id="bAdd" style="padding:6px 8px">Add</button></div>'
+  +'<div class="hint" style="margin-top:10px">Spent $'+spent.toLocaleString()+' \u00b7 paid out $'+paid.toLocaleString()+' \u00b7 still to pay $'+(spent-paid).toLocaleString()+'. Refund? Enter a negative cost. Room collections live under Villa \u2014 not in this budget.</div></div>';
+ function push(){var items2=qa('.brow',el).filter(function(r){return !r.classList.contains('bhead')&&q('.bN',r)}).map(function(r){return {n:q('.bN',r).value.trim(),c:q('.bC',r).value,p:q('.bP',r).value}}).filter(function(it){return it.n});
+  api('setBudget',{budget:{total:q('#bTot',el).value,items:items2}}).then(load)}
+ q('#bTot',el).onchange=push;
+ qa('.bN,.bC,.bP',el).forEach(function(inp){inp.onchange=push});
+ qa('.bDel',el).forEach(function(b){b.onclick=function(){b.closest('.brow').remove();push()}});
+ q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}
+  var items2=(S.data.budget&&S.data.budget.items||[]).concat([{n:n2,c:q('#bNewC',el).value,p:q('#bNewP',el).value}]);
+  api('setBudget',{budget:{total:q('#bTot',el).value,items:items2}}).then(load)};
+}
 function renderActivity(){
  var el=q('#tab-act'),a=S.data.activity||[];
  if(!a.length){el.innerHTML='<div class="empty">Nothing yet. Edits, matches, and logins will show here.</div>';return}
