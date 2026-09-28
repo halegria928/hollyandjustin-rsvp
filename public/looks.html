@@ -30,7 +30,7 @@ LOOKS.forEach(function(l){var b=document.createElement('button');b.textContent=l
 var PW=null;try{PW=sessionStorage.getItem('hjpw')}catch(e){}
 var setLive=document.getElementById('setLive'),home=document.getElementById('home'),CUR=null;
 function updBtn(){if(!PW)return;var id=(location.hash||'').slice(1)||LOOKS[0].id;var isCur=(id===CUR);setLive.textContent=isCur?'Default design ✓':'Set as default design';setLive.disabled=isCur;setLive.hidden=false}
-if(PW){home.href='/manage.html';home.innerHTML='&lsaquo; Manager';
+if(PW){home.href='/manage.html';home.innerHTML='&lsaquo; Back';
  setLive.onclick=function(){var id=(location.hash||'').slice(1)||LOOKS[0].id;var theme=(id==='index')?'blush':id;setLive.disabled=true;setLive.textContent='Saving…';
   fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pw:PW,action:'setTheme',theme:theme})}).then(function(r){return r.json()}).then(function(r){if(r.ok){CUR=id}else{alert('Could not save — try again.')}updBtn()}).catch(function(){alert('Could not save — try again.');updBtn()});
  };}
