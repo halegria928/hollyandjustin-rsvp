@@ -90,6 +90,7 @@ function draw(cv,size){
  ctx.lineWidth=Math.max(2,size/450); ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.stroke();
  ctx.lineWidth=Math.max(1,size/900); ctx.beginPath(); ctx.arc(cx,cy,R-size/110,0,7); ctx.stroke();
  ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R-size/95,0,7); ctx.clip();
+ for(var bk=0;bk<26;bk++){var ba=bk/26*2*Math.PI;ctx.beginPath();ctx.arc(cx+Math.cos(ba)*(R-mod*.75),cy+Math.sin(ba)*(R-mod*.75),mod*.20,0,7);ctx.fill();}
  if(CENTER==='heart'){
   var s=R*.62, hx=cx, hy=cy+R*.05;
   ctx.beginPath();
