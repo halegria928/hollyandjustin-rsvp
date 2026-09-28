@@ -346,7 +346,7 @@ app.post('/api/admin', async (req, res) => {
         if (num(src.roomDefault) != null) out.roomDefault = num(src.roomDefault);
         if (num(src.foodPerHead) != null) out.foodPerHead = num(src.foodPerHead);
         const rs = src.rooms || {};
-        for (let i = 1; i <= 15; i++) { const r = rs[String(i)]; if (!r) continue; const o = {}; if (r.rollaway) o.rollaway = true; if (num(r.price) != null) o.price = num(r.price); if (Object.keys(o).length) out.rooms[String(i)] = o; }
+        for (let i = 1; i <= 15; i++) { const r = rs[String(i)]; if (!r) continue; const o = {}; if (r.rollaway) o.rollaway = true; if (num(r.price) != null) o.price = num(r.price); if (['Courtyard', 'Grass', 'Second floor'].includes(r.area)) o.area = r.area; if (r.sharedBath) o.sharedBath = true; if (Object.keys(o).length) out.rooms[String(i)] = o; }
         let prev = {}; try { prev = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) {}
         const vparts = [];
         if (normV(prev.roomDefault) !== normV(out.roomDefault)) vparts.push('room default $' + (out.roomDefault != null ? out.roomDefault : '\u2014'));

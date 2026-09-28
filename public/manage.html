@@ -311,6 +311,7 @@ function openRoom(rn){
  box.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="eyebrow">Room '+rn+(occ.length?' &middot; '+occ.length:'')+'</div><button class="x rc" style="font-size:22px">&times;</button></div>'
   +'<div id="rmOcc">'+(occ.length?occ.map(function(o,k){return '<div class="rrow"><span class="nm">'+esc(o.g.name)+(o.h.status==='coming'?' <b class="ok2">✓</b>':'')+'</span><i>'+esc(o.h.name)+'</i><button class="x rX" data-k="'+k+'">&times;</button></div>'}).join(''):'<div class="empty" style="padding:8px 0">Empty room.</div>')+'</div>'
   +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><div><label>Room price ($)</label><input type="number" id="rmPrice" min="0" placeholder="'+(V.roomDefault!=null?V.roomDefault:'')+'" value="'+(RC.price!=null?RC.price:'')+'"></div><div style="display:flex;align-items:flex-end;padding-bottom:6px"><label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;letter-spacing:.14em"><input type="checkbox" id="rmRoll"'+(RC.rollaway?' checked':'')+' style="width:auto;margin:0">Rollaway bed</label></div></div>'
+  +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:10px"><div><label>Area</label><select id="rmArea"><option value="">\u2014</option>'+['Courtyard','Grass','Second floor'].map(function(a2){return '<option'+(RC.area===a2?' selected':'')+'>'+a2+'</option>'}).join('')+'</select></div><div style="display:flex;align-items:flex-end;padding-bottom:6px"><label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;letter-spacing:.14em"><input type="checkbox" id="rmBath"'+(RC.sharedBath?' checked':'')+' style="width:auto;margin:0">Shared bathroom</label></div></div>'
   +(V.foodPerHead&&occ.length?'<div class="hint" style="margin-top:4px">Food guide: '+occ.length+' \u00d7 $'+V.foodPerHead+' = $'+(occ.length*V.foodPerHead)+'</div>':'')
   +'<label style="margin-top:16px">Add someone</label><input type="text" id="rmSearch" placeholder="Start typing a name…" autocomplete="off"><div id="rmSug"></div>'
   +'<div class="hint" style="margin-top:10px">✓ = RSVP’d yes. Anyone on the guest list can be pre-assigned.</div></div>';
@@ -323,6 +324,114 @@ function openRoom(rn){
   b.disabled=true;save(o.h,function(p){p.guests[o.i].room=''})}});
  q('#rmPrice',box).onchange=function(){var val=this.value;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(val==='')delete v.rooms[String(rn)].price;else v.rooms[String(rn)].price=Number(val)});renderVilla()};
  q('#rmRoll',box).onchange=function(){var on=this.checked;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};v.rooms[String(rn)].rollaway=on});renderVilla()};
+ q('#rmArea',box).onchange=function(){var val=this.value;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(val)v.rooms[String(rn)].area=val;else delete v.rooms[String(rn)].area});renderVilla()};
+ q('#rmBath',box).onchange=function(){var on=this.checked;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(on)v.rooms[String(rn)].sharedBath=true;else delete v.rooms[String(rn)].sharedBath});renderVilla()};
+ var inp=q('#rmSearch',box);inp.focus();
+ inp.oninput=function(){var t=inp.value.trim().toLowerCase(),out='',n=0;
+  if(t)d.households.forEach(function(h){h.guests.forEach(function(g,i){
+   if(n>=8||(g.name||'').toLowerCase().indexOf(t)<0)return;
+   var cur=(h.lodging==='Villa')?String(g.room||h.room||''):'';
+   if(cur===String(rn))return;
+   out+='<div class="sug" data-hid="'+h.id+'" data-gi="'+i+'"><span class="nm">'+esc(g.name)+(h.status==='coming'?' <b class="ok2">✓</b>':'')+'</span><i>'+esc(h.name)+(h.invited===false?' · backup':'')+(cur?' · now Rm '+cur:'')+'</i></div>';n++})});
+  q('#rmSug',box).innerHTML=out;
+  qa('.sug',box).forEach(function(el2){el2.onclick=function(){var h=d.households.find(function(x){return x.id===el2.getAttribute('data-hid')});
+   save(h,function(p){p.lodging='Villa';p.guests[+el2.getAttribute('data-gi')].room=String(rn)})}})};
+}
+function renderVilla(){
+ var d=S.data,el=q('#tab-villa'),V=d.villa||{},VR=V.rooms||{};
+ var villa=d.households.filter(function(h){return h.lodging==='Villa'});
+ var off=d.households.filter(function(h){return h.lodging==='Off-site'}),un=d.households.filter(function(h){return h.lodging!=='Villa'&&h.lodging!=='Off-site'});
+ var money=function(n){return n===''||n==null?'—':'$'+Number(n).toLocaleString()};
+ var occ={};var homeless=[];
+ villa.forEach(function(h){h.guests.forEach(function(g){var r=String(g.room||h.room||'');if(r)((occ[r]=occ[r]||[])).push({n:g.name,hh:h.name,hid:h.id,ty:g.type,st:h.status});else homeless.push(g.name+' ('+h.name+')')})});
+ var heads=0,buckets={},anyArea=false;
+ for(var rn=1;rn<=15;rn++){var ps=occ[String(rn)]||[];heads+=ps.length;
+  var rc0=VR[String(rn)]||{};if(rc0.area)anyArea=true;
+  var card='<div class="rm '+(ps.length?'used':'openr')+'" data-rn="'+rn+'"><div class="rn"><span>Room '+rn+'</span><span>'+(ps.length||'')+'</span></div><div class="who">'+(ps.length?ps.map(function(p2){return esc(p2.n)+(p2.st==='coming'?' <b class="ok2">\u2713</b>':'')+(p2.ty!=='Adult'?' <span class="kid">'+p2.ty.toLowerCase()+'</span>':'')}).join('<br>'):'Open')+'</div>'+(function(){var pr=(rc0.price!=null?rc0.price:V.roomDefault);var bits=[];if(pr!=null)bits.push('$'+pr);if(rc0.rollaway)bits.push('rollaway');if(rc0.sharedBath)bits.push('shared bath');return bits.length?'<div class="rmeta">'+bits.join(' \u00b7 ')+'</div>':''})()+'</div>';
+  (buckets[rc0.area||'']=buckets[rc0.area||'']||[]).push(card);}
+ var roomsWrap=anyArea?['Courtyard','Grass','Second floor',''].filter(function(a2){return buckets[a2]}).map(function(a2){return '<div class="sec" style="margin:16px 0 0">'+(a2||'No area set')+'</div><div class="rooms" style="margin-top:8px">'+buckets[a2].join('')+'</div>'}).join(''):'<div class="rooms">'+(buckets['']||[]).join('')+'</div>';
+ el.innerHTML=d.review.map(function(r){
+  var sug=d.suggestions[r.key]||[],cur=r.match?r.match.hid:'';
+  var head=r.match?'<span class="pill gold">Auto-matched · please confirm</span>':(sug.length?'<span class="pill warn">Possible match</span>':'<span class="pill bad">Not on the guest list?</span>');
+  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'</div></div>';
+ }).join('');
+ qa('[data-key]',el).forEach(function(card){
+  var key=card.getAttribute('data-key'),r=d.responses.find(function(x){return x.key===key});
+  q('.mApprove',card).onclick=function(){var hid=q('.mSel',card).value;if(!hid){alert('Choose a household first, or create one.');return}busy(this);api('setMatch',{key:key,hid:hid,approved:true,method:'manual'}).then(load)};
+  q('.mCreate',card).onclick=function(){busy(this);var guests=[{name:r.name,type:'Adult'}].concat(r.others.map(function(o){return {name:o.name,type:o.type}}));
+   api('saveHousehold',{household:{name:r.name,tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:guests}}).then(function(res){if(!res.ok)throw res.error;return api('setMatch',{key:key,hid:res.id,approved:true,method:'manual'})}).then(load)};
+  var u=q('.mUnlink',card);if(u)u.onclick=function(){busy(this);api('setMatch',{key:key,hid:'',approved:false}).then(load)};
+  q('.mDel',card).onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
+ });
+}
+function busy(b){if(b){b.disabled=true}}
+function renderHouseholds(){
+ var d=S.data,term=(q('#search').value||'').toLowerCase(),f=q('#filter').value,tf=q('#tierF').value,el=q('#hhList');
+ if(f==='notinvited'){renderBackup();return}
+ var list=d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).filter(function(h){
+  if(term&&!(h.name+' '+h.guests.map(function(g){return g.name}).join(' ')+' '+h.resps.map(function(r){return r.name}).join(' ')).toLowerCase().includes(term))return false;
+  if(tf&&h.tier!==tf)return false;if(f==='notinvited')return h.invited===false;if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
+ if(!list.length){el.innerHTML='<div class="card"><div class="empty">'+(d.households.length?'No households match that search.':'No households yet. Add one, or import the guest list.')+'</div></div>';return}
+ el.innerHTML=list.map(function(h){return hhCard(h)}).join('');
+ qa('.hh',el).forEach(bindCard);
+}
+function hhCard(h){
+ var o=S.options,open=S.open[h.id]?' open':'';
+ var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false?' — backup list':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(rms.length?' · Rm '+rms.join(', '):' · no room yet'):h.lodging==='Off-site'?' · Off-site'+(h.offsitePlace?' · '+esc(h.offsitePlace):''):'');
+ var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
+ var resps=h.resps.map(function(r){return respBlock(r,'<div class="row">'+(r.match.approved?'<span class="pill ok">approved</span>':'<span class="pill gold">needs approval</span> <button class="btn sm rApprove" data-key="'+esc(r.key)+'">Approve</button>')+' <button class="btn sm danger rUnlink" data-key="'+esc(r.key)+'">Unlink</button></div>')}).join('');
+ return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">backup</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
+ '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>List</label><select class="fTier">'+o.tier.map(function(x){return '<option'+(x===(h.tier||'A')?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div><label>Invited?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes</option><option value="N"'+(h.invited===false?' selected':'')+'>Backup list</option></select></div><div><label>Plus-one</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
+ '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ Add name</button>'+
+ '<div class="sec">Private notes</div><textarea class="fNotes" placeholder="Only you see this.">'+esc(h.notes)+'</textarea>'+
+ '<div class="sec">Lodging</div><div class="grid"><div><label>Staying</label><select class="fLodge">'+o.lodging.map(function(x){return '<option'+(x===h.lodging?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
+ '<div class="villaOnly"><label>Villa room</label><select class="fRoom"><option value="">— none yet —</option>'+Array.from({length:15},function(_,i){return '<option'+(String(h.room)===String(i+1)?' selected':'')+'>'+(i+1)+'</option>'}).join('')+'</select></div><div class="villaOnly"><label>Room billing</label><select class="fBilling"><option value="charged"'+(h.billing==='included'?'':' selected')+'>Charged</option><option value="included"'+(h.billing==='included'?' selected':'')+'>Included — our gift</option></select></div><div class="villaOnly"><label>Heads in room</label><input type="number" class="fHeads" value="'+esc(h.headcount)+'" min="0"></div><div class="villaOnly"><label>Room ($)</label><input type="number" class="fRoomC" value="'+esc(h.roomCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Food &amp; tips ($)</label><input type="number" class="fFoodC" value="'+esc(h.foodCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Paid ($)</label><input type="number" class="fPaid" value="'+esc(h.paid)+'" min="0" step="1"></div>'+
+ '<div class="offOnly"><label>Where</label><select class="fOffP"><option value="">—</option>'+o.offsite.map(function(x){return '<option'+(x===h.offsitePlace?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div class="offOnly"><label>Details</label><input type="text" class="fOffD" value="'+esc(h.offsiteDetails)+'" placeholder="Condo name, dates, anything"></div></div>'+
+ (resps?'<div class="sec">RSVP received</div>'+resps:'<div class="sec">RSVP</div><div class="hint">Nothing yet.</div>')+
+ '<div class="acts"><button class="btn gold save">Save</button><span class="saved"></span><span style="flex:1"></span><button class="btn sm danger del">Delete household</button></div></div></div>';
+}
+function memberRow(g,i){var o=S.options;return '<div class="member"><input type="text" class="mName" value="'+esc(g.name)+'" placeholder="Full name"><select class="mType">'+o.guestType.map(function(x){return '<option'+(x===g.type?' selected':'')+'>'+x+'</option>'}).join('')+'</select><select class="mRoom" title="Villa room for this person"><option value="">Rm: family</option>'+Array.from({length:15},function(_,n){return '<option value="'+(n+1)+'"'+(String(g.room)===String(n+1)?' selected':'')+'>Rm '+(n+1)+'</option>'}).join('')+'</select><button class="x" title="Remove">×</button></div>'}
+function bindCard(card){
+ var id=card.getAttribute('data-id'),h=S.data.households.find(function(x){return x.id===id});
+ q('.head',card).onclick=function(){card.classList.toggle('open');S.open[id]=card.classList.contains('open')};
+ function lodge(){var v=q('.fLodge',card).value;qa('.villaOnly',card).forEach(function(e){e.style.display=v==='Villa'?'':'none'});qa('.offOnly',card).forEach(function(e){e.style.display=v==='Off-site'?'':'none'});var inc=q('.fBilling',card)&&q('.fBilling',card).value==='included';[['.fRoomC',1],['.fFoodC',1],['.fPaid',1]].forEach(function(pair){var el=q(pair[0],card);if(el&&v==='Villa')el.closest('.villaOnly').style.display=inc?'none':''})}
+ q('.fBilling',card)&&(q('.fBilling',card).onchange=lodge);
+ q('.fLodge',card).onchange=lodge;lodge();
+ q('.addM',card).onclick=function(){var w=document.createElement('div');w.innerHTML=memberRow({name:'',type:'Adult'});var row=w.firstChild;q('.members',card).appendChild(row);bindX(row);q('.mName',row).focus()};
+ qa('.member',card).forEach(bindX);
+ q('.save',card).onclick=function(){var b=this;busy(b);
+  var hh={id:id,name:q('.fName',card).value.trim(),tier:q('.fTier',card).value,invited:q('.fInv',card).value==='Y',plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,billing:q('.fBilling',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,paid:q('.fPaid',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
+   guests:qa('.member',card).map(function(m){return {name:q('.mName',m).value,type:q('.mType',m).value,room:q('.mRoom',m).value}}).filter(function(g){return g.name.trim()})};
+  api('saveHousehold',{household:hh}).then(function(r){if(!r.ok)throw r.error;q('.saved',card).textContent='Saved ✓';return load()}).catch(function(e){alert('Save failed: '+e);b.disabled=false})};
+ q('.del',card).onclick=function(){if(!confirm('Delete "'+h.name+'" and its guests? RSVPs stay in the sheet.'))return;busy(this);api('deleteHousehold',{id:id}).then(load)};
+ qa('.rApprove',card).forEach(function(b){b.onclick=function(){busy(b);api('setMatch',{key:b.getAttribute('data-key'),hid:id,approved:true,method:'manual'}).then(load)}});
+ qa('.rUnlink',card).forEach(function(b){b.onclick=function(){busy(b);api('setMatch',{key:b.getAttribute('data-key'),hid:'',approved:false}).then(load)}});
+}
+function bindX(row){q('.x',row).onclick=function(){row.remove()}}
+function saveVilla(mut){var v=JSON.parse(JSON.stringify(S.data.villa||{}));v.rooms=v.rooms||{};mut(v);S.data.villa=v;return api('setVilla',{villa:v})}
+function openRoom(rn){
+ var old=q('.ovl');if(old)old.remove();
+ var d=S.data,occ=[],V=d.villa||{},RC=(V.rooms||{})[String(rn)]||{};
+ d.households.forEach(function(h){if(h.lodging!=='Villa')return;h.guests.forEach(function(g,i){if(String(g.room||h.room||'')===String(rn))occ.push({h:h,g:g,i:i})})});
+ var box=document.createElement('div');box.className='ovl';
+ box.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="eyebrow">Room '+rn+(occ.length?' &middot; '+occ.length:'')+'</div><button class="x rc" style="font-size:22px">&times;</button></div>'
+  +'<div id="rmOcc">'+(occ.length?occ.map(function(o,k){return '<div class="rrow"><span class="nm">'+esc(o.g.name)+(o.h.status==='coming'?' <b class="ok2">✓</b>':'')+'</span><i>'+esc(o.h.name)+'</i><button class="x rX" data-k="'+k+'">&times;</button></div>'}).join(''):'<div class="empty" style="padding:8px 0">Empty room.</div>')+'</div>'
+  +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><div><label>Room price ($)</label><input type="number" id="rmPrice" min="0" placeholder="'+(V.roomDefault!=null?V.roomDefault:'')+'" value="'+(RC.price!=null?RC.price:'')+'"></div><div style="display:flex;align-items:flex-end;padding-bottom:6px"><label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;letter-spacing:.14em"><input type="checkbox" id="rmRoll"'+(RC.rollaway?' checked':'')+' style="width:auto;margin:0">Rollaway bed</label></div></div>'
+  +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:10px"><div><label>Area</label><select id="rmArea"><option value="">\u2014</option>'+['Courtyard','Grass','Second floor'].map(function(a2){return '<option'+(RC.area===a2?' selected':'')+'>'+a2+'</option>'}).join('')+'</select></div><div style="display:flex;align-items:flex-end;padding-bottom:6px"><label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;letter-spacing:.14em"><input type="checkbox" id="rmBath"'+(RC.sharedBath?' checked':'')+' style="width:auto;margin:0">Shared bathroom</label></div></div>'
+  +(V.foodPerHead&&occ.length?'<div class="hint" style="margin-top:4px">Food guide: '+occ.length+' \u00d7 $'+V.foodPerHead+' = $'+(occ.length*V.foodPerHead)+'</div>':'')
+  +'<label style="margin-top:16px">Add someone</label><input type="text" id="rmSearch" placeholder="Start typing a name…" autocomplete="off"><div id="rmSug"></div>'
+  +'<div class="hint" style="margin-top:10px">✓ = RSVP’d yes. Anyone on the guest list can be pre-assigned.</div></div>';
+ document.body.appendChild(box);
+ box.onclick=function(e){if(e.target===box)box.remove()};
+ q('.rc',box).onclick=function(){box.remove()};
+ function save(h,fix){var p=JSON.parse(JSON.stringify(h));delete p.resps;delete p.status;delete p.heads;delete p.kids;delete p.teens;delete p.review;fix(p);return api('saveHousehold',{household:p}).then(load).then(function(){openRoom(rn)})}
+ qa('.rX',box).forEach(function(b){b.onclick=function(){var o=occ[+b.getAttribute('data-k')];
+  if(!o.g.room){alert('The whole '+o.h.name+' household is set to room '+rn+'. Change the room on their card, or give each person their own room there.');return}
+  b.disabled=true;save(o.h,function(p){p.guests[o.i].room=''})}});
+ q('#rmPrice',box).onchange=function(){var val=this.value;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(val==='')delete v.rooms[String(rn)].price;else v.rooms[String(rn)].price=Number(val)});renderVilla()};
+ q('#rmRoll',box).onchange=function(){var on=this.checked;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};v.rooms[String(rn)].rollaway=on});renderVilla()};
+ q('#rmArea',box).onchange=function(){var val=this.value;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(val)v.rooms[String(rn)].area=val;else delete v.rooms[String(rn)].area});renderVilla()};
+ q('#rmBath',box).onchange=function(){var on=this.checked;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(on)v.rooms[String(rn)].sharedBath=true;else delete v.rooms[String(rn)].sharedBath});renderVilla()};
  var inp=q('#rmSearch',box);inp.focus();
  inp.oninput=function(){var t=inp.value.trim().toLowerCase(),out='',n=0;
   if(t)d.households.forEach(function(h){h.guests.forEach(function(g,i){
@@ -352,7 +461,7 @@ function renderVilla(){
   var pay=inc?'<span class="pill gold">Included — gift</span>':(t2>0?(pd>=t2?'<span class="pill ok">Paid</span>':(pd>0?'<span class="pill warn">Partial</span>':'<span class="pill bad">Unpaid</span>')):'<span class="pill mute">Set price</span>');
   bill+='<tr><td><a class="hhLink" data-hh="'+h.id+'">'+esc(h.name)+'</a></td><td>'+(inc?'—':money(h.roomCharge))+'</td><td>'+(inc?'—':money(h.foodCharge))+'</td><td>'+(inc?'—':money(t2))+'</td><td>'+(inc?'—':money(pd||''))+'</td><td>'+(inc?'—':money(t2-pd))+'</td><td>'+pay+'</td><td>'+pill(h)+'</td></tr>';
  });
- el.innerHTML='<div class="card"><div class="eyebrow">Rooms &middot; '+heads+' sleeping at the villa</div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px;max-width:340px"><div><label>Room price default ($)</label><input type="number" id="vDef" min="0" value="'+(V.roomDefault!=null?V.roomDefault:'')+'"></div><div><label>Food per person ($)</label><input type="number" id="vFph" min="0" value="'+(V.foodPerHead!=null?V.foodPerHead:'')+'"></div></div><div class="rooms">'+roomsHtml+'</div>'
+ el.innerHTML='<div class="card"><div class="eyebrow">Rooms &middot; '+heads+' sleeping at the villa</div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px;max-width:340px"><div><label>Room price default ($)</label><input type="number" id="vDef" min="0" value="'+(V.roomDefault!=null?V.roomDefault:'')+'"></div><div><label>Food per person ($)</label><input type="number" id="vFph" min="0" value="'+(V.foodPerHead!=null?V.foodPerHead:'')+'"></div></div>'+roomsWrap+''
   +(homeless.length?'<div class="hint" style="margin-top:10px">No room yet: '+homeless.map(esc).join(', ')+'</div>':'')
   +'<div class="hint" style="margin-top:8px">A room picked on a person&rsquo;s name row wins over the household room.</div></div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food $</th><th>Total</th><th>Paid</th><th>Owed</th><th></th><th></th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Total</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
