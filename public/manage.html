@@ -247,7 +247,7 @@ function renderReview(){
  el.innerHTML=d.review.map(function(r){
   var sug=d.suggestions[r.key]||[],cur=r.match?r.match.hid:'';
   var head=r.match?'<span class="pill gold">Auto-matched · please confirm</span>':(sug.length?'<span class="pill warn">Possible match</span>':'<span class="pill bad">Not on the guest list?</span>');
-  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'</div></div>';
+  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'<button class="btn sm danger mDel">Delete RSVP</button></div></div>';
  }).join('');
  qa('[data-key]',el).forEach(function(card){
   var key=card.getAttribute('data-key'),r=d.responses.find(function(x){return x.key===key});
@@ -255,7 +255,7 @@ function renderReview(){
   q('.mCreate',card).onclick=function(){busy(this);var guests=[{name:r.name,type:'Adult'}].concat(r.others.map(function(o){return {name:o.name,type:o.type}}));
    api('saveHousehold',{household:{name:r.name,tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:guests}}).then(function(res){if(!res.ok)throw res.error;return api('setMatch',{key:key,hid:res.id,approved:true,method:'manual'})}).then(load)};
   var u=q('.mUnlink',card);if(u)u.onclick=function(){busy(this);api('setMatch',{key:key,hid:'',approved:false}).then(load)};
-  q('.mDel',card).onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
+  var md=q('.mDel',card);if(md)md.onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
  });
 }
 function busy(b){if(b){b.disabled=true}}
@@ -353,7 +353,7 @@ function renderVilla(){
  el.innerHTML=d.review.map(function(r){
   var sug=d.suggestions[r.key]||[],cur=r.match?r.match.hid:'';
   var head=r.match?'<span class="pill gold">Auto-matched · please confirm</span>':(sug.length?'<span class="pill warn">Possible match</span>':'<span class="pill bad">Not on the guest list?</span>');
-  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'</div></div>';
+  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'<button class="btn sm danger mDel">Delete RSVP</button></div></div>';
  }).join('');
  qa('[data-key]',el).forEach(function(card){
   var key=card.getAttribute('data-key'),r=d.responses.find(function(x){return x.key===key});
@@ -361,7 +361,7 @@ function renderVilla(){
   q('.mCreate',card).onclick=function(){busy(this);var guests=[{name:r.name,type:'Adult'}].concat(r.others.map(function(o){return {name:o.name,type:o.type}}));
    api('saveHousehold',{household:{name:r.name,tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:guests}}).then(function(res){if(!res.ok)throw res.error;return api('setMatch',{key:key,hid:res.id,approved:true,method:'manual'})}).then(load)};
   var u=q('.mUnlink',card);if(u)u.onclick=function(){busy(this);api('setMatch',{key:key,hid:'',approved:false}).then(load)};
-  q('.mDel',card).onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
+  var md=q('.mDel',card);if(md)md.onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
  });
 }
 function busy(b){if(b){b.disabled=true}}
