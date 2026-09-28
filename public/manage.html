@@ -183,7 +183,8 @@ function derive(){
  var d=S.data,by={};d.households.forEach(function(h){by[h.id]=h;h.resps=[];h.review=false});
  d.responses.forEach(function(r){var m=d.matches[r.key];r.match=m||null;r.hh=m&&by[m.hid]||null;if(r.hh){r.hh.resps.push(r);if(!m.approved)r.hh.review=true}});
  d.households.forEach(function(h){
-  var acc=h.resps.filter(function(r){return /accept/i.test(r.attending)}),dec=h.resps.filter(function(r){return /decline/i.test(r.attending)});
+  var seen9={};var eff=h.resps.filter(function(r){var k=(r.name||'').trim().toLowerCase();if(seen9[k])return false;seen9[k]=1;return true});
+  var acc=eff.filter(function(r){return /accept/i.test(r.attending)}),dec=eff.filter(function(r){return /decline/i.test(r.attending)});
   if(acc.length){h.status='coming';h.heads=acc.reduce(function(s,r){return s+heads(r)},0);h.kids=acc.reduce(function(s,r){return s+r.others.filter(function(o){return o.type==='Child'}).length},0);h.teens=acc.reduce(function(s,r){return s+r.others.filter(function(o){return o.type==='Teen'}).length},0)}
   else if(dec.length){h.status='declined';h.heads=0;h.kids=0;h.teens=0}else{h.status='none';h.heads=0;h.kids=0;h.teens=0}
  });
@@ -236,7 +237,8 @@ function render(){
  if(tentRoom)todo.push(['<b>'+tentRoom+'</b> in rooms \u2014 awaiting their RSVP','sec:villa']);
  if(oweHH.length)todo.push(['<b>'+oweHH.length+'</b> household'+(oweHH.length===1?'':'s')+' still owe <b>$'+money0(oweSum)+'</b>','sec:villa']);
  var EV={w:[0,0],c:[0,0],b:[0,0]};
- d.responses.forEach(function(r){if(!/accept/i.test(r.attending))return;var n=heads(r);
+ var seenEV={};
+ d.responses.forEach(function(r){var kEV=(r.name||'').trim().toLowerCase();if(seenEV[kEV])return;seenEV[kEV]=1;if(!/accept/i.test(r.attending))return;var n=heads(r);
   String(r.events||'').split(';').forEach(function(seg){var yes=/:\s*yes/i.test(seg),may=/:\s*maybe/i.test(seg);if(!yes&&!may)return;
    var k=/welcome/i.test(seg)?'w':(/ceremony|wedding/i.test(seg)?'c':(/beach|pool/i.test(seg)?'b':null));
    if(k)EV[k][yes?0:1]+=n})});
