@@ -216,6 +216,7 @@ function derive(){
   var acc=eff.filter(function(r){return /accept/i.test(r.attending)}),dec=eff.filter(function(r){return /decline/i.test(r.attending)});
   if(acc.length){h.status='coming';h.heads=acc.reduce(function(s,r){return s+heads(r)},0);h.kids=acc.reduce(function(s,r){return s+r.others.filter(function(o){return o.type==='Child'}).length},0);h.teens=acc.reduce(function(s,r){return s+r.others.filter(function(o){return o.type==='Teen'}).length},0)}
   else if(dec.length){h.status='declined';h.heads=0;h.kids=0;h.teens=0}else{h.status='none';h.heads=0;h.kids=0;h.teens=0}
+  h.decHeads=dec.reduce(function(s2,r){return s2+heads(r)},0);
  });
  d.review=d.responses.filter(function(r){return !r.match||!r.match.approved});
 }
@@ -251,7 +252,7 @@ function render(){
  var teens=coming.reduce(function(s,h){return s+(h.teens||0)},0);
  var adults=Math.max(headsN-kids-teens,0);
  function arcPath(p){if(p<=0)p=0.0001;if(p>1)p=1;var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);return 'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x+' '+y}
- var seg=function(n,c){return inv.length?'<span style="width:'+(n/inv.length*100)+'%;background:'+c+'"></span>':''};
+ var noHeads=d.households.reduce(function(s2,h){return s2+(h.decHeads||0)},0);var awaitP=Math.max(invited-headsN-noHeads,0);var seg=function(n,c){return invited?'<span style="width:'+(n/invited*100)+'%;background:'+c+'"></span>':''};
  var roomsUsed=(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})();
  var noLodge=d.households.filter(function(h){return h.status==='coming'&&h.lodging!=='Villa'&&h.lodging!=='Off-site'}).length;
  var noRoom=0,tentRoom=0;
@@ -275,7 +276,7 @@ function render(){
  var todoHtml=todo.length?'<div class="todos">'+todo.map(function(t){return '<div class="td" data-go="'+t[1]+'">'+t[0]+'</div>'}).join('')+'</div>':'';
  q('#summary').innerHTML='<div class="dash">'
   +'<div class="gwrap"><svg width="150" height="88" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f7350"/><stop offset=".5" stop-color="#c0a37e"/><stop offset="1" stop-color="#ecdcc4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
-  +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span data-go="hh:coming"><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>households yes</span><span data-go="hh:declined"><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>no</span><span data-go="hh:none"><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>waiting</span></div>'
+  +'<div class="tally"><div class="tbar">'+seg(headsN,'#7da07b')+seg(noHeads,'#c98d80')+seg(awaitP,'#eee0d2')+'</div><div class="tkey"><span data-go="hh:coming"><span class="dot" style="background:#7da07b"></span><b>'+headsN+'</b>yes</span><span data-go="hh:declined"><span class="dot" style="background:#c98d80"></span><b>'+noHeads+'</b>no</span><span data-go="hh:none"><span class="dot" style="background:#eee0d2"></span><b>'+awaitP+'</b>no response</span></div>'
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
   +'</div></div>'+evHtml+todoHtml;
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
