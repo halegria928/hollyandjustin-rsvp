@@ -89,6 +89,7 @@ function draw(cv,size){
  var R=hole-mod*.15;
  ctx.lineWidth=Math.max(2,size/450); ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.stroke();
  ctx.lineWidth=Math.max(1,size/900); ctx.beginPath(); ctx.arc(cx,cy,R-size/110,0,7); ctx.stroke();
+ ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R-size/95,0,7); ctx.clip();
  if(CENTER==='heart'){
   var s=R*.62, hx=cx, hy=cy+R*.05;
   ctx.beginPath();
@@ -99,11 +100,11 @@ function draw(cv,size){
   ctx.closePath(); ctx.fill();
  }else if(CENTER==='hj'){
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font='400 '+(R*1.0)+'px "Pinyon Script", cursive';
-  ctx.fillText('H', cx-R*.42, cy-R*.05);
-  ctx.fillText('J', cx+R*.45, cy+R*.10);
-  ctx.font='500 '+(R*.42)+'px "Cormorant Garamond", Georgia, serif';
-  ctx.fillText('&', cx+R*.01, cy+R*.02);
+  ctx.font='400 '+(R*.74)+'px "Pinyon Script", cursive';
+  ctx.fillText('H', cx-R*.34, cy-R*.10);
+  ctx.fillText('J', cx+R*.34, cy+R*.14);
+  ctx.font='500 '+(R*.32)+'px "Cormorant Garamond", Georgia, serif';
+  ctx.fillText('&', cx, cy+R*.02);
  }else if(CENTER==='rings'){
   var rr=R*.40, w=Math.max(3,size/160);
   ctx.lineWidth=w;
@@ -112,6 +113,7 @@ function draw(cv,size){
   var dx=cx+rr*.55, dy=cy-R*.06-rr, ds=R*.14;
   ctx.beginPath(); ctx.moveTo(dx,dy-ds); ctx.lineTo(dx+ds*.8,dy); ctx.lineTo(dx,dy+ds*1.1); ctx.lineTo(dx-ds*.8,dy); ctx.closePath(); ctx.fill();
  }
+ ctx.restore();
 }
 var cv=document.getElementById('cv');
 function refresh(){draw(cv,900)}
