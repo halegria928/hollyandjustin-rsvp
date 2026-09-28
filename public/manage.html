@@ -131,7 +131,9 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .rm .who{font:500 16px 'Cormorant Garamond',serif;line-height:1.4;margin-top:5px}
 .rm .who .kid{font:400 10px 'Jost';color:var(--warn);letter-spacing:.08em}
 .rm.openr .who{color:#a98f77;font:italic 400 15px 'Cormorant Garamond',serif}
-.rm{cursor:pointer;transition:border-color .15s}
+.rm{cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column}
+.rm .who{flex:1 0 auto}
+.rollTag{color:#b98a3a;font-weight:700}
 .rm:hover{border-color:var(--gold)}
 .rmeta{font-size:10px;color:#9b8271;letter-spacing:.05em;margin-top:7px;text-transform:uppercase;border-top:1px solid var(--line);padding-top:6px}
 .rnote{font:italic 400 13px 'Cormorant Garamond',serif;color:#7a5c38;margin-top:4px}
@@ -154,7 +156,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .mev span{flex:1;font:500 15px 'Cormorant Garamond',serif}
 .mev b{cursor:pointer;padding:5px 12px;border:1px solid var(--gold-line);border-radius:13px;font:500 9.5px 'Jost',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#7a5c38;font-weight:500}
 .mev b.on{background:var(--foil);border-color:var(--gold);color:#46392b}
-.mg{display:flex;align-items:center;gap:9px;padding:7px 0;font:500 16px 'Cormorant Garamond',serif;cursor:pointer}
+.mg{display:inline-flex;width:fit-content;align-items:center;gap:9px;padding:7px 0;font:500 16px 'Cormorant Garamond',serif;cursor:pointer}
 .mg input{width:auto;margin:0}
 .mtog{display:flex;gap:8px;margin:4px 0 12px}
 .mtog button{flex:1;padding:10px;border:1px solid var(--gold-line);background:transparent;font:500 10px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);cursor:pointer}
@@ -443,6 +445,13 @@ function enterRsvp(h){
  };
 }
 function bindX(row){q('.x',row).onclick=function(){row.remove()}}
+function applyDefault(field,val){
+ var todo2=S.data.households.filter(function(h){return h.lodging==='Villa'&&h.billing!=='included'&&(h[field]===''||h[field]==null)});
+ if(!todo2.length){renderVilla();return}
+ var chain=Promise.resolve();
+ todo2.forEach(function(h){chain=chain.then(function(){var p=JSON.parse(JSON.stringify(h));delete p.resps;delete p.status;delete p.heads;delete p.kids;delete p.teens;delete p.review;p[field]=String(val);return api('saveHousehold',{household:p})})});
+ chain.then(load);
+}
 function saveVilla(mut){var v=JSON.parse(JSON.stringify(S.data.villa||{}));v.rooms=v.rooms||{};mut(v);S.data.villa=v;return api('setVilla',{villa:v})}
 function openRoom(rn){
  var old=q('.ovl');if(old)old.remove();
@@ -467,15 +476,16 @@ function openRoom(rn){
   +'<label style="margin-top:12px">Add someone</label><input type="text" id="rmSearch" placeholder="Start typing a name\u2026" autocomplete="off"><div id="rmSug"></div>'
   +(occ.length?'<div class="swaprow"><label>Swap everyone with</label><select id="rmSwap"><option value="">\u2014</option>'+Array.from({length:15},function(_,i9){return (i9+1)===Number(rn)?'':'<option value="'+(i9+1)+'">'+(i9+1)+' \u00b7 '+RM[i9+1][0]+'</option>'}).join('')+'</select></div>':'')
   +money
-  +'<div class="hint" style="margin-top:12px">\u2713 = RSVP\u2019d yes. Charges belong to the family and move with them.</div></div>';
+  +'<button class="btn gold" id="rmDone" style="width:100%;margin-top:14px">Save &amp; close</button>'+'<div class="hint" style="margin-top:10px">Everything saves as you type \u00b7 \u2713 = RSVP\u2019d yes \u00b7 charges move with the family.</div></div>';
  document.body.appendChild(box);
  box.onclick=function(e){if(e.target===box)box.remove()};
  q('.rc',box).onclick=function(){box.remove()};
+ var dn=box.querySelector('#rmDone');if(dn)dn.onclick=function(){box.remove()};
  function save(h,fix){var p=JSON.parse(JSON.stringify(h));delete p.resps;delete p.status;delete p.heads;delete p.kids;delete p.teens;delete p.review;fix(p);return api('saveHousehold',{household:p}).then(load).then(function(){openRoom(rn)})}
  q('#rmNote',box).onchange=function(){var val=this.value.trim();saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(val)v.rooms[String(rn)].note=val;else delete v.rooms[String(rn)].note});renderVilla()};
  q('#rmRoll',box).onchange=function(){var on=this.checked;saveVilla(function(v){v.rooms[String(rn)]=v.rooms[String(rn)]||{};if(on)v.rooms[String(rn)].rollaway=true;else delete v.rooms[String(rn)].rollaway});renderVilla()};
  qa('.ncBox',box).forEach(function(cb){cb.onchange=function(){var hh=occHH[cb.getAttribute('data-hid')];save(hh,function(p){p.billing=cb.checked?'included':'charged'})}});
- qa('.hMon',box).forEach(function(inp){inp.onchange=function(){var hh=occHH[inp.getAttribute('data-hid')],f=inp.getAttribute('data-f'),val=inp.value;save(hh,function(p){p[f]=(f==='paidVia')?val.trim():val})}});
+ qa('.hMon',box).forEach(function(inp){inp.onchange=function(){var hh=occHH[inp.getAttribute('data-hid')],f=inp.getAttribute('data-f'),val=inp.value;var p=JSON.parse(JSON.stringify(hh));delete p.resps;delete p.status;delete p.heads;delete p.kids;delete p.teens;delete p.review;p[f]=(f==='paidVia')?val.trim():val;occHH[hh.id]=p;api('saveHousehold',{household:p}).then(load).then(renderVilla)}});
  qa('.rX',box).forEach(function(b){b.onclick=function(){var o=occ[+b.getAttribute('data-k')];b.disabled=true;
   save(o.h,function(p){var hr=p.room;p.room='';p.guests.forEach(function(g2,i2){var eff=String(g2.room||hr||'');g2.room=(i2===o.i)?'':eff})})}});
  qa('.rMove',box).forEach(function(sel){sel.onchange=function(){var o=occ[+sel.getAttribute('data-k')],to=sel.value;if(String(to)===String(rn))return;sel.disabled=true;
@@ -513,7 +523,7 @@ function renderVilla(){
   var rc0=VR[String(rn)]||{};
   var card='<div class="rm '+(ps.length?'used':'openr')+'" data-rn="'+rn+'"><div class="rn"><span>'+rn+' \u00b7 '+RM[rn][0]+'</span><span>'+(ps.length||'')+'</span></div><div class="who">'+(ps.length?ps.map(function(p2){return esc(p2.n)+(p2.st==='coming'?' <b class="ok2">\u2713</b>':'')+(p2.ty!=='Adult'?' <span class="kid">'+p2.ty.toLowerCase()+'</span>':'')}).join('<br>'):'Open')+'</div>'
   +(rc0.note?'<div class="rnote">'+esc(rc0.note)+'</div>':'')
-  +(function(){var bits=[RM[rn][1]];if(RM[rn][2])bits.push(RM[rn][2]);if(rc0.rollaway)bits.push('rollaway');return '<div class="rmeta">'+bits.join(' \u00b7 ')+'</div>'})()
+  +(function(){var bits=[RM[rn][1]];if(RM[rn][2])bits.push(RM[rn][2]);if(rc0.rollaway)bits.push('<b class="rollTag">ROLLAWAY</b>');return '<div class="rmeta">'+bits.join(' \u00b7 ')+'</div>'})()
   +(function(){var hhs={};ps.forEach(function(p2){hhs[p2.hid]=1});var ids=Object.keys(hhs);
     if(!ids.length)return (V.roomDefault!=null?'<div class="rfin">$'+V.roomDefault.toLocaleString()+'</div>':'');
     var fin=[];ids.forEach(function(hid2){var hh2=d.households.find(function(x){return x.id===hid2});if(!hh2||hh2.billing==='included')return;
@@ -542,8 +552,8 @@ function renderVilla(){
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Off-site &middot; '+off.length+'</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th></th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'—')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">None yet.</div>')+(un.length?'<div class="hint" style="margin-top:10px">'+un.length+' household'+(un.length===1?'':'s')+' undecided.</div>':'')+'</div>';
  qa('.hhLink',el).forEach(function(a){a.onclick=function(){var id=a.getAttribute('data-hh');S.open[id]=true;openSec('coming',true);q('#search').value='';q('#filter').value='';renderHouseholds();var c=q('.hh[data-id="'+id+'"]');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}});
  qa('.rm',el).forEach(function(r2){r2.onclick=function(){openRoom(r2.getAttribute('data-rn'))}});
- q('#vDef').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.roomDefault;else v.roomDefault=Number(val)});renderVilla()};
- q('#vFph').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.foodPerHead;else v.foodPerHead=Number(val)});renderVilla()};
+ q('#vDef').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.roomDefault;else v.roomDefault=Number(val)});if(val!=='')applyDefault('roomCharge',Number(val));else renderVilla()};
+ q('#vFph').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.foodPerHead;else v.foodPerHead=Number(val)});if(val!=='')applyDefault('foodCharge',Number(val));else renderVilla()};
 }
 function renderBackup(){
  var el=q('#hhList');
