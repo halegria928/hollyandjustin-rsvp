@@ -372,8 +372,19 @@ app.post('/api/admin', async (req, res) => {
       }
       case 'exportCsv': {
         const data = await loadAll();
+        const splitAddr = a => {
+          a = String(a || '').trim(); if (!a) return ['', '', '', ''];
+          const parts = a.split(',').map(x => x.trim()).filter(Boolean);
+          const m = parts.length >= 2 ? parts[parts.length - 1].match(/^([A-Za-z]{2})\.?\s+(\d{5}(?:-\d{4})?)$/) : null;
+          if (m) {
+            const city = parts.length >= 3 ? parts[parts.length - 2] : '';
+            const street = parts.slice(0, Math.max(parts.length - (parts.length >= 3 ? 2 : 1), 0)).join(', ');
+            return [street, city, m[1].toUpperCase(), m[2]];
+          }
+          return [a, '', '', ''];
+        };
         const esc = v => { let x = String(v == null ? '' : v); if (/^[=+@]/.test(x) || (/^-/.test(x) && !/^-?\d+(\.\d+)?$/.test(x))) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; };
-        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Phone','Emails','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Owed','Off-site place','Address','Notes']];
+        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Phone','Emails','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Owed','Off-site place','Street','City','State','Zip','Notes']];
         for (const h of data.households) {
           const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
           const acc = resps.filter(r => /accept/i.test(r.attending));
@@ -384,7 +395,7 @@ app.post('/api/admin', async (req, res) => {
             resps.map(r => r.name + (r.others.length ? ' + ' + r.others.map(o => o.name).join(', ') : '')).join(' | '),
             resps.map(r => r.phone).filter(Boolean).join(' | '),
             resps.map(r => r.emails).filter(Boolean).join(' | '),
-            resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.billing, h.paid, h.billing === 'included' ? '' : (((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || ''), h.offsitePlace, h.address, h.notes]);
+            resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.billing, h.paid, h.billing === 'included' ? '' : (((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || ''), h.offsitePlace, ...splitAddr(h.address), h.notes]);
         }
         return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
       }
