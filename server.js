@@ -67,7 +67,7 @@ async function init() {
   await q(`CREATE TABLE IF NOT EXISTS activity (id serial PRIMARY KEY, ts timestamptz NOT NULL DEFAULT now(), actor text NOT NULL DEFAULT '', detail text NOT NULL DEFAULT '')`);
   if (!Number((await q('SELECT COUNT(*) AS c FROM users')).rows[0].c)) {
     const legacy = await getSetting('password', DEFAULT_PASSWORD);
-    await q('INSERT INTO users(name,pass) VALUES($1,$2),($3,$4) ON CONFLICT DO NOTHING', ['Holly', legacy, 'Haley', 'Alegria-0313']);
+    await q('INSERT INTO users(name,pass) VALUES($1,$2),($3,$4) ON CONFLICT DO NOTHING', ['Holly', hashPw(legacy), 'Haley', hashPw('Alegria-0313')]);
   }
   await q(`CREATE TABLE IF NOT EXISTS photos (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(),
     uploader text NOT NULL DEFAULT '', visibility text NOT NULL DEFAULT 'public', mime text NOT NULL DEFAULT 'image/jpeg',
@@ -154,6 +154,13 @@ app.get('/', async (req, res, next) => {
   catch (e) { next(e); }
 });
 app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'SAMEORIGIN');
+  res.set('Referrer-Policy', 'same-origin');
+  if (req.method === 'GET' && req.headers['x-forwarded-proto'] === 'http') return res.redirect(301, 'https://' + req.hostname + req.originalUrl);
+  next();
+});
+app.use((req, res, next) => {
   const ch = process.env.CANONICAL_HOST;
   if (ch && req.method === 'GET' && req.path !== '/healthz' && /ondigitalocean\.app$/.test(req.hostname || '')) {
     return res.redirect(301, 'https://' + ch + req.originalUrl);
@@ -164,6 +171,8 @@ app.use(express.static(PUB, { extensions: ['html'] }));
 
 app.post('/api/rsvp', async (req, res) => {
   if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
+  const ip = req.ip || ''; rlPush('r:' + ip);
+  if (rlCount('r:' + ip, 3600000) > 25) return res.status(429).json({ ok: false, error: 'too_many' });
   try {
     const b = req.body || {};
     const first = String(b.first || '').trim().slice(0, 80), last = String(b.last || '').trim().slice(0, 80), attending = String(b.attending || '').slice(0, 40);
@@ -218,11 +227,25 @@ function pwMatch(given, actual) {
   const norm = v => String(v == null ? '' : v).trim().replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-').toLowerCase();
   return norm(given) === norm(actual) && norm(given).length > 0;
 }
+const normPw = v => String(v == null ? '' : v).trim().replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-').toLowerCase();
+function hashPw(pw) { const salt = crypto.randomBytes(12).toString('hex'); return 'scrypt:' + salt + ':' + crypto.scryptSync(normPw(pw), salt, 32).toString('hex'); }
 async function matchUser(given) {
+  const g = normPw(given); if (!g) return null;
   const rows = (await q('SELECT name, pass FROM users ORDER BY name')).rows;
-  for (const u of rows) if (pwMatch(given, u.pass)) return u.name;
+  for (const u of rows) {
+    if (String(u.pass).startsWith('scrypt:')) {
+      const p = u.pass.split(':');
+      try { if (crypto.timingSafeEqual(crypto.scryptSync(g, p[1], 32), Buffer.from(p[2], 'hex'))) return u.name; } catch (e) {}
+    } else if (pwMatch(given, u.pass)) {
+      try { await q('UPDATE users SET pass=$1 WHERE name=$2', [hashPw(u.pass), u.name]); } catch (e) {}
+      return u.name;
+    }
+  }
   return null;
 }
+const RL = {};
+function rlPush(k) { (RL[k] = RL[k] || []).push(Date.now()); }
+function rlCount(k, windowMs) { const now = Date.now(); const e = RL[k] = RL[k] || []; while (e.length && now - e[0] > windowMs) e.shift(); return e.length; }
 async function logAct(actor, detail) {
   try { await q('INSERT INTO activity(actor,detail) VALUES($1,$2)', [actor, String(detail || '').slice(0, 600)]); } catch (e) { console.error(e); }
 }
@@ -267,8 +290,10 @@ app.post('/api/admin', async (req, res) => {
   const b = req.body || {};
   if (!dbReady) return res.status(503).json({ ok: false, error: 'Database unavailable: ' + dbError });
   try {
+    const ip = req.ip || '';
+    if (rlCount('af:' + ip, 900000) >= 15) return res.status(429).json({ ok: false, error: 'Too many attempts — wait 15 minutes' });
     const actor = await matchUser(b.pw);
-    if (!actor) return res.status(401).json({ ok: false, error: 'bad_password' });
+    if (!actor) { rlPush('af:' + ip); return res.status(401).json({ ok: false, error: 'bad_password' }); }
     switch (b.action) {
       case 'login': await logAct(actor, 'logged in'); return res.json({ ok: true, user: actor });
       case 'load': return res.json(await loadAll());
@@ -322,9 +347,14 @@ app.post('/api/admin', async (req, res) => {
         await q('UPDATE photos SET visibility=$1 WHERE id=$2', [vis, Number(b.id)]); await logAct(actor, 'made a photo ' + (vis === 'couple' ? 'private' : 'public')); return res.json({ ok: true });
       }
       case 'deletePhoto': await q('DELETE FROM photos WHERE id=$1', [Number(b.id)]); await logAct(actor, 'deleted a photo'); return res.json({ ok: true });
+      case 'exportBackup': {
+        const data = await loadAll();
+        await logAct(actor, 'downloaded a backup');
+        return res.json({ ok: true, backup: { exported: new Date().toISOString(), households: data.households, responses: data.responses, matches: data.matches, theme: data.theme, villa: data.villa, activity: data.activity } });
+      }
       case 'exportCsv': {
         const data = await loadAll();
-        const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+        const esc = v => { let x = String(v == null ? '' : v); if (/^[=+@]/.test(x) || (/^-/.test(x) && !/^-?\d+(\.\d+)?$/.test(x))) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; };
         const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Phone','Emails','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Owed','Off-site place','Notes']];
         for (const h of data.households) {
           const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
@@ -357,7 +387,7 @@ app.post('/api/admin', async (req, res) => {
         return res.json({ ok: true });
       }
       case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); await logAct(actor, 'set the live design to ' + b.theme); return res.json({ ok: true }); }
-      case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); if (await matchUser(np)) return res.json({ ok: false, error: 'That password is taken \u2014 pick a different one' }); await q('UPDATE users SET pass=$1 WHERE name=$2', [np, actor]); await logAct(actor, 'changed their password'); return res.json({ ok: true, user: actor }); }
+      case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); if (await matchUser(np)) return res.json({ ok: false, error: 'That password is taken \u2014 pick a different one' }); await q('UPDATE users SET pass=$1 WHERE name=$2', [hashPw(np), actor]); await logAct(actor, 'changed their password'); return res.json({ ok: true, user: actor }); }
       default: return res.json({ ok: false, error: 'unknown_action' });
     }
   } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
