@@ -112,6 +112,11 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .bigline i{font:italic 400 15px 'Cormorant Garamond',serif;color:var(--muted)}
 .pline{font:500 30px/1.2 'Cormorant Garamond',serif;color:var(--ink);margin-top:14px;cursor:pointer}
 .pline i{font:italic 400 16px 'Cormorant Garamond',serif;color:var(--muted)}
+.todos{margin-top:14px;border-top:1px solid var(--line)}
+.td{padding:9px 2px;border-bottom:1px solid var(--line);font-size:13.5px;cursor:pointer}
+.td:last-child{border-bottom:0}
+.td b{font:500 16.5px 'Cormorant Garamond',serif;color:#7a3b3f}
+.td:before{content:'\25C6';color:var(--gold);font-size:7px;vertical-align:2px;margin-right:9px}
 .tkey span{cursor:pointer}
 .lo{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);cursor:pointer;text-decoration:none}
 .lo:hover{color:var(--gold)}
@@ -161,7 +166,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
   </div>
   <div class="card sumcard" id="summary"></div>
   <div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
-  <div class="foot"><a id="changePw">Change password</a></div>
+  <div class="foot"><a id="changePw">Change password</a>·<a id="bkupBtn">Download backup</a></div>
  </div>
 </div>
 <script>
@@ -218,15 +223,28 @@ function render(){
  function arcPath(p){if(p<=0)p=0.0001;if(p>1)p=1;var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);return 'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x+' '+y}
  var seg=function(n,c){return inv.length?'<span style="width:'+(n/inv.length*100)+'%;background:'+c+'"></span>':''};
  var roomsUsed=(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})();
+ var noLodge=d.households.filter(function(h){return h.status==='coming'&&h.lodging!=='Villa'&&h.lodging!=='Off-site'}).length;
+ var noRoom=0,tentRoom=0;
+ d.households.forEach(function(h){if(h.lodging!=='Villa')return;h.guests.forEach(function(g){var r2=g.room||h.room;if(h.status==='coming'&&!r2)noRoom++;if(h.status!=='coming'&&r2)tentRoom++})});
+ var owedOf=function(h){return h.billing==='included'?0:((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0)};
+ var oweHH=chgd.filter(function(h){return owedOf(h)>0});
+ var oweSum=oweHH.reduce(function(s2,h){return s2+owedOf(h)},0);
+ var todo=[];
+ if(d.review.length)todo.push(['<b>'+d.review.length+'</b> RSVP'+(d.review.length===1?'':'s')+' to match','sec:review']);
+ if(noLodge)todo.push(['<b>'+noLodge+'</b> household'+(noLodge===1?'':'s')+' coming \u2014 lodging not chosen','hh:coming']);
+ if(noRoom)todo.push(['<b>'+noRoom+'</b> coming to the villa \u2014 no room yet','sec:villa']);
+ if(tentRoom)todo.push(['<b>'+tentRoom+'</b> in rooms \u2014 awaiting their RSVP','sec:villa']);
+ if(oweHH.length)todo.push(['<b>'+oweHH.length+'</b> household'+(oweHH.length===1?'':'s')+' still owe <b>$'+money0(oweSum)+'</b>','sec:villa']);
+ var todoHtml=todo.length?'<div class="todos">'+todo.map(function(t){return '<div class="td" data-go="'+t[1]+'">'+t[0]+'</div>'}).join('')+'</div>':'';
  q('#summary').innerHTML='<div class="dash">'
   +'<div class="gwrap"><svg width="150" height="88" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f7350"/><stop offset=".5" stop-color="#c0a37e"/><stop offset="1" stop-color="#ecdcc4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
   +'<div class="tally"><div class="tbar">'+seg(yesHH,'#7da07b')+seg(noHH,'#c98d80')+seg(awaitHH,'#eee0d2')+'</div><div class="tkey"><span data-go="hh:coming"><span class="dot" style="background:#7da07b"></span><b>'+yesHH+'</b>Yes</span><span data-go="hh:declined"><span class="dot" style="background:#c98d80"></span><b>'+noHH+'</b>No</span><span data-go="hh:none"><span class="dot" style="background:#eee0d2"></span><b>'+awaitHH+'</b>Waiting</span></div>'
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
-  +'</div></div>';
+  +'</div></div>'+todoHtml;
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
  q('#sum-act').innerHTML='<div class="eyebrow">Activity</div><div class="hint" style="margin-top:4px">'+((d.activity&&d.activity.length)?esc(d.activity[0].actor)+' \u00b7 '+new Date(d.activity[0].ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Nothing yet')+'</div>';
  q('#sum-villa').innerHTML='<div class="eyebrow">Villa</div><div class="bigline" data-go="sec:villa">'+roomsUsed+' of 15 <i>rooms in use</i></div><div class="tiles t3" style="margin-top:10px">'+[['$'+money0(vExp),'Expected','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Owed','sec:villa']].map(tile).join('')+'</div>';
- qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g==='sec:villa')openSec('villa',true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
+ qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g.indexOf('sec:')===0)openSec(g.slice(4),true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
  renderReview();renderHouseholds();renderVilla();renderActivity();
 }
 function respBlock(r,extra){
@@ -344,16 +362,26 @@ function renderVilla(){
  var money=function(n){return n===''||n==null?'—':'$'+Number(n).toLocaleString()};
  var occ={};var homeless=[];
  villa.forEach(function(h){h.guests.forEach(function(g){var r=String(g.room||h.room||'');if(r)((occ[r]=occ[r]||[])).push({n:g.name,hh:h.name,hid:h.id,ty:g.type,st:h.status});else homeless.push(g.name+' ('+h.name+')')})});
- var heads=0,buckets={},anyArea=false;
- for(var rn=1;rn<=15;rn++){var ps=occ[String(rn)]||[];heads+=ps.length;
+ var heads=0,conf=0,buckets={},anyArea=false;
+ for(var rn=1;rn<=15;rn++){var ps=occ[String(rn)]||[];heads+=ps.length;conf+=ps.filter(function(p9){return p9.st==='coming'}).length;
   var rc0=VR[String(rn)]||{};if(rc0.area)anyArea=true;
   var card='<div class="rm '+(ps.length?'used':'openr')+'" data-rn="'+rn+'"><div class="rn"><span>Room '+rn+'</span><span>'+(ps.length||'')+'</span></div><div class="who">'+(ps.length?ps.map(function(p2){return esc(p2.n)+(p2.st==='coming'?' <b class="ok2">\u2713</b>':'')+(p2.ty!=='Adult'?' <span class="kid">'+p2.ty.toLowerCase()+'</span>':'')}).join('<br>'):'Open')+'</div>'+(function(){var pr=(rc0.price!=null?rc0.price:V.roomDefault);var bits=[];if(pr!=null)bits.push('$'+pr);if(rc0.rollaway)bits.push('rollaway');if(rc0.sharedBath)bits.push('shared bath');return bits.length?'<div class="rmeta">'+bits.join(' \u00b7 ')+'</div>':''})()+'</div>';
   (buckets[rc0.area||'']=buckets[rc0.area||'']||[]).push(card);}
  var roomsWrap=anyArea?['Courtyard','Grass','Second floor',''].filter(function(a2){return buckets[a2]}).map(function(a2){return '<div class="sec" style="margin:16px 0 0">'+(a2||'No area set')+'</div><div class="rooms" style="margin-top:8px">'+buckets[a2].join('')+'</div>'}).join(''):'<div class="rooms">'+(buckets['']||[]).join('')+'</div>';
- el.innerHTML='<div class="card"><div class="eyebrow">Rooms &middot; '+heads+' sleeping at the villa</div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px;max-width:340px"><div><label>Room price default ($)</label><input type="number" id="vDef" min="0" value="'+(V.roomDefault!=null?V.roomDefault:'')+'"></div><div><label>Food per person ($)</label><input type="number" id="vFph" min="0" value="'+(V.foodPerHead!=null?V.foodPerHead:'')+'"></div></div>'+roomsWrap+''
+ var bill='';var tot={exp:0,paid:0};var paidC=0,partC=0,unpC=0;
+ var owed2=function(h){return h.billing==='included'?0:((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0)};
+ villa.slice().sort(function(a,b){var ia=a.billing==='included',ib=b.billing==='included';if(ia!==ib)return ia?1:-1;return owed2(b)-owed2(a)||a.name.localeCompare(b.name)}).forEach(function(h){
+  var inc=h.billing==='included';
+  var t2=inc?0:(Number(h.roomCharge)||0)+(Number(h.foodCharge)||0);var pd=inc?0:(Number(h.paid)||0);
+  if(!inc){tot.exp+=t2;tot.paid+=pd}
+  if(!inc&&t2>0){if(pd>=t2)paidC++;else if(pd>0)partC++;else unpC++}
+  var pay=inc?'<span class="pill gold">Included \u2014 gift</span>':(t2>0?(pd>=t2?'<span class="pill ok">Paid</span>':(pd>0?'<span class="pill warn">Partial</span>':'<span class="pill bad">Unpaid</span>')):'<span class="pill mute">Set price</span>');
+  bill+='<tr><td><a class="hhLink" data-hh="'+h.id+'">'+esc(h.name)+'</a></td><td>'+(inc?'\u2014':money(h.roomCharge))+'</td><td>'+(inc?'\u2014':money(h.foodCharge))+'</td><td>'+(inc?'\u2014':money(t2))+'</td><td>'+(inc?'\u2014':money(pd||''))+'</td><td>'+(inc?'\u2014':money(t2-pd))+'</td><td>'+pay+'</td><td>'+pill(h)+'</td></tr>';
+ });
+ el.innerHTML='<div class="card"><div class="eyebrow">Rooms &middot; '+heads+' sleeping'+(heads?' &middot; '+conf+' \u2713 &middot; '+(heads-conf)+' tentative':'')+'</div><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px;max-width:340px"><div><label>Room price default ($)</label><input type="number" id="vDef" min="0" value="'+(V.roomDefault!=null?V.roomDefault:'')+'"></div><div><label>Food per person ($)</label><input type="number" id="vFph" min="0" value="'+(V.foodPerHead!=null?V.foodPerHead:'')+'"></div></div>'+roomsWrap+''
   +(homeless.length?'<div class="hint" style="margin-top:10px">No room yet: '+homeless.map(esc).join(', ')+'</div>':'')
-  +'<div class="hint" style="margin-top:8px">A room picked on a person&rsquo;s name row wins over the household room.</div></div>'
-  +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food $</th><th>Total</th><th>Paid</th><th>Owed</th><th></th><th></th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Total</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
+  +'<div class="hint" style="margin-top:8px">A room picked on a person&rsquo;s name row wins over the household room. \u2713 = RSVP\u2019d yes.</div></div>'
+  +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing'+((paidC+partC+unpC)?' &middot; '+paidC+' paid &middot; '+unpC+' unpaid'+(partC?' &middot; '+partC+' partial':''):'')+'</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food $</th><th>Total</th><th>Paid</th><th>Owed</th><th></th><th></th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Total</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Off-site &middot; '+off.length+'</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th></th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'—')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">None yet.</div>')+(un.length?'<div class="hint" style="margin-top:10px">'+un.length+' household'+(un.length===1?'':'s')+' undecided.</div>':'')+'</div>';
  qa('.hhLink',el).forEach(function(a){a.onclick=function(){var id=a.getAttribute('data-hh');S.open[id]=true;openSec('coming',true);q('#search').value='';q('#filter').value='';q('#tierF').value='';renderHouseholds();var c=q('.hh[data-id="'+id+'"]');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}});
  qa('.rm',el).forEach(function(r2){r2.onclick=function(){openRoom(r2.getAttribute('data-rn'))}});
@@ -414,5 +442,6 @@ q('#emailsBtn').onclick=function(){var b=this,set={};S.data.responses.forEach(fu
  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){prompt('Copy:',txt)})}else prompt('Copy:',txt)};
 q('#csvBtn').onclick=function(){var b=this;busy(b);api('exportCsv').then(function(r){b.disabled=false;if(!r.ok){alert(r.error);return}var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.csv],{type:'text/csv'}));a.download='holly-justin-guests.csv';a.click()})};
 q('#changePw').onclick=function(){var np=prompt('New portal password (6+ characters):');if(!np)return;api('changePassword',{newPw:np}).then(function(r){if(!r.ok){alert(r.error);return}S.pw=np;try{sessionStorage.setItem('hjpw',np)}catch(e){}alert('Password changed. Share the new one with whoever needs it.')})};
+q('#bkupBtn').onclick=function(){api('exportBackup').then(function(r){if(!r.ok){alert('Backup failed \u2014 try again.');return}var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(r.backup,null,1)],{type:'application/json'}));a.download='hollyandjustin-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()})};
 try{var saved=sessionStorage.getItem('hjpw');if(saved){q('#pw').value=saved;enter()}}catch(e){}
 </script></body></html>
