@@ -440,5 +440,7 @@ async function initLoop() {
   catch (e) { dbReady = false; dbError = String(e && e.message || e); console.error('DB init failed:', dbError); setTimeout(initLoop, 30000); }
 }
 app.get('/api/theme', async (req, res) => { try { res.json({ ok: true, theme: dbReady ? await getSetting('theme', 'blush') : 'blush' }); } catch (e) { res.json({ ok: true, theme: 'blush' }); } });
+const BOOT = String(Date.now());
+app.get('/api/version', (req, res) => res.json({ ok: true, v: BOOT }));
 app.get('/healthz', (req, res) => res.json({ ok: dbReady, db: dbReady ? 'ready' : 'unavailable', error: dbError, hasUrl: !!process.env.DATABASE_URL }));
 app.listen(PORT, () => { console.log('RSVP site listening on ' + PORT); initLoop(); });
