@@ -156,6 +156,16 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .mtog{display:flex;gap:8px;margin:4px 0 12px}
 .mtog button{flex:1;padding:10px;border:1px solid var(--gold-line);background:transparent;font:500 10px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);cursor:pointer}
 .mtog button.on{background:var(--foil);border-color:var(--gold);color:#46392b}
+.hh .body{padding:4px 14px 14px}
+.hh .body .grid{gap:9px;margin-top:9px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.hh .body .sec{margin:13px 0 6px}
+.member{margin-bottom:6px;grid-template-columns:1fr 88px 92px 42px 24px}
+.p1{display:flex;align-items:center;gap:4px;font:500 10px 'Jost',sans-serif;letter-spacing:.08em;color:#7a5c38;cursor:pointer;border:1px solid var(--gold-line);border-radius:12px;padding:0 7px;justify-content:center}
+.p1 input{width:auto;margin:0}
+.hh .body textarea{min-height:38px}
+.resp{padding:10px 12px;font-size:13.5px;margin-top:8px}
+.lkG{cursor:pointer;padding:4px 10px;border:1px solid var(--gold-line);border-radius:12px;font:500 9px 'Jost',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#7a5c38;flex:none;margin-left:6px}
+.lkG:hover{background:var(--soft);border-color:var(--gold)}
 @media (max-width:600px){.card{padding:16px 14px}.member{grid-template-columns:1fr 84px 74px 26px}.appicons{grid-template-columns:repeat(3,1fr);gap:8px}.ai svg{width:26px;height:26px}.ai .t{font-size:8.5px}.tile{padding:9px 10px}.tile .n{font-size:22px}.tile .l{font-size:8.5px;letter-spacing:.13em}.tiles{gap:8px;grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}.dash{gap:14px}body{padding:18px 10px 70px}.acc-body{margin-top:12px;padding-top:12px}.rooms{grid-template-columns:repeat(2,1fr)}}
 </style></head><body>
 <div class="wrap">
@@ -314,13 +324,13 @@ function renderHouseholds(){
 }
 function hhCard(h){
  var o=S.options,open=S.open[h.id]?' open':'';
- var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta=(h.invited===false?'Backup list · ':'')+h.guests.length+' guest'+(h.guests.length===1?'':'s')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa · '+(rms.length?(function(){var ar={};rms.forEach(function(r){ar[(+r<=3?'balcony':+r<=7?'patio':'garden')]=1});return Object.keys(ar).join('/')+' · '+rms.map(function(r){return RM[+r][0]}).join(' + ')})():'no room yet'):' · Off-site · '+(h.offsitePlace?esc(h.offsitePlace):'TBD'));
+ var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta=(h.invited===false?'Backup list · ':'')+h.guests.length+' guest'+(h.guests.length===1?'':'s')+(function(){var n1=h.guests.filter(function(g){return g.plusOne}).length;return n1?' · '+n1+' +1'+(n1>1?'s':'')+' ok':(h.plusOne?' · +1 ok':'')})()+(h.lodging==='Villa'?' · Villa · '+(rms.length?(function(){var ar={};rms.forEach(function(r){ar[(+r<=3?'balcony':+r<=7?'patio':'garden')]=1});return Object.keys(ar).join('/')+' · '+rms.map(function(r){return RM[+r][0]}).join(' + ')})():'no room yet'):' · Off-site · '+(h.offsitePlace?esc(h.offsitePlace):'TBD'));
  var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
  var seen={};var dupflag=h.resps.map(function(r){var k=(r.name||'').trim().toLowerCase();var first=!seen[k];seen[k]=(seen[k]||0)+1;return first?0:1});
  var names={};h.resps.forEach(function(r){var k=(r.name||'').trim().toLowerCase();names[k]=(names[k]||0)+1});
  var resps=h.resps.map(function(r,ri){return respBlock(r,'<div class="row">'+(names[(r.name||'').trim().toLowerCase()]>1?(dupflag[ri]?'<span class="pill mute">replaced by newer</span> ':'<span class="pill ok">latest answer</span> '):'')+(r.match.approved?'<span class="pill ok">approved</span>':'<span class="pill gold">needs approval</span> <button class="btn sm rApprove" data-key="'+esc(r.key)+'">Approve</button>')+' <button class="btn sm danger rUnlink" data-key="'+esc(r.key)+'">Unlink</button></div>')}).join('');
  return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">backup</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
- '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>Invited?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes</option><option value="N"'+(h.invited===false?' selected':'')+'>Backup list</option></select></div><div><label>Plus-one</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
+ '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>Invited?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes</option><option value="N"'+(h.invited===false?' selected':'')+'>Backup list</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
  '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ New name</button> <button class="btn sm linkM">+ Link someone on the list</button>'+
  '<div class="sec">Address</div><input type="text" class="fAddr" value="'+esc(h.address||'')+'" placeholder="Street, city, state zip">'+
  '<div class="sec">Notes</div><textarea class="fNotes" placeholder="Only you see this.">'+esc(h.notes)+'</textarea>'+
@@ -330,7 +340,7 @@ function hhCard(h){
  (resps?'<div class="sec">RSVP received</div>'+resps:'<div class="sec">RSVP</div><div class="hint">Nothing yet.</div>')+'<button class="btn sm gold enterR" style="margin-top:10px">+ Enter their RSVP</button>'+
  '<div class="acts"><button class="btn gold save">Save</button><span class="saved"></span><span style="flex:1"></span><button class="btn sm danger del">Delete household</button></div></div></div>';
 }
-function memberRow(g,i){var o=S.options;return '<div class="member"><input type="text" class="mName" value="'+esc(g.name)+'" placeholder="Full name"><select class="mType">'+o.guestType.map(function(x){return '<option'+(x===g.type?' selected':'')+'>'+x+'</option>'}).join('')+'</select><select class="mRoom" title="Villa room for this person"><option value="">Rm: family</option>'+Array.from({length:15},function(_,n){return '<option value="'+(n+1)+'"'+(String(g.room)===String(n+1)?' selected':'')+'>'+(n+1)+' \u00b7 '+RM[n+1][0]+'</option>'}).join('')+'</select><button class="x" title="Remove">×</button></div>'}
+function memberRow(g,i){var o=S.options;return '<div class="member"><input type="text" class="mName" value="'+esc(g.name)+'" placeholder="Full name"><select class="mType">'+o.guestType.map(function(x){return '<option'+(x===g.type?' selected':'')+'>'+x+'</option>'}).join('')+'</select><select class="mRoom" title="Villa room for this person"><option value="">Rm: family</option>'+Array.from({length:15},function(_,n){return '<option value="'+(n+1)+'"'+(String(g.room)===String(n+1)?' selected':'')+'>'+(n+1)+' \u00b7 '+RM[n+1][0]+'</option>'}).join('')+'</select><label class="p1" title="Allowed a plus-one"><input type="checkbox" class="mPlus"'+(g.plusOne?' checked':'')+'>+1</label><button class="x" title="Remove">×</button></div>'}
 function bindCard(card){
  var id=card.getAttribute('data-id'),h=S.data.households.find(function(x){return x.id===id});
  q('.head',card).onclick=function(){card.classList.toggle('open');S.open[id]=card.classList.contains('open')};
@@ -340,8 +350,8 @@ function bindCard(card){
  q('.addM',card).onclick=function(){var w=document.createElement('div');w.innerHTML=memberRow({name:'',type:'Adult'});var row=w.firstChild;q('.members',card).appendChild(row);bindX(row);q('.mName',row).focus()};
  qa('.member',card).forEach(bindX);
  q('.save',card).onclick=function(){var b=this;busy(b);
-  var hh={id:id,name:q('.fName',card).value.trim(),tier:h.tier||'A',invited:q('.fInv',card).value==='Y',plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,address:q('.fAddr',card).value.trim(),lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,billing:q('.fBilling',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,paid:q('.fPaid',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
-   guests:qa('.member',card).map(function(m){return {name:q('.mName',m).value,type:q('.mType',m).value,room:q('.mRoom',m).value}}).filter(function(g){return g.name.trim()})};
+  var hh={id:id,name:q('.fName',card).value.trim(),tier:h.tier||'A',invited:q('.fInv',card).value==='Y',plusOne:!!h.plusOne,likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,address:q('.fAddr',card).value.trim(),lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,billing:q('.fBilling',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,paid:q('.fPaid',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
+   guests:qa('.member',card).map(function(m){return {name:q('.mName',m).value,type:q('.mType',m).value,room:q('.mRoom',m).value,plusOne:q('.mPlus',m).checked}}).filter(function(g){return g.name.trim()})};
   api('saveHousehold',{household:hh}).then(function(r){if(!r.ok)throw r.error;q('.saved',card).textContent='Saved ✓';return load()}).catch(function(e){alert('Save failed: '+e);b.disabled=false})};
  var er=q('.enterR',card);if(er)er.onclick=function(){enterRsvp(h)};
  var lm=q('.linkM',card);if(lm)lm.onclick=function(){linkPicker(id)};
@@ -363,8 +373,17 @@ function linkPicker(hid){
  inp.oninput=function(){var t=inp.value.trim().toLowerCase(),out='',n=0;
   if(t)d.households.forEach(function(h2){if(h2.id===hid)return;h2.guests.forEach(function(g,i){
    if(n>=8||(g.name||'').toLowerCase().indexOf(t)<0)return;
-   out+='<div class="sug" data-hid="'+h2.id+'" data-gi="'+i+'"><span class="nm">'+esc(g.name)+(h2.status==='coming'?' <b class="ok2">\u2713</b>':'')+'</span><i>'+esc(h2.name)+(h2.invited===false?' \u00b7 backup':'')+'</i></div>';n++})});
+   out+='<div class="sug" data-hid="'+h2.id+'" data-gi="'+i+'"><span class="nm">'+esc(g.name)+(h2.status==='coming'?' <b class="ok2">\u2713</b>':'')+'</span><i>'+esc(h2.name)+(h2.invited===false?' \u00b7 backup':'')+'</i>'+(h2.guests.length>1?'<b class="lkG" data-hid="'+h2.id+'">whole group ('+h2.guests.length+')</b>':'')+'</div>';n++})});
   q('#lkSug',box).innerHTML=out;
+  qa('.lkG',box).forEach(function(bg){bg.onclick=function(ev){ev.stopPropagation();
+   var src=d.households.find(function(x){return x.id===bg.getAttribute('data-hid')});
+   function strip(h3){var p=JSON.parse(JSON.stringify(h3));['resps','status','heads','kids','teens','review'].forEach(function(k){delete p[k]});return p}
+   var pt=strip(tgt);
+   src.guests.forEach(function(g){pt.guests.push({name:g.name,type:g.type,room:g.room||'',plusOne:!!g.plusOne})});
+   if(!pt.address&&src.address)pt.address=src.address;
+   if(String(src.notes||'').trim())pt.notes=String(pt.notes||'')+(pt.notes?' \u2014 ':'')+'[from '+src.name+'] '+src.notes;
+   api('saveHousehold',{household:pt}).then(function(){return api('deleteHousehold',{id:src.id})}).then(load).then(function(){linkPicker(hid)});
+  }});
   qa('.sug',box).forEach(function(el2){el2.onclick=function(){
    var src=d.households.find(function(x){return x.id===el2.getAttribute('data-hid')}),gi=+el2.getAttribute('data-gi');
    var mv=src.guests[gi];
@@ -383,7 +402,7 @@ function enterRsvp(h){
  var box=document.createElement('div');box.className='ovl';
  box.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="eyebrow">RSVP for '+esc(h.name)+'</div><button class="x rc" style="font-size:22px">&times;</button></div>'
   +'<div class="mtog"><button class="mA on">Joyfully accept</button><button class="mD">Regretfully decline</button></div>'
-  +'<label>Who is this RSVP for?</label>'+(h.guests.length?h.guests.map(function(g,i){return '<label class="mg"><input type="checkbox" checked data-gi="'+i+'">'+esc(g.name)+(g.type!=='Adult'?' <span class="kid">'+esc(g.type.toLowerCase())+'</span>':'')+'</label>'}).join(''):'<div class="hint">No names on this household yet \u2014 add them on the card first.</div>')
+  +'<label>Who\u2019s coming?</label>'+(h.guests.length?h.guests.map(function(g,i){return '<div class="mev mgg" data-gi="'+i+'"><span>'+esc(g.name)+(g.type!=='Adult'?' <span class="kid">'+esc(g.type.toLowerCase())+'</span>':'')+'</span><b class="on" data-v="c">Coming</b><b data-v="n">Not coming</b></div>'}).join(''):'<div class="hint">No names on this household yet \u2014 add them on the card first.</div>')
   +'<div class="mevs" style="margin-top:12px">'+EVS.map(function(e2,i){return '<div class="mev" data-i="'+i+'"><span>'+e2[0]+'</span><b class="on">Yes</b><b>No</b><b>Maybe</b></div>'}).join('')+'</div>'
   +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><div><label>Phone</label><input type="text" id="mPh"></div><div><label>Email</label><input type="text" id="mEm"></div></div>'
   +'<label style="margin-top:12px">Note</label><input type="text" id="mNo">'
@@ -395,13 +414,20 @@ function enterRsvp(h){
  q('.mA',box).onclick=function(){acc=true;this.classList.add('on');q('.mD',box).classList.remove('on');q('.mevs',box).style.display=''};
  q('.mD',box).onclick=function(){acc=false;this.classList.add('on');q('.mA',box).classList.remove('on');q('.mevs',box).style.display='none'};
  qa('.mev b',box).forEach(function(b){b.onclick=function(){qa('b',b.parentElement).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
+ q('.mD',box).onclick=function(){acc=false;this.classList.add('on');q('.mA',box).classList.remove('on');q('.mevs',box).style.display='none';qa('.mgg b',box).forEach(function(x){x.classList.toggle('on',x.getAttribute('data-v')==='n')})};
  q('#mSave',box).onclick=function(){var btn=this;
-  var sel=qa('.mg input',box).filter(function(c){return c.checked}).map(function(c){return h.guests[+c.getAttribute('data-gi')]});
-  if(!sel.length){alert('Check at least one name.');return}
-  var pn=(sel[0].name||'').trim().split(/\s+/),first=pn.shift()||'',last=pn.join(' ');
-  var events=acc?qa('.mev',box).map(function(m,i){return EVS[i][1].replace(/&amp;/g,'&')+': '+q('b.on',m).textContent}):[];
+  var coming=[],notc=[];
+  qa('.mgg',box).forEach(function(m){var g=h.guests[+m.getAttribute('data-gi')];if(q('b.on',m)&&q('b.on',m).getAttribute('data-v')==='c')coming.push(g);else notc.push(g)});
+  if(!acc){notc=coming.concat(notc);coming=[]}
+  if(!coming.length&&!notc.length){alert('No names on this household.');return}
+  function nm2(g){var pn=(g.name||'').trim().split(/\s+/);return [pn.shift()||'',pn.join(' ')]}
+  var events=coming.length?qa('.mev',box).filter(function(m){return !m.classList.contains('mgg')}).map(function(m,i){return EVS[i][1].replace(/&amp;/g,'&')+': '+q('b.on',m).textContent}):[];
+  var ph=q('#mPh',box).value.trim(),em=q('#mEm',box).value.trim(),no=q('#mNo',box).value.trim();
   btn.disabled=true;
-  api('manualRsvp',{hid:h.id,first:first,last:last,attending:acc?'Joyfully accept':'Regretfully decline',count:acc?String(sel.length):'',others:sel.slice(1).map(function(g){return {name:g.name,type:g.type}}),events:events,phone:q('#mPh',box).value.trim(),emails:[q('#mEm',box).value.trim()],note:q('#mNo',box).value.trim()}).then(function(r){if(!r.ok){alert('Could not save: '+(r.error||''));btn.disabled=false;return}box.remove();load()});
+  var chain=Promise.resolve({ok:true});
+  if(coming.length){var f1=nm2(coming[0]);chain=chain.then(function(){return api('manualRsvp',{hid:h.id,first:f1[0],last:f1[1],attending:'Joyfully accept',count:String(coming.length),others:coming.slice(1).map(function(g){return {name:g.name,type:g.type}}),events:events,phone:ph,emails:[em],note:no})})}
+  if(notc.length){var f2=nm2(notc[0]);chain=chain.then(function(r){if(!r.ok)return r;return api('manualRsvp',{hid:h.id,first:f2[0],last:f2[1],attending:'Regretfully decline',count:'',others:notc.slice(1).map(function(g){return {name:g.name,type:g.type}}),events:[],phone:coming.length?'':ph,emails:coming.length?[]:[em],note:coming.length?'':no})})}
+  chain.then(function(r){if(!r.ok){alert('Could not save: '+(r.error||''));btn.disabled=false;return}box.remove();load()});
  };
 }
 function bindX(row){q('.x',row).onclick=function(){row.remove()}}
