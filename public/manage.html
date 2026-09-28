@@ -147,6 +147,15 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .swaprow{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
 .swaprow label{margin:0;flex:none;color:#8a6f5e}
 .swaprow select{max-width:150px}
+.mev{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.mev span{flex:1;font:500 15px 'Cormorant Garamond',serif}
+.mev b{cursor:pointer;padding:5px 12px;border:1px solid var(--gold-line);border-radius:13px;font:500 9.5px 'Jost',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#7a5c38;font-weight:500}
+.mev b.on{background:var(--foil);border-color:var(--gold);color:#46392b}
+.mg{display:flex;align-items:center;gap:9px;padding:7px 0;font:500 16px 'Cormorant Garamond',serif;cursor:pointer}
+.mg input{width:auto;margin:0}
+.mtog{display:flex;gap:8px;margin:4px 0 12px}
+.mtog button{flex:1;padding:10px;border:1px solid var(--gold-line);background:transparent;font:500 10px 'Jost',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);cursor:pointer}
+.mtog button.on{background:var(--foil);border-color:var(--gold);color:#46392b}
 @media (max-width:600px){.card{padding:16px 14px}.member{grid-template-columns:1fr 84px 74px 26px}.appicons{grid-template-columns:repeat(3,1fr);gap:8px}.ai svg{width:26px;height:26px}.ai .t{font-size:8.5px}.tile{padding:9px 10px}.tile .n{font-size:22px}.tile .l{font-size:8.5px;letter-spacing:.13em}.tiles{gap:8px;grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}.dash{gap:14px}body{padding:18px 10px 70px}.acc-body{margin-top:12px;padding-top:12px}.rooms{grid-template-columns:repeat(2,1fr)}}
 </style></head><body>
 <div class="wrap">
@@ -316,7 +325,7 @@ function hhCard(h){
  '<div class="sec">Lodging</div><div class="grid"><div><label>Staying</label><select class="fLodge">'+o.lodging.map(function(x){return '<option'+(x===h.lodging?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
  '<div class="villaOnly"><label>Villa room</label><select class="fRoom"><option value="">— none yet —</option>'+Array.from({length:15},function(_,i){return '<option value="'+(i+1)+'"'+(String(h.room)===String(i+1)?' selected':'')+'>'+(i+1)+' \u00b7 '+RM[i+1][0]+'</option>'}).join('')+'</select></div><div class="villaOnly"><label>Room billing</label><select class="fBilling"><option value="charged"'+(h.billing==='included'?'':' selected')+'>Charged</option><option value="included"'+(h.billing==='included'?' selected':'')+'>Included — our gift</option></select></div><div class="villaOnly"><label>Heads in room</label><input type="number" class="fHeads" value="'+esc(h.headcount)+'" min="0"></div><div class="villaOnly"><label>Room ($)</label><input type="number" class="fRoomC" value="'+esc(h.roomCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Food &amp; tips ($)</label><input type="number" class="fFoodC" value="'+esc(h.foodCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Paid ($)</label><input type="number" class="fPaid" value="'+esc(h.paid)+'" min="0" step="1"></div>'+
  '<div class="offOnly"><label>Where</label><select class="fOffP"><option value="">—</option>'+o.offsite.map(function(x){return '<option'+(x===h.offsitePlace?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div class="offOnly"><label>Details</label><input type="text" class="fOffD" value="'+esc(h.offsiteDetails)+'" placeholder="Condo name, dates, anything"></div></div>'+
- (resps?'<div class="sec">RSVP received</div>'+resps:'<div class="sec">RSVP</div><div class="hint">Nothing yet.</div>')+
+ (resps?'<div class="sec">RSVP received</div>'+resps:'<div class="sec">RSVP</div><div class="hint">Nothing yet.</div>')+'<button class="btn sm gold enterR" style="margin-top:10px">+ Enter their RSVP</button>'+
  '<div class="acts"><button class="btn gold save">Save</button><span class="saved"></span><span style="flex:1"></span><button class="btn sm danger del">Delete household</button></div></div></div>';
 }
 function memberRow(g,i){var o=S.options;return '<div class="member"><input type="text" class="mName" value="'+esc(g.name)+'" placeholder="Full name"><select class="mType">'+o.guestType.map(function(x){return '<option'+(x===g.type?' selected':'')+'>'+x+'</option>'}).join('')+'</select><select class="mRoom" title="Villa room for this person"><option value="">Rm: family</option>'+Array.from({length:15},function(_,n){return '<option value="'+(n+1)+'"'+(String(g.room)===String(n+1)?' selected':'')+'>'+(n+1)+' \u00b7 '+RM[n+1][0]+'</option>'}).join('')+'</select><button class="x" title="Remove">×</button></div>'}
@@ -332,9 +341,37 @@ function bindCard(card){
   var hh={id:id,name:q('.fName',card).value.trim(),tier:q('.fTier',card).value,invited:q('.fInv',card).value==='Y',plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,billing:q('.fBilling',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,paid:q('.fPaid',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
    guests:qa('.member',card).map(function(m){return {name:q('.mName',m).value,type:q('.mType',m).value,room:q('.mRoom',m).value}}).filter(function(g){return g.name.trim()})};
   api('saveHousehold',{household:hh}).then(function(r){if(!r.ok)throw r.error;q('.saved',card).textContent='Saved ✓';return load()}).catch(function(e){alert('Save failed: '+e);b.disabled=false})};
+ var er=q('.enterR',card);if(er)er.onclick=function(){enterRsvp(h)};
  q('.del',card).onclick=function(){if(!confirm('Delete "'+h.name+'" and its guests? RSVPs stay in the sheet.'))return;busy(this);api('deleteHousehold',{id:id}).then(load)};
  qa('.rApprove',card).forEach(function(b){b.onclick=function(){busy(b);api('setMatch',{key:b.getAttribute('data-key'),hid:id,approved:true,method:'manual'}).then(load)}});
  qa('.rUnlink',card).forEach(function(b){b.onclick=function(){busy(b);api('setMatch',{key:b.getAttribute('data-key'),hid:'',approved:false}).then(load)}});
+}
+function enterRsvp(h){
+ var old=q('.ovl');if(old)old.remove();
+ var EVS=[['Welcome party','Welcome Party \u2014 Friday, March 12'],['Ceremony &amp; reception','Wedding Ceremony & Reception \u2014 Saturday, March 13'],['Beach &amp; pool day','Beach & Pool Day \u2014 Sunday, March 14']];
+ var box=document.createElement('div');box.className='ovl';
+ box.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="eyebrow">RSVP for '+esc(h.name)+'</div><button class="x rc" style="font-size:22px">&times;</button></div>'
+  +'<div class="mtog"><button class="mA on">Joyfully accept</button><button class="mD">Regretfully decline</button></div>'
+  +'<label>Who is this RSVP for?</label>'+(h.guests.length?h.guests.map(function(g,i){return '<label class="mg"><input type="checkbox" checked data-gi="'+i+'">'+esc(g.name)+(g.type!=='Adult'?' <span class="kid">'+esc(g.type.toLowerCase())+'</span>':'')+'</label>'}).join(''):'<div class="hint">No names on this household yet \u2014 add them on the card first.</div>')
+  +'<div class="mevs" style="margin-top:12px">'+EVS.map(function(e2,i){return '<div class="mev" data-i="'+i+'"><span>'+e2[0]+'</span><b class="on">Yes</b><b>No</b><b>Maybe</b></div>'}).join('')+'</div>'
+  +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><div><label>Phone</label><input type="text" id="mPh"></div><div><label>Email</label><input type="text" id="mEm"></div></div>'
+  +'<label style="margin-top:12px">Note</label><input type="text" id="mNo">'
+  +'<div class="acts"><button class="btn gold" id="mSave">Save RSVP</button></div></div>';
+ document.body.appendChild(box);
+ box.onclick=function(e){if(e.target===box)box.remove()};
+ q('.rc',box).onclick=function(){box.remove()};
+ var acc=true;
+ q('.mA',box).onclick=function(){acc=true;this.classList.add('on');q('.mD',box).classList.remove('on');q('.mevs',box).style.display=''};
+ q('.mD',box).onclick=function(){acc=false;this.classList.add('on');q('.mA',box).classList.remove('on');q('.mevs',box).style.display='none'};
+ qa('.mev b',box).forEach(function(b){b.onclick=function(){qa('b',b.parentElement).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
+ q('#mSave',box).onclick=function(){var btn=this;
+  var sel=qa('.mg input',box).filter(function(c){return c.checked}).map(function(c){return h.guests[+c.getAttribute('data-gi')]});
+  if(!sel.length){alert('Check at least one name.');return}
+  var pn=(sel[0].name||'').trim().split(/\s+/),first=pn.shift()||'',last=pn.join(' ');
+  var events=acc?qa('.mev',box).map(function(m,i){return EVS[i][1].replace(/&amp;/g,'&')+': '+q('b.on',m).textContent}):[];
+  btn.disabled=true;
+  api('manualRsvp',{hid:h.id,first:first,last:last,attending:acc?'Joyfully accept':'Regretfully decline',count:acc?String(sel.length):'',others:sel.slice(1).map(function(g){return {name:g.name,type:g.type}}),events:events,phone:q('#mPh',box).value.trim(),emails:[q('#mEm',box).value.trim()],note:q('#mNo',box).value.trim()}).then(function(r){if(!r.ok){alert('Could not save: '+(r.error||''));btn.disabled=false;return}box.remove();load()});
+ };
 }
 function bindX(row){q('.x',row).onclick=function(){row.remove()}}
 function saveVilla(mut){var v=JSON.parse(JSON.stringify(S.data.villa||{}));v.rooms=v.rooms||{};mut(v);S.data.villa=v;return api('setVilla',{villa:v})}

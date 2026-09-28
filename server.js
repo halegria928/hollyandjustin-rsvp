@@ -347,6 +347,22 @@ app.post('/api/admin', async (req, res) => {
         await q('UPDATE photos SET visibility=$1 WHERE id=$2', [vis, Number(b.id)]); await logAct(actor, 'made a photo ' + (vis === 'couple' ? 'private' : 'public')); return res.json({ ok: true });
       }
       case 'deletePhoto': await q('DELETE FROM photos WHERE id=$1', [Number(b.id)]); await logAct(actor, 'deleted a photo'); return res.json({ ok: true });
+      case 'manualRsvp': {
+        const hid = Number(b.hid);
+        const hh = (await q('SELECT name FROM households WHERE id=$1', [hid])).rows[0];
+        if (!hh) return res.json({ ok: false, error: 'no household' });
+        const first = String(b.first || '').trim().slice(0, 80), last = String(b.last || '').trim().slice(0, 80);
+        if (!first) return res.json({ ok: false, error: 'missing name' });
+        const attending = b.attending === 'Regretfully decline' ? 'Regretfully decline' : 'Joyfully accept';
+        const others = (Array.isArray(b.others) ? b.others : []).slice(0, 12).map(o => ({ name: String(o.name || '').trim().slice(0, 80), type: OPTIONS.guestType.includes(o.type) ? o.type : 'Adult' })).filter(o => o.name);
+        const events = (Array.isArray(b.events) ? b.events : []).map(e => String(e).slice(0, 80)).join('; ');
+        const emails = (Array.isArray(b.emails) ? b.emails : []).map(e => String(e || '').trim().slice(0, 120)).filter(e => /.+@.+\..+/.test(e)).slice(0, 4).join('; ');
+        const r2 = await q('INSERT INTO responses(first_name,last_name,attending,count,others,events,note,look,phone,emails) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
+          [first, last, attending, String(b.count || '').slice(0, 40), JSON.stringify(others), events, String(b.note || '').slice(0, 2000), 'manual', String(b.phone || '').trim().slice(0, 40), emails]);
+        await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,true,$3) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=true, method=EXCLUDED.method', [r2.rows[0].id, hid, 'manual']);
+        await logAct(actor, 'entered an RSVP for ' + (first + ' ' + last).trim() + ' (' + (attending === 'Joyfully accept' ? 'coming' : 'declined') + ') \u2192 ' + hh.name);
+        return res.json({ ok: true, id: r2.rows[0].id });
+      }
       case 'exportBackup': {
         const data = await loadAll();
         await logAct(actor, 'downloaded a backup');
