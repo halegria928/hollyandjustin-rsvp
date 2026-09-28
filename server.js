@@ -258,6 +258,33 @@ async function copyContact(hid, rid) {
     await q(`UPDATE households SET phone = CASE WHEN phone='' THEN $1 ELSE phone END, email = CASE WHEN email='' THEN $2 ELSE email END WHERE id=$3`, [rr.phone || '', em, hid]);
   } catch (e) { console.error(e); }
 }
+async function unroomDeclined(actor, hid, rid) {
+  try {
+    const rr = (await q('SELECT first_name, last_name, attending, others FROM responses WHERE id=$1', [rid])).rows[0];
+    if (!rr || !/decline/i.test(rr.attending)) return;
+    const names = [(rr.first_name + ' ' + rr.last_name).trim()].concat((Array.isArray(rr.others) ? rr.others : []).map(o => o.name || '')).map(n => n.trim().toLowerCase()).filter(Boolean);
+    const hh = (await q('SELECT room FROM households WHERE id=$1', [hid])).rows[0]; if (!hh) return;
+    const gs = (await q('SELECT id, name, room FROM guests WHERE household_id=$1', [hid])).rows;
+    const famRoom = hh.room ? Number(hh.room) : null;
+    const pulled = [];
+    for (const g of gs) {
+      const isDecl = names.includes((g.name || '').trim().toLowerCase());
+      if (!isDecl) continue;
+      const eff = g.room != null ? g.room : famRoom;
+      if (eff == null) continue;
+      if (g.room != null) await q('UPDATE guests SET room=NULL WHERE id=$1', [g.id]);
+      pulled.push(g.name);
+    }
+    if (pulled.length && famRoom) {
+      for (const g of gs) {
+        const isDecl = names.includes((g.name || '').trim().toLowerCase());
+        if (!isDecl && g.room == null) await q('UPDATE guests SET room=$1 WHERE id=$2', [famRoom, g.id]);
+      }
+      await q(`UPDATE households SET room='' WHERE id=$1`, [hid]);
+    }
+    if (pulled.length) await logAct(actor, 'removed from their room (declined): ' + pulled.join(', '));
+  } catch (e) { console.error(e); }
+}
 async function logAct(actor, detail) {
   try { await q('INSERT INTO activity(actor,detail) VALUES($1,$2)', [actor, String(detail || '').slice(0, 600)]); } catch (e) { console.error(e); }
 }
@@ -341,7 +368,7 @@ app.post('/api/admin', async (req, res) => {
         if (!hid) { await q('DELETE FROM matches WHERE response_id=$1', [rid]); await logAct(actor, 'unlinked the RSVP from ' + who); return res.json({ ok: true }); }
         await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,$3,$4) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=EXCLUDED.approved, method=EXCLUDED.method', [rid, hid, !!b.approved, b.method || 'manual']);
         const hn = (await q('SELECT name FROM households WHERE id=$1', [hid])).rows[0];
-        if (b.approved) await copyContact(hid, rid);
+        if (b.approved) { await copyContact(hid, rid); await unroomDeclined(actor, hid, rid); }
         await logAct(actor, (b.approved ? 'approved' : 'matched') + ' the RSVP from ' + who + ' \u2192 ' + (hn ? hn.name : '#' + hid));
         return res.json({ ok: true });
       }
@@ -374,6 +401,7 @@ app.post('/api/admin', async (req, res) => {
           [first, last, attending, String(b.count || '').slice(0, 40), JSON.stringify(others), events, String(b.note || '').slice(0, 2000), 'manual', String(b.phone || '').trim().slice(0, 40), emails]);
         await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,true,$3) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=true, method=EXCLUDED.method', [r2.rows[0].id, hid, 'manual']);
         await copyContact(hid, r2.rows[0].id);
+        await unroomDeclined(actor, hid, r2.rows[0].id);
         await logAct(actor, 'entered an RSVP for ' + (first + ' ' + last).trim() + ' (' + (attending === 'Joyfully accept' ? 'coming' : 'declined') + ') \u2192 ' + hh.name);
         return res.json({ ok: true, id: r2.rows[0].id });
       }
