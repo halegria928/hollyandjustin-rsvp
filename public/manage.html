@@ -314,7 +314,7 @@ function renderHouseholds(){
 }
 function hhCard(h){
  var o=S.options,open=S.open[h.id]?' open':'';
- var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta=(h.invited===false?'Backup list · ':'')+h.guests.length+' guest'+(h.guests.length===1?'':'s')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(rms.length?' · Rm '+rms.join(', '):' · no room yet'):h.lodging==='Off-site'?' · Off-site'+(h.offsitePlace?' · '+esc(h.offsitePlace):''):'');
+ var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta=(h.invited===false?'Backup list · ':'')+h.guests.length+' guest'+(h.guests.length===1?'':'s')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa · '+(rms.length?(function(){var ar={};rms.forEach(function(r){ar[(+r<=3?'balcony':+r<=7?'patio':'garden')]=1});return Object.keys(ar).join('/')+' · '+rms.map(function(r){return RM[+r][0]}).join(' + ')})():'no room yet'):' · Off-site · '+(h.offsitePlace?esc(h.offsitePlace):'TBD'));
  var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
  var seen={};var dupflag=h.resps.map(function(r){var k=(r.name||'').trim().toLowerCase();var first=!seen[k];seen[k]=(seen[k]||0)+1;return first?0:1});
  var names={};h.resps.forEach(function(r){var k=(r.name||'').trim().toLowerCase();names[k]=(names[k]||0)+1});
