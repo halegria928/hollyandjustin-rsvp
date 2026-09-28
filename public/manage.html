@@ -115,6 +115,10 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .tkey span{cursor:pointer}
 .lo{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);cursor:pointer;text-decoration:none}
 .lo:hover{color:var(--gold)}
+.ar{display:flex;gap:10px;align-items:baseline;padding:9px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+.ar b{font:500 15px 'Cormorant Garamond',serif;flex:none}
+.ar .d2{flex:1;color:var(--ink)}
+.ar .t2{flex:none;font-size:10.5px;color:var(--muted);letter-spacing:.06em;white-space:nowrap}
 .rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px}
 .rm{background:#fff;border:1px solid var(--line);padding:9px 11px}
 .rm.used{border-color:var(--gold-line);background:#fffdf9}
@@ -156,7 +160,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <a class="ai" href="/photo-manager.html"><svg viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="13" rx="1.5"/><circle cx="12" cy="13.2" r="3.8"/><path d="M9 7l1.6-2.5h2.8L15 7"/></svg><span class="t">Photos</span></a>
   </div>
   <div class="card sumcard" id="summary"></div>
-  <div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div></div>
+  <div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
   <div class="foot"><a id="changePw">Change password</a></div>
  </div>
 </div>
@@ -220,9 +224,10 @@ function render(){
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
   +'</div></div>';
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
+ q('#sum-act').innerHTML='<div class="eyebrow">Activity</div><div class="hint" style="margin-top:4px">'+((d.activity&&d.activity.length)?esc(d.activity[0].actor)+' \u00b7 '+new Date(d.activity[0].ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Nothing yet')+'</div>';
  q('#sum-villa').innerHTML='<div class="eyebrow">Villa</div><div class="bigline" data-go="sec:villa">'+roomsUsed+' of 15 <i>rooms in use</i></div><div class="tiles t3" style="margin-top:10px">'+[['$'+money0(vExp),'Expected','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Owed','sec:villa']].map(tile).join('')+'</div>';
  qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g==='sec:villa')openSec('villa',true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
- renderReview();renderHouseholds();renderVilla();
+ renderReview();renderHouseholds();renderVilla();renderActivity();
 }
 function respBlock(r,extra){
  var oth=r.others.map(function(o){return esc(o.name)+(/child/i.test(o.type)?' <span class="pill warn" style="padding:1px 7px">child</span>':'')}).join(', ');
@@ -380,6 +385,11 @@ function renderBackup(){
  });
 }
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
+function renderActivity(){
+ var el=q('#tab-act'),a=S.data.activity||[];
+ if(!a.length){el.innerHTML='<div class="empty">Nothing yet. Edits, matches, and logins will show here.</div>';return}
+ el.innerHTML=a.map(function(r){return '<div class="ar"><b>'+esc(r.actor)+'</b><span class="d2">'+esc(r.detail)+'</span><span class="t2">'+new Date(r.ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'</span></div>'}).join('');
+}
 function openSec(n,force){
  qa('.acc').forEach(function(a){var is=a.getAttribute('data-name')===n;var willOpen=is&&(force||!a.classList.contains('open'));a.classList.toggle('open',willOpen);q('.acc-body',a).hidden=!willOpen});
  var opened=q('.acc[data-name="'+n+'"]');
@@ -387,7 +397,7 @@ function openSec(n,force){
 }
 qa('.acc-head').forEach(function(h){h.addEventListener('click',function(e){if(e.target.closest('[data-go],button,select,input,a'))return;openSec(h.parentElement.getAttribute('data-name'))})});
 function enter(){var pw=q('#pw').value;if(!pw)return;var b=q('#loginBtn');b.disabled=true;q('#loginErr').textContent='';
- api('login',{pw:pw}).then(function(r){if(!r.ok)throw 'That password isn\'t right.';S.pw=pw;try{sessionStorage.setItem('hjpw',pw)}catch(e){}q('#loginView').hidden=true;q('#app').hidden=false;return load().then(function(){if(S.data&&S.data.review.length)openSec('review',true)})}).catch(function(e){q('#loginErr').textContent=String(e);b.disabled=false})}
+ api('login',{pw:pw}).then(function(r){if(!r.ok)throw 'That password isn\'t right.';S.pw=pw;S.user=r.user||'';q('#logout').textContent=(S.user?S.user+' \u00b7 ':'')+'Log out';try{sessionStorage.setItem('hjpw',pw)}catch(e){}q('#loginView').hidden=true;q('#app').hidden=false;return load().then(function(){if(S.data&&S.data.review.length)openSec('review',true)})}).catch(function(e){q('#loginErr').textContent=String(e);b.disabled=false})}
 q('#loginBtn').onclick=enter;q('#pw').addEventListener('keydown',function(e){if(e.key==='Enter')enter()});
 q('#logout').onclick=function(){try{sessionStorage.removeItem('hjpw')}catch(e){}location.reload()};
 

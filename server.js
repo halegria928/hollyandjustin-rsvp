@@ -40,7 +40,7 @@ async function bootstrapPrivileges() {
   await tryq('GRANT ALL ON SCHEMA public TO wedding');
   await tryq('GRANT ALL ON ALL TABLES IN SCHEMA public TO wedding');
   await tryq('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO wedding');
-  for (const t of ['households', 'guests', 'responses', 'matches', 'settings', 'photos']) await tryq(`ALTER TABLE IF EXISTS ${t} OWNER TO wedding`);
+  for (const t of ['households', 'guests', 'responses', 'matches', 'settings', 'photos', 'users', 'activity']) await tryq(`ALTER TABLE IF EXISTS ${t} OWNER TO wedding`);
 }
 async function init() {
   await bootstrapPrivileges();
@@ -63,6 +63,12 @@ async function init() {
   await q(`CREATE TABLE IF NOT EXISTS matches (response_id integer PRIMARY KEY REFERENCES responses(id) ON DELETE CASCADE,
     household_id integer NOT NULL REFERENCES households(id) ON DELETE CASCADE, approved boolean NOT NULL DEFAULT false, method text NOT NULL DEFAULT 'auto')`);
   await q(`CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL)`);
+  await q(`CREATE TABLE IF NOT EXISTS users (name text PRIMARY KEY, pass text NOT NULL)`);
+  await q(`CREATE TABLE IF NOT EXISTS activity (id serial PRIMARY KEY, ts timestamptz NOT NULL DEFAULT now(), actor text NOT NULL DEFAULT '', detail text NOT NULL DEFAULT '')`);
+  if (!Number((await q('SELECT COUNT(*) AS c FROM users')).rows[0].c)) {
+    const legacy = await getSetting('password', DEFAULT_PASSWORD);
+    await q('INSERT INTO users(name,pass) VALUES($1,$2),($3,$4) ON CONFLICT DO NOTHING', ['Holly', legacy, 'Haley', 'Alegria-0313']);
+  }
   await q(`CREATE TABLE IF NOT EXISTS photos (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(),
     uploader text NOT NULL DEFAULT '', visibility text NOT NULL DEFAULT 'public', mime text NOT NULL DEFAULT 'image/jpeg',
     size integer NOT NULL DEFAULT 0, token text NOT NULL, data bytea NOT NULL)`);
@@ -116,7 +122,8 @@ async function loadAll() {
   }
   const theme = await getSetting('theme', 'blush');
   let villa = {}; try { villa = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) { villa = {}; }
-  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
+  const activity = (await q('SELECT id, ts, actor, detail FROM activity ORDER BY id DESC LIMIT 150')).rows;
+  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, activity, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
 }
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
@@ -211,11 +218,34 @@ function pwMatch(given, actual) {
   const norm = v => String(v == null ? '' : v).trim().replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-').toLowerCase();
   return norm(given) === norm(actual) && norm(given).length > 0;
 }
+async function matchUser(given) {
+  const rows = (await q('SELECT name, pass FROM users ORDER BY name')).rows;
+  for (const u of rows) if (pwMatch(given, u.pass)) return u.name;
+  return null;
+}
+async function logAct(actor, detail) {
+  try { await q('INSERT INTO activity(actor,detail) VALUES($1,$2)', [actor, String(detail || '').slice(0, 600)]); } catch (e) { console.error(e); }
+}
+function normV(v) { if (v === null || v === undefined) return ''; if (typeof v === 'boolean') return v ? 'Y' : 'N'; const n = Number(v); if (v !== '' && !isNaN(n)) return String(n); return String(v).trim(); }
+function diffHousehold(cur, curG, h) {
+  const parts = [];
+  const F = [['name','name'],['tier','tier'],['likelihood',"Holly's guess"],['lodging','lodging'],['room','room'],['billing','billing'],['headcount','heads'],['notes','notes']];
+  const map = { name: h.name, tier: h.tier, likelihood: h.likelihood, lodging: h.lodging, room: h.room, billing: h.billing, headcount: h.headcount, notes: h.notes };
+  for (const [k, label] of F) { const a = normV(cur[k]), b2 = normV(map[k]); if (a !== b2) parts.push(label + (k === 'notes' ? ' updated' : ' ' + (a || '—') + '→' + (b2 || '—'))); }
+  const M2 = [['invited', h.invited, 'invited'], ['plus_one', h.plusOne, 'plus-one']];
+  for (const [k, nv, label] of M2) { const a = normV(!!cur[k]), b2 = normV(!!nv); if (a !== b2) parts.push(label + ' ' + a + '→' + b2); }
+  const N2 = [['room_charge', h.roomCharge, 'room $'], ['food_charge', h.foodCharge, 'food $'], ['paid', h.paid, 'paid $'], ['offsite_place', h.offsitePlace, 'off-site'], ['offsite_details', h.offsiteDetails, 'off-site details']];
+  for (const [k, nv, label] of N2) { const a = normV(cur[k]), b2 = normV(nv); if (a !== b2) parts.push(label + ' ' + (a || '—') + '→' + (b2 || '—')); }
+  const curMap = {}; curG.forEach(g => curMap[g.name.trim()] = normV(g.room));
+  const newMap = {}; (h.guests || []).forEach(g => { if (g && g.name && g.name.trim()) newMap[g.name.trim()] = normV(g.room); });
+  for (const n2 of Object.keys(newMap)) { if (!(n2 in curMap)) parts.push('+' + n2); else if (curMap[n2] !== newMap[n2]) parts.push(n2 + ' Rm ' + (curMap[n2] || '—') + '→' + (newMap[n2] || '—')); }
+  for (const n2 of Object.keys(curMap)) if (!(n2 in newMap)) parts.push('removed ' + n2);
+  return parts.join(', ');
+}
 app.post('/api/photos.zip', async (req, res) => {
   if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
   try {
-    const pw = await getSetting('password', DEFAULT_PASSWORD);
-    if (!pwMatch((req.body || {}).pw, pw)) return res.status(401).json({ ok: false, error: 'bad_password' });
+    if (!(await matchUser((req.body || {}).pw))) return res.status(401).json({ ok: false, error: 'bad_password' });
     const ids = (await q('SELECT id FROM photos ORDER BY created')).rows.map(r => r.id);
     res.set('Content-Type', 'application/zip').set('Content-Disposition', 'attachment; filename="holly-justin-photos.zip"');
     const zip = archiver('zip', { zlib: { level: 1 } });
@@ -237,23 +267,50 @@ app.post('/api/admin', async (req, res) => {
   const b = req.body || {};
   if (!dbReady) return res.status(503).json({ ok: false, error: 'Database unavailable: ' + dbError });
   try {
-    const pw = await getSetting('password', DEFAULT_PASSWORD);
-    if (!pwMatch(b.pw, pw)) return res.status(401).json({ ok: false, error: 'bad_password' });
+    const actor = await matchUser(b.pw);
+    if (!actor) return res.status(401).json({ ok: false, error: 'bad_password' });
     switch (b.action) {
-      case 'login': return res.json({ ok: true });
+      case 'login': await logAct(actor, 'logged in'); return res.json({ ok: true, user: actor });
       case 'load': return res.json(await loadAll());
-      case 'saveHousehold': return res.json(await saveHousehold(b.household || {}));
-      case 'deleteHousehold': await q('DELETE FROM households WHERE id=$1', [Number(b.id)]); return res.json({ ok: true });
-      case 'deleteResponse': await q('DELETE FROM responses WHERE id=$1', [Number(b.key)]); return res.json({ ok: true });
+      case 'saveHousehold': {
+        const h = b.household || {};
+        let detail = '';
+        if (h.id) {
+          const cur = (await q('SELECT * FROM households WHERE id=$1', [Number(h.id)])).rows[0];
+          const curG = (await q('SELECT name, room FROM guests WHERE household_id=$1', [Number(h.id)])).rows;
+          if (cur) detail = diffHousehold(cur, curG, h);
+          if (detail) detail = 'edited ' + (h.name || cur.name) + ' — ' + detail;
+        } else detail = 'added household ' + (h.name || '') + ' (' + ((h.guests || []).length) + ' guests)';
+        const out = await saveHousehold(h);
+        if (out.ok && detail) await logAct(actor, detail);
+        return res.json(out);
+      }
+      case 'deleteHousehold': {
+        const cur = (await q('SELECT name FROM households WHERE id=$1', [Number(b.id)])).rows[0];
+        await q('DELETE FROM households WHERE id=$1', [Number(b.id)]);
+        await logAct(actor, 'deleted household ' + (cur ? cur.name : '#' + b.id));
+        return res.json({ ok: true });
+      }
+      case 'deleteResponse': {
+        const cur = (await q('SELECT first_name,last_name FROM responses WHERE id=$1', [Number(b.key)])).rows[0];
+        await q('DELETE FROM responses WHERE id=$1', [Number(b.key)]);
+        await logAct(actor, 'deleted the RSVP from ' + (cur ? (cur.first_name + ' ' + cur.last_name).trim() : '#' + b.key));
+        return res.json({ ok: true });
+      }
       case 'setMatch': {
         const rid = Number(b.key), hid = Number(b.hid);
-        if (!hid) { await q('DELETE FROM matches WHERE response_id=$1', [rid]); return res.json({ ok: true }); }
+        const rn = (await q('SELECT first_name,last_name FROM responses WHERE id=$1', [rid])).rows[0];
+        const who = rn ? (rn.first_name + ' ' + rn.last_name).trim() : '#' + rid;
+        if (!hid) { await q('DELETE FROM matches WHERE response_id=$1', [rid]); await logAct(actor, 'unlinked the RSVP from ' + who); return res.json({ ok: true }); }
         await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,$3,$4) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=EXCLUDED.approved, method=EXCLUDED.method', [rid, hid, !!b.approved, b.method || 'manual']);
+        const hn = (await q('SELECT name FROM households WHERE id=$1', [hid])).rows[0];
+        await logAct(actor, (b.approved ? 'approved' : 'matched') + ' the RSVP from ' + who + ' \u2192 ' + (hn ? hn.name : '#' + hid));
         return res.json({ ok: true });
       }
       case 'reorderBackup': {
         const ids = Array.isArray(b.ids) ? b.ids.map(Number).filter(Boolean) : [];
         for (let i = 0; i < ids.length; i++) await q('UPDATE households SET priority=$1 WHERE id=$2', [i + 1, ids[i]]);
+        await logAct(actor, 'reordered the backup list');
         return res.json({ ok: true });
       }
       case 'listPhotos': {
@@ -262,9 +319,9 @@ app.post('/api/admin', async (req, res) => {
       }
       case 'setPhotoVisibility': {
         const vis = b.visibility === 'couple' ? 'couple' : 'public';
-        await q('UPDATE photos SET visibility=$1 WHERE id=$2', [vis, Number(b.id)]); return res.json({ ok: true });
+        await q('UPDATE photos SET visibility=$1 WHERE id=$2', [vis, Number(b.id)]); await logAct(actor, 'made a photo ' + (vis === 'couple' ? 'private' : 'public')); return res.json({ ok: true });
       }
-      case 'deletePhoto': await q('DELETE FROM photos WHERE id=$1', [Number(b.id)]); return res.json({ ok: true });
+      case 'deletePhoto': await q('DELETE FROM photos WHERE id=$1', [Number(b.id)]); await logAct(actor, 'deleted a photo'); return res.json({ ok: true });
       case 'exportCsv': {
         const data = await loadAll();
         const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
@@ -290,10 +347,17 @@ app.post('/api/admin', async (req, res) => {
         if (num(src.foodPerHead) != null) out.foodPerHead = num(src.foodPerHead);
         const rs = src.rooms || {};
         for (let i = 1; i <= 15; i++) { const r = rs[String(i)]; if (!r) continue; const o = {}; if (r.rollaway) o.rollaway = true; if (num(r.price) != null) o.price = num(r.price); if (Object.keys(o).length) out.rooms[String(i)] = o; }
-        await setSetting('villa', JSON.stringify(out)); return res.json({ ok: true });
+        let prev = {}; try { prev = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) {}
+        const vparts = [];
+        if (normV(prev.roomDefault) !== normV(out.roomDefault)) vparts.push('room default $' + (out.roomDefault != null ? out.roomDefault : '\u2014'));
+        if (normV(prev.foodPerHead) !== normV(out.foodPerHead)) vparts.push('food/person $' + (out.foodPerHead != null ? out.foodPerHead : '\u2014'));
+        for (let i = 1; i <= 15; i++) { const a = JSON.stringify((prev.rooms || {})[String(i)] || {}), b2 = JSON.stringify(out.rooms[String(i)] || {}); if (a !== b2) vparts.push('Room ' + i); }
+        await setSetting('villa', JSON.stringify(out));
+        if (vparts.length) await logAct(actor, 'villa settings \u2014 ' + vparts.join(', '));
+        return res.json({ ok: true });
       }
-      case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); return res.json({ ok: true }); }
-      case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); await setSetting('password', np); return res.json({ ok: true }); }
+      case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); await logAct(actor, 'set the live design to ' + b.theme); return res.json({ ok: true }); }
+      case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); if (await matchUser(np)) return res.json({ ok: false, error: 'That password is taken \u2014 pick a different one' }); await q('UPDATE users SET pass=$1 WHERE name=$2', [np, actor]); await logAct(actor, 'changed their password'); return res.json({ ok: true, user: actor }); }
       default: return res.json({ ok: false, error: 'unknown_action' });
     }
   } catch (e) { console.error(e); res.status(500).json({ ok: false, error: 'server' }); }
