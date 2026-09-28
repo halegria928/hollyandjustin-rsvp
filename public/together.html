@@ -49,6 +49,8 @@ textarea{resize:vertical;min-height:36px}
 .gt{display:flex;gap:8px;margin-top:8px}
 .gt button{padding:6px 14px;border:1px solid var(--gold-line);background:transparent;font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:16px;transition:all .2s}
 .gt button.on{background:var(--foil);border-color:var(--gold);color:#3d2f16;font-weight:500}
+#addEm{border:0;background:transparent;color:var(--gold);font:400 10px 'Jost',sans-serif;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;padding:9px 0 0;display:block}
+#email2,#email3{margin-top:9px}
 .kids{font:italic 400 16.5px/1.65 'Cormorant Garamond',Georgia,serif;color:var(--ink);margin:0 0 26px;background:#faf0e9;border:1px solid var(--blush-line);padding:13px 16px}
 .ev{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:13px 0;border-bottom:1px solid #f0e2d6}
 .evc{display:flex;gap:7px;justify-self:end}
@@ -122,7 +124,7 @@ label,.lg,.eyebrow{color:color-mix(in srgb, #9c7c54 var(--dk,0%), #5f4a2c)}
     </div>
    </div>
    <div id="primary" hidden><div class="f"><span class="lg">Your name <span class="req">*</span></span><div class="grid2"><div><input type="text" id="first" placeholder="First name" autocomplete="given-name"></div><div><input type="text" id="last" placeholder="Last name" autocomplete="family-name"></div></div></div></div>
-   <div id="phoneBlock" hidden><div class="f"><label id="phoneLbl">Phone number <span class="req">*</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567"></div></div>
+   <div id="phoneBlock" hidden><div class="f"><label id="phoneLbl">Phone number <span class="req">*</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567"></div><div class="f"><label id="emailLbl">Email address <span class="req">*</span></label><input type="text" id="email" inputmode="email" autocomplete="email" placeholder="you@example.com"><input type="text" id="email2" hidden inputmode="email"><input type="text" id="email3" hidden inputmode="email"><button type="button" id="addEm">+ Add another email</button></div></div>
    <div id="slotB"></div>
    <div class="f"><label id="noteLbl">Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
    <button class="send" id="send" type="submit">Send RSVP</button>
@@ -159,13 +161,14 @@ function setExtras(n){
 }
 function place(where){var p=q('#primary');p.hidden=false;q(where).appendChild(p)}
 function placePhone(where){var p=q('#phoneBlock');p.hidden=false;q(where).appendChild(p)}
-function setNote(a){var l=q('#noteLbl'),m=q('#msg'),pl=q('#phoneLbl'),p=q('#phone');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='';pl.textContent='Phone number';p.placeholder=''}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all';pl.innerHTML='Phone number <span class="req">*</span>';p.placeholder='(555) 123-4567'}}
+function setNote(a){var l=q('#noteLbl'),m=q('#msg'),pl=q('#phoneLbl'),p=q('#phone');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='';pl.textContent='Phone number';p.placeholder='';q('#emailLbl').textContent='Email address';q('#email').placeholder=''}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all';pl.innerHTML='Phone number <span class="req">*</span>';p.placeholder='(555) 123-4567';q('#emailLbl').innerHTML='Email address <span class="req">*</span>';q('#email').placeholder='you@example.com'}}
 q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');setCount(parseInt(C,10)||2);setNote('accept');q('#err').style.display='none'};
 q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#err').style.display='none'};
 function setCount(n){n=Math.max(1,Math.min(8,n));C=String(n);q('#cnum').textContent=C;q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(n)}
 q('#dec').onclick=function(){setCount((parseInt(C,10)||2)-1)};
 q('#inc').onclick=function(){setCount((parseInt(C,10)||2)+1)};
 q('#phone').addEventListener('input',function(){var v=this.value;if(v.trim().charAt(0)==='+')return;var d=v.replace(/\D/g,'').slice(0,10);var o=d;if(d.length>6)o='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);else if(d.length>3)o='('+d.slice(0,3)+') '+d.slice(3);else if(d.length>0)o='('+d;this.value=o});
+q('#addEm').onclick=function(){var e2=q('#email2'),e3=q('#email3');if(e2.hidden){e2.hidden=false;e2.focus()}else{e3.hidden=false;e3.focus();this.style.display='none'}};
 qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'))}})});
 q('#f').onsubmit=function(ev){ev.preventDefault();
  var miss=[];
@@ -175,6 +178,7 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  if(A&&C||A==="Regretfully decline"){if(!fn||!ln)miss.push('your name')}
  if(A==="Joyfully accept"&&C){var pd=q('#phone').value.replace(/\D/g,'');
   if(!(pd.length>=10||(q('#phone').value.trim().charAt(0)==='+'&&pd.length>=8)))miss.push('a phone number')}
+ if(A==="Joyfully accept"&&C&&!/.+@.+\..+/.test(q('#email').value.trim()))miss.push('an email address');
  var others=[];
  if(A==="Joyfully accept"&&C){
   var need=(parseInt(C,10)||1)-1;
@@ -186,7 +190,7 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  var err=q('#err');
  if(miss.length){err.innerHTML='Almost there &mdash; still needed: '+miss.join(', ')+'.';err.style.display='block';return}
  err.style.display='none';var b=q('#send');b.disabled=true;b.textContent='Sending…';
- var body={first:fn,last:ln,attending:A,count:'',others:[],events:[],note:q('#msg').value.trim(),look:(document.title.split('·')[1]||'Blush').trim(),phone:q('#phone').value.trim()};
+ var body={first:fn,last:ln,attending:A,count:'',others:[],events:[],note:q('#msg').value.trim(),look:(document.title.split('·')[1]||'Blush').trim(),phone:q('#phone').value.trim(),emails:[q('#email').value,q('#email2').value,q('#email3').value].map(function(v){return v.trim()}).filter(function(v){return /.+@.+\..+/.test(v)})};
  if(A==="Joyfully accept"){body.count=C;body.others=others;
   body.events=qa('.ev').map(function(e){return e.getAttribute('data-v')+': '+e.getAttribute('data-a')});
 }
