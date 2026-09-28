@@ -411,11 +411,11 @@ function enterRsvp(h){
  var box=document.createElement('div');box.className='ovl';
  box.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="eyebrow">RSVP for '+esc(h.name)+'</div><button class="x rc" style="font-size:22px">&times;</button></div>'
   +'<div class="mtog"><button class="mA on">Joyfully accept</button><button class="mD">Regretfully decline</button></div>'
-  +'<label>Who\u2019s coming?</label>'+(h.guests.length?h.guests.map(function(g,i){return '<div class="mev mgg" data-gi="'+i+'"><span>'+esc(g.name)+(g.type!=='Adult'?' <span class="kid">'+esc(g.type.toLowerCase())+'</span>':'')+'</span><b class="on" data-v="c">Coming</b><b data-v="n">Not coming</b></div>'}).join(''):'<div class="hint">No names on this household yet \u2014 add them on the card first.</div>')
+  +'<label>Who\u2019s coming?</label>'+(h.guests.length?h.guests.map(function(g,i){return '<div class="mev mgg" data-gi="'+i+'"><span>'+esc(g.name)+(g.type!=='Adult'?' <span class="kid">'+esc(g.type.toLowerCase())+'</span>':'')+'</span><b class="on" data-v="c">Coming</b><b data-v="n">No</b><b data-v="u">Unsure</b></div>'}).join(''):'<div class="hint">No names on this household yet \u2014 add them on the card first.</div>')
   +'<div class="mevs" style="margin-top:12px">'+EVS.map(function(e2,i){return '<div class="mev" data-i="'+i+'"><span>'+e2[0]+'</span><b class="on">Yes</b><b>No</b><b>Maybe</b></div>'}).join('')+'</div>'
   +'<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><div><label>Phone</label><input type="text" id="mPh"></div><div><label>Email</label><input type="text" id="mEm"></div></div>'
   +'<label style="margin-top:12px">Note</label><input type="text" id="mNo">'
-  +'<div class="acts"><button class="btn gold" id="mSave">Save RSVP</button></div></div>';
+  +'<div class="hint" style="margin-top:8px">Unsure people stay pending — record them once they know.</div><div class="acts"><button class="btn gold" id="mSave">Save RSVP</button></div></div>';
  document.body.appendChild(box);
  box.onclick=function(e){if(e.target===box)box.remove()};
  q('.rc',box).onclick=function(){box.remove()};
@@ -426,9 +426,9 @@ function enterRsvp(h){
  q('.mD',box).onclick=function(){acc=false;this.classList.add('on');q('.mA',box).classList.remove('on');q('.mevs',box).style.display='none';qa('.mgg b',box).forEach(function(x){x.classList.toggle('on',x.getAttribute('data-v')==='n')})};
  q('#mSave',box).onclick=function(){var btn=this;
   var coming=[],notc=[];
-  qa('.mgg',box).forEach(function(m){var g=h.guests[+m.getAttribute('data-gi')];if(q('b.on',m)&&q('b.on',m).getAttribute('data-v')==='c')coming.push(g);else notc.push(g)});
+  qa('.mgg',box).forEach(function(m){var g=h.guests[+m.getAttribute('data-gi')];var v=q('b.on',m)?q('b.on',m).getAttribute('data-v'):'u';if(v==='c')coming.push(g);else if(v==='n')notc.push(g)});
   if(!acc){notc=coming.concat(notc);coming=[]}
-  if(!coming.length&&!notc.length){alert('No names on this household.');return}
+  if(!coming.length&&!notc.length){alert('Everyone is set to Unsure — nothing to record yet.');return}
   function nm2(g){var pn=(g.name||'').trim().split(/\s+/);return [pn.shift()||'',pn.join(' ')]}
   var events=coming.length?qa('.mev',box).filter(function(m){return !m.classList.contains('mgg')}).map(function(m,i){return EVS[i][1].replace(/&amp;/g,'&')+': '+q('b.on',m).textContent}):[];
   var ph=q('#mPh',box).value.trim(),em=q('#mEm',box).value.trim(),no=q('#mNo',box).value.trim();
