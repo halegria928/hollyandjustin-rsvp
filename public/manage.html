@@ -172,7 +172,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 <script>
 var API='/api/admin';
 var RM={1:['Arecife','king','balcony \u00b7 ocean view'],2:['Coral','king','balcony \u00b7 ocean view'],3:['Arena','king','balcony \u00b7 ocean view'],4:['Ola','twins or king',''],5:['Tortuga','king',''],6:['Nautilus','twins or king',''],7:['Medusa','king',''],8:['Sirena','king',''],9:['Delf\u00edn','twins or king',''],10:['Manat\u00ed','king',''],11:['Perla','twins or king',''],12:['Brisa','twins or king',''],13:['Caracol','king',''],14:['Concha','king','family suite'],15:['Nemo','twins or king','family suite']};
-function areaOf(n){n=Number(n);return n<=7?'Main Villa':(n<=11?'Casita Del Mar':'Casita Cenote')}
+function areaOf(n){n=Number(n);return n<=3?'Main Villa \u00b7 upstairs balcony':(n<=7?'Main Villa \u00b7 patio':(n<=11?'Casita Del Mar \u00b7 garden':'Casita Cenote \u00b7 garden'))}
 var S={pw:'',data:null,open:{},tab:'review'};
 function q(s,r){return (r||document).querySelector(s)}function qa(s,r){return [].slice.call((r||document).querySelectorAll(s))}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -377,7 +377,7 @@ function renderVilla(){
   var rc0=VR[String(rn)]||{};
   var card='<div class="rm '+(ps.length?'used':'openr')+'" data-rn="'+rn+'"><div class="rn"><span>'+rn+' \u00b7 '+RM[rn][0]+'</span><span>'+(ps.length||'')+'</span></div><div class="who">'+(ps.length?ps.map(function(p2){return esc(p2.n)+(p2.st==='coming'?' <b class="ok2">\u2713</b>':'')+(p2.ty!=='Adult'?' <span class="kid">'+p2.ty.toLowerCase()+'</span>':'')}).join('<br>'):'Open')+'</div>'+(function(){var pr=(rc0.price!=null?rc0.price:V.roomDefault);var bits=[];if(pr!=null)bits.push('$'+pr);bits.push(RM[rn][1]);if(RM[rn][2])bits.push(RM[rn][2]);if(rc0.rollaway)bits.push('rollaway');return '<div class="rmeta">'+bits.join(' \u00b7 ')+'</div>'})()+'</div>';
   (buckets[areaOf(rn)]=buckets[areaOf(rn)]||[]).push(card);}
- var roomsWrap=['Main Villa','Casita Del Mar','Casita Cenote'].filter(function(a2){return buckets[a2]}).map(function(a2){return '<div class="sec" style="margin:16px 0 0">'+a2+'</div><div class="rooms" style="margin-top:8px">'+buckets[a2].join('')+'</div>'}).join('');
+ var roomsWrap=['Main Villa \u00b7 upstairs balcony','Main Villa \u00b7 patio','Casita Del Mar \u00b7 garden','Casita Cenote \u00b7 garden'].filter(function(a2){return buckets[a2]}).map(function(a2){return '<div class="sec" style="margin:16px 0 0">'+a2+'</div><div class="rooms" style="margin-top:8px">'+buckets[a2].join('')+'</div>'}).join('');
  var bill='';var tot={exp:0,paid:0};var paidC=0,partC=0,unpC=0;
  var owed2=function(h){return h.billing==='included'?0:((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0)};
  villa.slice().sort(function(a,b){var ia=a.billing==='included',ib=b.billing==='included';if(ia!==ib)return ia?1:-1;return owed2(b)-owed2(a)||a.name.localeCompare(b.name)}).forEach(function(h){
