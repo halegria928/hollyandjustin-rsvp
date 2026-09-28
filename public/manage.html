@@ -179,7 +179,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <a class="ai" href="/photo-manager.html"><svg viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="13" rx="1.5"/><circle cx="12" cy="13.2" r="3.8"/><path d="M9 7l1.6-2.5h2.8L15 7"/></svg><span class="t">Photos</span></a>
   </div>
   <div class="card sumcard" id="summary"></div>
-  <div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="">Everyone</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option></select><select id="tierF" style="max-width:130px"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
+  <datalist id="offplaces"></datalist><div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="inv">Invited</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No reply yet</option><option value="review">Needs review</option><option value="kids">Bringing kids</option><option value="notinvited">Backup list</option><option value="">Everyone</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
   <div class="foot"><a id="changePw">Change password</a>·<a id="bkupBtn">Download backup</a></div>
  </div>
 </div>
@@ -269,6 +269,7 @@ function render(){
  q('#sum-act').innerHTML='<div class="eyebrow">Activity</div><div class="hint" style="margin-top:4px">'+((d.activity&&d.activity.length)?esc(d.activity[0].actor)+' \u00b7 '+new Date(d.activity[0].ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Nothing yet')+'</div>';
  q('#sum-villa').innerHTML='<div class="eyebrow">Villa</div><div class="bigline" data-go="sec:villa">'+roomsUsed+' of 15 <i>rooms in use</i></div><div class="tiles t3" style="margin-top:10px">'+[['$'+money0(vExp),'Expected','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Owed','sec:villa']].map(tile).join('')+'</div>';
  qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g.indexOf('sec:')===0)openSec(g.slice(4),true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
+ (function(){var st={};d.households.forEach(function(h){if(h.offsitePlace&&h.offsitePlace.trim())st[h.offsitePlace.trim()]=1});q('#offplaces').innerHTML=Object.keys(st).sort().map(function(x){return '<option value="'+esc(x)+'">'}).join('')})();
  renderReview();renderHouseholds();renderVilla();renderActivity();
 }
 function respBlock(r,extra){
@@ -302,29 +303,29 @@ function renderReview(){
 }
 function busy(b){if(b){b.disabled=true}}
 function renderHouseholds(){
- var d=S.data,term=(q('#search').value||'').toLowerCase(),f=q('#filter').value,tf=q('#tierF').value,el=q('#hhList');
+ var d=S.data,term=(q('#search').value||'').toLowerCase(),f=q('#filter').value,el=q('#hhList');
  if(f==='notinvited'){renderBackup();return}
  var list=d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).filter(function(h){
   if(term&&!(h.name+' '+h.guests.map(function(g){return g.name}).join(' ')+' '+h.resps.map(function(r){return r.name}).join(' ')).toLowerCase().includes(term))return false;
-  if(tf&&h.tier!==tf)return false;if(f==='notinvited')return h.invited===false;if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
+  if(f==='inv')return h.invited!==false;if(f==='notinvited')return h.invited===false;if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
  if(!list.length){el.innerHTML='<div class="card"><div class="empty">'+(d.households.length?'No households match that search.':'No households yet. Add one, or import the guest list.')+'</div></div>';return}
  el.innerHTML=list.map(function(h){return hhCard(h)}).join('');
  qa('.hh',el).forEach(bindCard);
 }
 function hhCard(h){
  var o=S.options,open=S.open[h.id]?' open':'';
- var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta='Tier '+(h.tier||'A')+' · '+h.guests.length+(h.invited===false?' — backup list':' invited')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(rms.length?' · Rm '+rms.join(', '):' · no room yet'):h.lodging==='Off-site'?' · Off-site'+(h.offsitePlace?' · '+esc(h.offsitePlace):''):'');
+ var rms=(function(){var st={};h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1});return Object.keys(st).sort(function(x,y){return x-y})})();var meta=(h.invited===false?'Backup list · ':'')+h.guests.length+' guest'+(h.guests.length===1?'':'s')+(h.plusOne?' · +1 ok':'')+(h.lodging==='Villa'?' · Villa'+(rms.length?' · Rm '+rms.join(', '):' · no room yet'):h.lodging==='Off-site'?' · Off-site'+(h.offsitePlace?' · '+esc(h.offsitePlace):''):'');
  var members=h.guests.map(function(g,i){return memberRow(g,i)}).join('');
  var seen={};var dupflag=h.resps.map(function(r){var k=(r.name||'').trim().toLowerCase();var first=!seen[k];seen[k]=(seen[k]||0)+1;return first?0:1});
  var names={};h.resps.forEach(function(r){var k=(r.name||'').trim().toLowerCase();names[k]=(names[k]||0)+1});
  var resps=h.resps.map(function(r,ri){return respBlock(r,'<div class="row">'+(names[(r.name||'').trim().toLowerCase()]>1?(dupflag[ri]?'<span class="pill mute">replaced by newer</span> ':'<span class="pill ok">latest answer</span> '):'')+(r.match.approved?'<span class="pill ok">approved</span>':'<span class="pill gold">needs approval</span> <button class="btn sm rApprove" data-key="'+esc(r.key)+'">Approve</button>')+' <button class="btn sm danger rUnlink" data-key="'+esc(r.key)+'">Unlink</button></div>')}).join('');
  return '<div class="hh'+open+'" data-id="'+h.id+'"><div class="head"><div><div class="nm">'+esc(h.name||'(unnamed)')+'</div><div class="meta">'+meta+'</div></div><div>'+(h.invited===false?'<span class="pill mute">backup</span> ':'')+(h.review?'<span class="pill gold">review</span> ':'')+(h.kids?'<span class="pill warn">'+h.kids+' kid'+(h.kids>1?'s':'')+'</span> ':'')+pill(h)+'</div></div>'+
- '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>List</label><select class="fTier">'+o.tier.map(function(x){return '<option'+(x===(h.tier||'A')?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div><label>Invited?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes</option><option value="N"'+(h.invited===false?' selected':'')+'>Backup list</option></select></div><div><label>Plus-one</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
- '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ Add name</button>'+
- '<div class="sec">Private notes</div><textarea class="fNotes" placeholder="Only you see this.">'+esc(h.notes)+'</textarea>'+
+ '<div class="body"><div class="grid"><div><label>Household name</label><input type="text" class="fName" value="'+esc(h.name)+'"></div><div><label>Invited?</label><select class="fInv"><option value="Y"'+(h.invited===false?'':' selected')+'>Yes</option><option value="N"'+(h.invited===false?' selected':'')+'>Backup list</option></select></div><div><label>Plus-one</label><select class="fPlus"><option value="N"'+(h.plusOne?'':' selected')+'>No</option><option value="Y"'+(h.plusOne?' selected':'')+'>Yes</option></select></div><div><label>Holly\'s guess</label><select class="fLike">'+o.likelihood.map(function(x){return '<option'+(x===h.likelihood?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div></div>'+
+ '<div class="sec">Invited guests</div><div class="members">'+members+'</div><button class="btn sm addM">+ New name</button> <button class="btn sm linkM">+ Link someone on the list</button>'+
+ '<div class="sec">Notes</div><textarea class="fNotes" placeholder="Only you see this.">'+esc(h.notes)+'</textarea>'+
  '<div class="sec">Lodging</div><div class="grid"><div><label>Staying</label><select class="fLodge">'+o.lodging.map(function(x){return '<option'+(x===h.lodging?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
  '<div class="villaOnly"><label>Villa room</label><select class="fRoom"><option value="">— none yet —</option>'+Array.from({length:15},function(_,i){return '<option value="'+(i+1)+'"'+(String(h.room)===String(i+1)?' selected':'')+'>'+(i+1)+' \u00b7 '+RM[i+1][0]+'</option>'}).join('')+'</select></div><div class="villaOnly"><label>Room billing</label><select class="fBilling"><option value="charged"'+(h.billing==='included'?'':' selected')+'>Charged</option><option value="included"'+(h.billing==='included'?' selected':'')+'>Included — our gift</option></select></div><div class="villaOnly"><label>Heads in room</label><input type="number" class="fHeads" value="'+esc(h.headcount)+'" min="0"></div><div class="villaOnly"><label>Room ($)</label><input type="number" class="fRoomC" value="'+esc(h.roomCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Food &amp; tips ($)</label><input type="number" class="fFoodC" value="'+esc(h.foodCharge)+'" min="0" step="1"></div><div class="villaOnly"><label>Paid ($)</label><input type="number" class="fPaid" value="'+esc(h.paid)+'" min="0" step="1"></div>'+
- '<div class="offOnly"><label>Where</label><select class="fOffP"><option value="">—</option>'+o.offsite.map(function(x){return '<option'+(x===h.offsitePlace?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div class="offOnly"><label>Details</label><input type="text" class="fOffD" value="'+esc(h.offsiteDetails)+'" placeholder="Condo name, dates, anything"></div></div>'+
+ '<div class="offOnly"><label>Where</label><input type="text" class="fOffP" list="offplaces" value="'+esc(h.offsitePlace||'')+'" placeholder="Hotel, condo, Airbnb…"></div><div class="offOnly"><label>Details</label><input type="text" class="fOffD" value="'+esc(h.offsiteDetails)+'" placeholder="Condo name, dates, anything"></div></div>'+
  (resps?'<div class="sec">RSVP received</div>'+resps:'<div class="sec">RSVP</div><div class="hint">Nothing yet.</div>')+'<button class="btn sm gold enterR" style="margin-top:10px">+ Enter their RSVP</button>'+
  '<div class="acts"><button class="btn gold save">Save</button><span class="saved"></span><span style="flex:1"></span><button class="btn sm danger del">Delete household</button></div></div></div>';
 }
@@ -338,13 +339,42 @@ function bindCard(card){
  q('.addM',card).onclick=function(){var w=document.createElement('div');w.innerHTML=memberRow({name:'',type:'Adult'});var row=w.firstChild;q('.members',card).appendChild(row);bindX(row);q('.mName',row).focus()};
  qa('.member',card).forEach(bindX);
  q('.save',card).onclick=function(){var b=this;busy(b);
-  var hh={id:id,name:q('.fName',card).value.trim(),tier:q('.fTier',card).value,invited:q('.fInv',card).value==='Y',plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,billing:q('.fBilling',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,paid:q('.fPaid',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
+  var hh={id:id,name:q('.fName',card).value.trim(),tier:h.tier||'A',invited:q('.fInv',card).value==='Y',plusOne:q('.fPlus',card).value==='Y',likelihood:q('.fLike',card).value,notes:q('.fNotes',card).value,lodging:q('.fLodge',card).value,room:q('.fRoom',card).value,billing:q('.fBilling',card).value,headcount:q('.fHeads',card).value,roomCharge:q('.fRoomC',card).value,foodCharge:q('.fFoodC',card).value,paid:q('.fPaid',card).value,offsitePlace:q('.fOffP',card).value,offsiteDetails:q('.fOffD',card).value,
    guests:qa('.member',card).map(function(m){return {name:q('.mName',m).value,type:q('.mType',m).value,room:q('.mRoom',m).value}}).filter(function(g){return g.name.trim()})};
   api('saveHousehold',{household:hh}).then(function(r){if(!r.ok)throw r.error;q('.saved',card).textContent='Saved ✓';return load()}).catch(function(e){alert('Save failed: '+e);b.disabled=false})};
  var er=q('.enterR',card);if(er)er.onclick=function(){enterRsvp(h)};
+ var lm=q('.linkM',card);if(lm)lm.onclick=function(){linkPicker(id)};
  q('.del',card).onclick=function(){if(!confirm('Delete "'+h.name+'" and its guests? RSVPs stay in the sheet.'))return;busy(this);api('deleteHousehold',{id:id}).then(load)};
  qa('.rApprove',card).forEach(function(b){b.onclick=function(){busy(b);api('setMatch',{key:b.getAttribute('data-key'),hid:id,approved:true,method:'manual'}).then(load)}});
  qa('.rUnlink',card).forEach(function(b){b.onclick=function(){busy(b);api('setMatch',{key:b.getAttribute('data-key'),hid:'',approved:false}).then(load)}});
+}
+function linkPicker(hid){
+ var old=q('.ovl');if(old)old.remove();
+ var d=S.data,tgt=d.households.find(function(x){return x.id===hid});if(!tgt)return;
+ var box=document.createElement('div');box.className='ovl';
+ box.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="eyebrow">Link into '+esc(tgt.name)+'</div><button class="x rc" style="font-size:22px">&times;</button></div>'
+  +'<label>Find someone on the list</label><input type="text" id="lkSearch" placeholder="Start typing a name…" autocomplete="off"><div id="lkSug"></div>'
+  +'<div class="hint" style="margin-top:10px">They’ll move into this group — same invitation, same RSVP. Their old entry empties out.</div></div>';
+ document.body.appendChild(box);
+ box.onclick=function(e){if(e.target===box)box.remove()};
+ q('.rc',box).onclick=function(){box.remove()};
+ var inp=q('#lkSearch',box);inp.focus();
+ inp.oninput=function(){var t=inp.value.trim().toLowerCase(),out='',n=0;
+  if(t)d.households.forEach(function(h2){if(h2.id===hid)return;h2.guests.forEach(function(g,i){
+   if(n>=8||(g.name||'').toLowerCase().indexOf(t)<0)return;
+   out+='<div class="sug" data-hid="'+h2.id+'" data-gi="'+i+'"><span class="nm">'+esc(g.name)+(h2.status==='coming'?' <b class="ok2">\u2713</b>':'')+'</span><i>'+esc(h2.name)+(h2.invited===false?' \u00b7 backup':'')+'</i></div>';n++})});
+  q('#lkSug',box).innerHTML=out;
+  qa('.sug',box).forEach(function(el2){el2.onclick=function(){
+   var src=d.households.find(function(x){return x.id===el2.getAttribute('data-hid')}),gi=+el2.getAttribute('data-gi');
+   var mv=src.guests[gi];
+   function strip(h3){var p=JSON.parse(JSON.stringify(h3));['resps','status','heads','kids','teens','review'].forEach(function(k){delete p[k]});return p}
+   var ps=strip(src);ps.guests.splice(gi,1);
+   var pt=strip(tgt);pt.guests.push({name:mv.name,type:mv.type,room:mv.room||''});
+   if(!ps.guests.length&&!(src.resps&&src.resps.length)&&String(src.notes||'').trim())pt.notes=String(pt.notes||'')+(pt.notes?' \u2014 ':'')+'[from '+src.name+'] '+src.notes;
+   api('saveHousehold',{household:pt}).then(function(){return api('saveHousehold',{household:ps})}).then(function(){
+    if(!ps.guests.length&&!(src.resps&&src.resps.length))return api('deleteHousehold',{id:src.id});
+   }).then(load).then(function(){linkPicker(hid)});
+  }})};
 }
 function enterRsvp(h){
  var old=q('.ovl');if(old)old.remove();
@@ -446,7 +476,7 @@ function renderVilla(){
   +'<div class="hint" style="margin-top:8px">A room picked on a person&rsquo;s name row wins over the household room. \u2713 = RSVP\u2019d yes.</div></div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing'+((paidC+partC+unpC)?' &middot; '+paidC+' paid &middot; '+unpC+' unpaid'+(partC?' &middot; '+partC+' partial':''):'')+'</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Room $</th><th>Food $</th><th>Total</th><th>Paid</th><th>Owed</th><th></th><th></th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Total</td><td></td><td></td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td>'+money(tot.exp-tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No villa households yet.</div>')+'</div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Off-site &middot; '+off.length+'</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th></th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'—')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">None yet.</div>')+(un.length?'<div class="hint" style="margin-top:10px">'+un.length+' household'+(un.length===1?'':'s')+' undecided.</div>':'')+'</div>';
- qa('.hhLink',el).forEach(function(a){a.onclick=function(){var id=a.getAttribute('data-hh');S.open[id]=true;openSec('coming',true);q('#search').value='';q('#filter').value='';q('#tierF').value='';renderHouseholds();var c=q('.hh[data-id="'+id+'"]');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}});
+ qa('.hhLink',el).forEach(function(a){a.onclick=function(){var id=a.getAttribute('data-hh');S.open[id]=true;openSec('coming',true);q('#search').value='';q('#filter').value='';renderHouseholds();var c=q('.hh[data-id="'+id+'"]');if(c)c.scrollIntoView({behavior:'smooth',block:'start'})}});
  qa('.rm',el).forEach(function(r2){r2.onclick=function(){openRoom(r2.getAttribute('data-rn'))}});
  q('#vDef').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.roomDefault;else v.roomDefault=Number(val)});renderVilla()};
  q('#vFph').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.foodPerHead;else v.foodPerHead=Number(val)});renderVilla()};
@@ -491,7 +521,7 @@ q('#loginBtn').onclick=enter;q('#pw').addEventListener('keydown',function(e){if(
 q('#logout').onclick=function(){try{sessionStorage.removeItem('hjpw')}catch(e){}location.reload()};
 
 setInterval(function(){try{if(q('#app').hidden||document.visibilityState!=='visible')return;var a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;if(qa('.hh.open').length)return;load()}catch(e){}},90000);
-q('#search').oninput=renderHouseholds;q('#filter').onchange=renderHouseholds;q('#tierF').onchange=renderHouseholds;
+q('#search').oninput=renderHouseholds;q('#filter').onchange=renderHouseholds;
 q('#addHH').onclick=function(){var name=prompt('Household name (e.g. "The Boelhaufs" or "Mom & Grandma")');if(!name)return;api('saveHousehold',{household:{name:name.trim(),tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:[]}}).then(function(r){S.open[r.id]=true;openSec('coming',true);return load()})};
 q('#importHH').onclick=function(){
  var txt=prompt('Paste one household per line:\n\nHousehold name | Guest One, Guest Two (child) | +1 | B\n\n"| +1" and the tier letter (A/B/C) are optional. Add (child) or (teen) after kids.');
