@@ -142,10 +142,11 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .rrow i,.sug i{font:italic 400 13px 'Cormorant Garamond',serif;color:var(--muted);flex:1;text-align:right}
 .sug{cursor:pointer}
 .sug:hover{background:var(--soft)}
-.rrow select{width:auto;max-width:118px;padding:5px 22px 5px 6px;font-size:12.5px;flex:none}
-.swaprow{display:flex;gap:10px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-.swaprow label{margin:0;flex:none}
-.swaprow select{flex:1}
+.rrow select,.swaprow select{width:auto;max-width:128px;border:1px solid var(--gold-line);border-radius:15px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%239c7c54'/%3E%3C/svg%3E") no-repeat right 9px center;padding:5px 22px 5px 11px;font:500 10.5px 'Jost',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#7a5c38;flex:none;cursor:pointer}
+.rrow select:hover,.swaprow select:hover{border-color:var(--gold);background-color:var(--soft)}
+.swaprow{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+.swaprow label{margin:0;flex:none;color:#8a6f5e}
+.swaprow select{max-width:150px}
 @media (max-width:600px){.card{padding:16px 14px}.member{grid-template-columns:1fr 84px 74px 26px}.appicons{grid-template-columns:repeat(3,1fr);gap:8px}.ai svg{width:26px;height:26px}.ai .t{font-size:8.5px}.tile{padding:9px 10px}.tile .n{font-size:22px}.tile .l{font-size:8.5px;letter-spacing:.13em}.tiles{gap:8px;grid-template-columns:repeat(auto-fit,minmax(86px,1fr))}.dash{gap:14px}body{padding:18px 10px 70px}.acc-body{margin-top:12px;padding-top:12px}.rooms{grid-template-columns:repeat(2,1fr)}}
 </style></head><body>
 <div class="wrap">
