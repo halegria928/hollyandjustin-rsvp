@@ -158,7 +158,7 @@ q('#dec').onclick=function(){setCount((parseInt(C,10)||2)-1)};
 q('#inc').onclick=function(){setCount((parseInt(C,10)||2)+1)};
 q('#phone').addEventListener('input',function(){var v=this.value;if(v.trim().charAt(0)==='+')return;var d=v.replace(/\D/g,'').slice(0,10);var o=d;if(d.length>6)o='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);else if(d.length>3)o='('+d.slice(0,3)+') '+d.slice(3);else if(d.length>0)o='('+d;this.value=o});
 q('#addEm').onclick=function(){var e2=q('#email2'),e3=q('#email3');if(e2.hidden){e2.hidden=false;e2.focus()}else{e3.hidden=false;e3.focus();this.style.display='none'}};
-qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'))}})});
+qa('.ev').forEach(function(e){qa('.evc button',e).forEach(function(b){b.onclick=function(){qa('.evc button',e).forEach(function(x){x.classList.remove('on')});b.classList.add('on');e.setAttribute('data-a',b.getAttribute('data-a'));var anyM=qa('.ev').some(function(e2){return e2.getAttribute('data-a')==='Maybe'});var mm=q('#msg');if(anyM&&!mm.value.trim())mm.placeholder='A maybe? Tell us who \u2014 and when you\u2019ll know';else if(!anyM&&A!=='Regretfully decline')mm.placeholder='A maybe-guest, travel plans \u2014 anything at all'}})});
 q('#f').onsubmit=function(ev){ev.preventDefault();
  var miss=[];
  if(!A)miss.push('whether you&rsquo;ll be joining us');
