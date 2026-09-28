@@ -58,6 +58,8 @@ async function init() {
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS address text NOT NULL DEFAULT ''`);
   await q(`ALTER TABLE guests ADD COLUMN IF NOT EXISTS plus_one boolean NOT NULL DEFAULT false`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS paid_via text NOT NULL DEFAULT ''`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS phone text NOT NULL DEFAULT ''`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS email text NOT NULL DEFAULT ''`);
   await q(`CREATE TABLE IF NOT EXISTS responses (id serial PRIMARY KEY, created timestamptz NOT NULL DEFAULT now(), first_name text NOT NULL DEFAULT '',
     last_name text NOT NULL DEFAULT '', attending text NOT NULL DEFAULT '', count text NOT NULL DEFAULT '', others jsonb NOT NULL DEFAULT '[]',
     events text NOT NULL DEFAULT '', note text NOT NULL DEFAULT '', look text NOT NULL DEFAULT '')`);
@@ -105,7 +107,7 @@ async function loadAll() {
   const hh = (await q('SELECT * FROM households ORDER BY name')).rows.map(r => ({
     id: String(r.id), name: r.name, tier: r.tier, invited: r.invited, priority: r.priority == null ? 1000000 : r.priority, plusOne: r.plus_one, likelihood: r.likelihood, notes: r.notes, lodging: r.lodging,
     room: r.room, headcount: r.headcount == null ? '' : r.headcount, roomCharge: r.room_charge == null ? '' : Number(r.room_charge),
-    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, address: r.address || '', paidVia: r.paid_via || '', guests: []
+    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, address: r.address || '', paidVia: r.paid_via || '', phone: r.phone || '', email: r.email || '', guests: []
   }));
   const byId = Object.fromEntries(hh.map(h => [h.id, h]));
   for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone, room: g.room == null ? '' : g.room, plusOne: !!g.plus_one }); }
@@ -131,13 +133,13 @@ async function loadAll() {
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
   const vals = [h.name || '', OPTIONS.tier.includes(h.tier) ? h.tier : 'A', h.invited !== false, !!h.plusOne, h.likelihood || 'Unknown', h.notes || '', h.lodging || 'Unsure', h.room || '',
-    numOrNull(h.headcount), numOrNull(h.roomCharge), numOrNull(h.foodCharge), numOrNull(h.paid), h.billing === 'included' ? 'included' : 'charged', h.offsitePlace || '', h.offsiteDetails || '', String(h.address || '').slice(0, 300), String(h.paidVia || '').slice(0, 120)];
+    numOrNull(h.headcount), numOrNull(h.roomCharge), numOrNull(h.foodCharge), numOrNull(h.paid), h.billing === 'included' ? 'included' : 'charged', h.offsitePlace || '', h.offsiteDetails || '', String(h.address || '').slice(0, 300), String(h.paidVia || '').slice(0, 120), String(h.phone || '').trim().slice(0, 40), String(h.email || '').trim().slice(0, 120)];
   let id = Number(h.id) || 0;
   if (id) {
-    const r = await q(`UPDATE households SET name=$1,tier=$2,invited=$3,plus_one=$4,likelihood=$5,notes=$6,lodging=$7,room=$8,headcount=$9,room_charge=$10,food_charge=$11,paid=$12,billing=$13,offsite_place=$14,offsite_details=$15,address=$16,paid_via=$17 WHERE id=$18 RETURNING id`, [...vals, id]);
+    const r = await q(`UPDATE households SET name=$1,tier=$2,invited=$3,plus_one=$4,likelihood=$5,notes=$6,lodging=$7,room=$8,headcount=$9,room_charge=$10,food_charge=$11,paid=$12,billing=$13,offsite_place=$14,offsite_details=$15,address=$16,paid_via=$17,phone=$18,email=$19 WHERE id=$20 RETURNING id`, [...vals, id]);
     if (!r.rows.length) id = 0;
   }
-  if (!id) id = (await q(`INSERT INTO households(name,tier,invited,plus_one,likelihood,notes,lodging,room,headcount,room_charge,food_charge,paid,billing,offsite_place,offsite_details,address,paid_via) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`, vals)).rows[0].id;
+  if (!id) id = (await q(`INSERT INTO households(name,tier,invited,plus_one,likelihood,notes,lodging,room,headcount,room_charge,food_charge,paid,billing,offsite_place,offsite_details,address,paid_via,phone,email) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`, vals)).rows[0].id;
   if (Array.isArray(h.guests)) {
     await q('DELETE FROM guests WHERE household_id=$1', [id]);
     let pos = 0;
@@ -249,6 +251,13 @@ async function matchUser(given) {
 const RL = {};
 function rlPush(k) { (RL[k] = RL[k] || []).push(Date.now()); }
 function rlCount(k, windowMs) { const now = Date.now(); const e = RL[k] = RL[k] || []; while (e.length && now - e[0] > windowMs) e.shift(); return e.length; }
+async function copyContact(hid, rid) {
+  try {
+    const rr = (await q('SELECT phone, emails FROM responses WHERE id=$1', [rid])).rows[0]; if (!rr) return;
+    const em = String(rr.emails || '').split(';')[0].trim();
+    await q(`UPDATE households SET phone = CASE WHEN phone='' THEN $1 ELSE phone END, email = CASE WHEN email='' THEN $2 ELSE email END WHERE id=$3`, [rr.phone || '', em, hid]);
+  } catch (e) { console.error(e); }
+}
 async function logAct(actor, detail) {
   try { await q('INSERT INTO activity(actor,detail) VALUES($1,$2)', [actor, String(detail || '').slice(0, 600)]); } catch (e) { console.error(e); }
 }
@@ -260,7 +269,7 @@ function diffHousehold(cur, curG, h) {
   for (const [k, label] of F) { const a = normV(cur[k]), b2 = normV(map[k]); if (a !== b2) parts.push(label + (k === 'notes' ? ' updated' : ' ' + (a || '—') + '→' + (b2 || '—'))); }
   const M2 = [['invited', h.invited, 'invited'], ['plus_one', h.plusOne, 'plus-one']];
   for (const [k, nv, label] of M2) { const a = normV(!!cur[k]), b2 = normV(!!nv); if (a !== b2) parts.push(label + ' ' + a + '→' + b2); }
-  const N2 = [['room_charge', h.roomCharge, 'room $'], ['food_charge', h.foodCharge, 'food $'], ['paid', h.paid, 'paid $'], ['offsite_place', h.offsitePlace, 'off-site'], ['offsite_details', h.offsiteDetails, 'off-site details'], ['address', h.address, 'address'], ['paid_via', h.paidVia, 'paid via']];
+  const N2 = [['room_charge', h.roomCharge, 'room $'], ['food_charge', h.foodCharge, 'food $'], ['paid', h.paid, 'paid $'], ['offsite_place', h.offsitePlace, 'off-site'], ['offsite_details', h.offsiteDetails, 'off-site details'], ['address', h.address, 'address'], ['paid_via', h.paidVia, 'paid via'], ['phone', h.phone, 'phone'], ['email', h.email, 'email']];
   for (const [k, nv, label] of N2) { const a = normV(cur[k]), b2 = normV(nv); if (a !== b2) parts.push(label + ' ' + (a || '—') + '→' + (b2 || '—')); }
   const curMap = {}; curG.forEach(g => curMap[g.name.trim()] = normV(g.room));
   const newMap = {}; (h.guests || []).forEach(g => { if (g && g.name && g.name.trim()) newMap[g.name.trim()] = normV(g.room); });
@@ -332,6 +341,7 @@ app.post('/api/admin', async (req, res) => {
         if (!hid) { await q('DELETE FROM matches WHERE response_id=$1', [rid]); await logAct(actor, 'unlinked the RSVP from ' + who); return res.json({ ok: true }); }
         await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,$3,$4) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=EXCLUDED.approved, method=EXCLUDED.method', [rid, hid, !!b.approved, b.method || 'manual']);
         const hn = (await q('SELECT name FROM households WHERE id=$1', [hid])).rows[0];
+        if (b.approved) await copyContact(hid, rid);
         await logAct(actor, (b.approved ? 'approved' : 'matched') + ' the RSVP from ' + who + ' \u2192 ' + (hn ? hn.name : '#' + hid));
         return res.json({ ok: true });
       }
@@ -363,6 +373,7 @@ app.post('/api/admin', async (req, res) => {
         const r2 = await q('INSERT INTO responses(first_name,last_name,attending,count,others,events,note,look,phone,emails) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
           [first, last, attending, String(b.count || '').slice(0, 40), JSON.stringify(others), events, String(b.note || '').slice(0, 2000), 'manual', String(b.phone || '').trim().slice(0, 40), emails]);
         await q('INSERT INTO matches(response_id,household_id,approved,method) VALUES($1,$2,true,$3) ON CONFLICT (response_id) DO UPDATE SET household_id=EXCLUDED.household_id, approved=true, method=EXCLUDED.method', [r2.rows[0].id, hid, 'manual']);
+        await copyContact(hid, r2.rows[0].id);
         await logAct(actor, 'entered an RSVP for ' + (first + ' ' + last).trim() + ' (' + (attending === 'Joyfully accept' ? 'coming' : 'declined') + ') \u2192 ' + hh.name);
         return res.json({ ok: true, id: r2.rows[0].id });
       }
@@ -385,7 +396,7 @@ app.post('/api/admin', async (req, res) => {
           return [a, '', '', ''];
         };
         const esc = v => { let x = String(v == null ? '' : v); if (/^[=+@]/.test(x) || (/^-/.test(x) && !/^-?\d+(\.\d+)?$/.test(x))) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; };
-        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Phone','Emails','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Paid via','Owed','Off-site place','Street','City','State','Zip','Notes']];
+        const rows = [['Household','Tier','Invited','Plus-one OK',"Holly's guess",'RSVP status','Heads coming','Guests (invited)','RSVP names','Phone','Emails','Contact phone','Contact email','Events','Lodging','Villa room','Headcount','Room charge','Food & tips','Billing','Paid','Paid via','Owed','Off-site place','Street','City','State','Zip','Notes']];
         for (const h of data.households) {
           const resps = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
           const acc = resps.filter(r => /accept/i.test(r.attending));
@@ -395,7 +406,7 @@ app.post('/api/admin', async (req, res) => {
             h.guests.map(g => g.name + (g.type !== 'Adult' ? ' (' + g.type + ')' : '')).join('; '),
             resps.map(r => r.name + (r.others.length ? ' + ' + r.others.map(o => o.name).join(', ') : '')).join(' | '),
             resps.map(r => r.phone).filter(Boolean).join(' | '),
-            resps.map(r => r.emails).filter(Boolean).join(' | '),
+            resps.map(r => r.emails).filter(Boolean).join(' | '), h.phone, h.email,
             resps.map(r => r.events).filter(Boolean).join(' | '), h.lodging, h.room, h.headcount, h.roomCharge, h.foodCharge, h.billing, h.paid, h.paidVia, h.billing === 'included' ? '' : (((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0) || ''), h.offsitePlace, ...splitAddr(h.address), h.notes]);
         }
         return res.json({ ok: true, csv: rows.map(r => r.map(esc).join(',')).join('\r\n') });
