@@ -107,8 +107,9 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .ai svg{width:32px;height:32px;stroke:var(--gold);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .ai .t{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);text-align:center}
 .sumcard{margin-bottom:12px}
-.dashrow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-@media (min-width:700px){.dashrow{grid-template-columns:repeat(4,1fr)}}
+.toprow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.toprow .sumcard{grid-column:1/-1;margin-bottom:0}
+@media (min-width:900px){.toprow{grid-template-columns:2.2fr 1fr 1fr;align-items:stretch}.toprow .sumcard{grid-column:auto}}
 .dcard{background:var(--card);border:1px solid var(--gold-line);box-shadow:0 8px 40px rgba(160,110,90,.10);padding:13px 14px 12px;cursor:pointer;transition:border-color .15s}
 .dcard:hover{border-color:var(--gold)}
 .dcard .dn{font:500 23px/1.1 'Cormorant Garamond',serif;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -119,7 +120,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .tiles.t3{grid-template-columns:repeat(3,1fr)}
 .bigline{font:500 20px 'Cormorant Garamond',serif;color:var(--ink);margin-top:8px;cursor:pointer}
 .bigline i{font:italic 400 15px 'Cormorant Garamond',serif;color:var(--muted)}
-.pline{font:500 30px/1.2 'Cormorant Garamond',serif;color:var(--ink);margin-top:14px;cursor:pointer}
+.pline{font:500 26px/1.2 'Cormorant Garamond',serif;color:var(--ink);margin-top:14px;cursor:pointer}
 .pline i{font:italic 400 16px 'Cormorant Garamond',serif;color:var(--muted)}
 .todos{margin-top:14px;border-top:1px solid var(--line)}
 .td{padding:9px 2px;border-bottom:1px solid var(--line);font-size:13.5px;cursor:pointer}
@@ -227,7 +228,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
    <a class="ai" href="/qr-studio.html"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><path d="M13.5 13.5h3v3h-3zM20 13.5v6.5h-6.5M20 17h-2"/></svg><span class="t">QR code</span></a>
    <a class="ai" href="/photo-manager.html"><svg viewBox="0 0 24 24"><rect x="3.5" y="7" width="17" height="13" rx="1.5"/><circle cx="12" cy="13.2" r="3.8"/><path d="M9 7l1.6-2.5h2.8L15 7"/></svg><span class="t">Photos</span></a>
   </div>
-  <div class="dashrow" id="dashrow"></div><div class="card sumcard" id="summary"></div>
+  <div class="toprow"><div class="card sumcard" id="summary"></div><div class="dcard" id="dcVilla" data-go="sec:villa"></div><div class="dcard" id="dcBudget" data-go="sec:budget"></div></div>
   <datalist id="offplaces"></datalist><div id="secs"><div class="card acc" data-name="review" id="revSec" hidden><div class="acc-head"><div class="acc-sum" id="sum-review"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-review"></div></div></div><div class="card acc" data-name="coming"><div class="acc-head"><div class="acc-sum" id="sum-coming"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div class="tools"><input type="text" id="search" placeholder="Search a name…"><select id="filter" style="max-width:200px"><option value="inv">Guest list</option><option value="coming">Coming</option><option value="declined">Declined</option><option value="none">No RSVP yet</option><option value="notinvited">Backup list</option><option value="">Everyone</option></select><button class="btn sm gold" id="addHH">+ Add household</button><button class="btn sm" id="importHH">Import list</button><button class="btn sm" id="csvBtn">Export CSV</button><button class="btn sm" id="emailsBtn">Copy emails</button></div><div id="hhList"></div></div></div><div class="card acc" data-name="villa"><div class="acc-head"><div class="acc-sum" id="sum-villa"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-villa"></div></div></div><div class="card acc" data-name="budget"><div class="acc-head"><div class="acc-sum" id="sum-budget"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-budget"></div></div></div><div class="card acc" data-name="act"><div class="acc-head"><div class="acc-sum" id="sum-act"></div><span class="chev">&#9662;</span></div><div class="acc-body" hidden><div id="tab-act"></div></div></div></div>
   <div class="foot"><a id="changePw">Change password</a>·<a id="bkupBtn">Download backup</a></div>
  </div>
@@ -301,8 +302,6 @@ function render(){
  if(d.review.length)todo.push(['<b>'+d.review.length+'</b> RSVP'+(d.review.length===1?'':'s')+' to match','sec:review']);
  if(noLodge)todo.push(['<b>'+noLodge+'</b> household'+(noLodge===1?'':'s')+' coming \u2014 lodging not chosen','hh:coming']);
  if(noRoom)todo.push(['<b>'+noRoom+'</b> coming to the villa \u2014 no room yet','sec:villa']);
- if(tentRoom)todo.push(['<b>'+tentRoom+'</b> in rooms \u2014 awaiting their RSVP','sec:villa']);
- if(oweHH.length)todo.push(['<b>'+oweHH.length+'</b> household'+(oweHH.length===1?'':'s')+' still owe <b>$'+money0(oweSum)+'</b>','sec:villa']);
  var EV={w:[0,0],c:[0,0],b:[0,0]};
  var seenEV={};
  d.responses.forEach(function(r){var kEV=(r.name||'').trim().toLowerCase();if(seenEV[kEV])return;seenEV[kEV]=1;if(!/accept/i.test(r.attending))return;var n=heads(r);
@@ -312,16 +311,14 @@ function render(){
  var evHtml=(EV.w[0]+EV.c[0]+EV.b[0]+EV.w[1]+EV.c[1]+EV.b[1])?'<div class="tiles t3" style="margin-top:14px">'+[['Welcome party','w'],['Ceremony','c'],['Beach day','b']].map(function(p3){var e2=EV[p3[1]];return '<div class="tile"><div class="n">'+e2[0]+'</div><div class="l">'+p3[0]+(e2[1]?' &middot; +'+e2[1]+' maybe':'')+'</div></div>'}).join('')+'</div>':'';
  var todoHtml=todo.length?'<div class="todos">'+todo.map(function(t){return '<div class="td" data-go="'+t[1]+'">'+t[0]+'</div>'}).join('')+'</div>':'';
  q('#summary').innerHTML='<div class="dash">'
-  +'<div class="gwrap"><svg width="150" height="88" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f7350"/><stop offset=".5" stop-color="#c0a37e"/><stop offset="1" stop-color="#ecdcc4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
+  +'<div class="gwrap"><svg width="122" height="72" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="13" stroke-linecap="round"/><path d="'+arcPath(pct)+'" fill="none" stroke="url(#gg)" stroke-width="13" stroke-linecap="round"/><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f7350"/><stop offset=".5" stop-color="#c0a37e"/><stop offset="1" stop-color="#ecdcc4"/></linearGradient></defs><text x="100" y="82" text-anchor="middle" class="gnum">'+Math.round(pct*100)+'%</text><text x="100" y="100" text-anchor="middle" class="glbl">replied</text></svg></div>'
   +'<div class="tally"><div class="tbar">'+seg(headsN,'#7da07b')+seg(noHeads,'#c98d80')+seg(awaitP,'#eee0d2')+'</div><div class="tkey"><span data-go="hh:coming"><span class="dot" style="background:#7da07b"></span><b>'+headsN+'</b>yes</span><span data-go="hh:declined"><span class="dot" style="background:#c98d80"></span><b>'+noHeads+'</b>no</span><span data-go="hh:none"><span class="dot" style="background:#eee0d2"></span><b>'+awaitP+'</b>no response</span></div>'
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
   +'</div></div>'+evHtml+todoHtml;
- q('#dashrow').innerHTML=(function(){var B=d.budget||{},bi=(B.items||[]);var bsp=bi.reduce(function(s2,it){return s2+(it.c||0)},0);var bl=(B.total!=null?B.total-bsp:null);
-  var mk=function(go,num,sub,lbl,frac){return '<div class="dcard" data-go="'+go+'"><div class="dn">'+num+(sub?'<i>'+sub+'</i>':'')+'</div><div class="dl">'+lbl+'</div><div class="dbar"><span style="width:'+Math.max(0,Math.min(100,frac*100)).toFixed(0)+'%"></span></div></div>'};
-  return mk('hh:coming',headsN,' / '+invited+' people','coming',invited?headsN/invited:0)
-   +mk('sec:villa',roomsUsed,' / 15 rooms','villa',roomsUsed/15)
-   +mk('sec:villa','$'+money0(vPaid),' of $'+money0(vExp),'collected',vExp?vPaid/vExp:0)
-   +mk('sec:budget',(bl!=null?'$'+money0(bl):'\u2014'),' left','budget',(B.total?bsp/B.total:0))})();
+ (function(){var B=d.budget||{},bi=(B.items||[]);var bsp=bi.reduce(function(s2,it){return s2+(it.c||0)},0);var bl=(B.total!=null?B.total-bsp:null);
+  var bar=function(frac){return '<div class="dbar"><span style="width:'+Math.max(0,Math.min(100,frac*100)).toFixed(0)+'%"></span></div>'};
+  q('#dcVilla').innerHTML='<div class="dn">$'+money0(vPaid)+'<i> of $'+money0(vExp)+'</i></div><div class="dl">Villa rooms collected</div>'+bar(vExp?vPaid/vExp:0);
+  q('#dcBudget').innerHTML='<div class="dn">'+(bl!=null?'$'+money0(bl):'\u2014')+'<i> left</i></div><div class="dl">Budget</div>'+bar(B.total?bsp/B.total:0)})();
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
  (function(){var B=d.budget||{},items=B.items||[];var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0);var left=(B.total!=null?B.total-spent:null);
  q('#sum-budget').innerHTML='<div class="eyebrow">Budget</div><div class="bigline">$'+spent.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>of</i> '+(B.total!=null?'$'+B.total.toLocaleString():'\u2014')+(left!=null?' <i>\u00b7</i> $'+left.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>left</i>':'')+'</div>'
