@@ -624,7 +624,7 @@ function renderBackup(){
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
 function renderBudget(){
  var el=q('#tab-budget'),B=S.data.budget||{},items=B.items||[];
- var fmt=function(v){if(v==null||v==='')return '—';var n2=Number(v);return '$'+n2.toLocaleString(undefined,{minimumFractionDigits:(Math.abs(n2%1)>0.004?2:0),maximumFractionDigits:2})};
+ var fmt=function(v){if(v==null||v==='')return '—';return '$'+Math.round(Number(v)).toLocaleString()};
  var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0),paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);
  var rows=items.map(function(it,i){
   var pl=(it.c==null||it.c<=0)?'':(it.p!=null&&it.p>=it.c?'<span class="pill ok">Paid</span>':(it.p?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
