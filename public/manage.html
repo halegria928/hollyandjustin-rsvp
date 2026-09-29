@@ -139,10 +139,16 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .rmeta{font-size:10px;color:#9b8271;letter-spacing:.05em;text-transform:uppercase}
 .rnote{font:italic 400 13px 'Cormorant Garamond',serif;color:#7a5c38;margin-top:4px}
 .rfin{font-size:11px;letter-spacing:.04em;margin-top:4px;color:#6d5233}
-.brow{display:grid;grid-template-columns:1fr 84px 84px 70px 24px;gap:8px;align-items:center;margin-bottom:6px}
-.brow.bhead{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#85653c;font-weight:500;margin:10px 0 4px}
-.brow .bpill{text-align:center}
-@media (max-width:600px){.brow{grid-template-columns:1fr 66px 66px 58px 22px}}
+.bline{display:grid;grid-template-columns:1fr 82px 82px 52px;gap:6px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);cursor:default}
+.bline[data-i]{cursor:pointer}
+.bline .bn2{font:500 15.5px 'Cormorant Garamond',serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bline .m{text-align:right;font-variant-numeric:tabular-nums;font-size:13.5px}
+.bline .bp2{text-align:right}
+.bline .pill{padding:2px 7px;font-size:8.5px;letter-spacing:.1em}
+.bline.bhead2{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#85653c;font-weight:500;border-bottom:1px solid var(--gold-line)}
+.bline.btot{font-weight:600}
+.bline.btot .m{font-size:14.5px}
+@media (max-width:600px){.bline{grid-template-columns:1fr 72px 72px 46px}}
 .bldg{font:600 11.5px 'Jost',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#fff;background:linear-gradient(100deg,#8f7350,#c0a37e 60%,#b3936c);padding:8px 13px;border-radius:3px;margin:18px 0 0;text-shadow:0 1px 2px rgba(90,64,15,.3)}
 .bkr{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .bkc{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--gold-line);border-radius:15px;padding:5px 6px 5px 12px;font:500 14.5px 'Cormorant Garamond',serif;background:#fff}
@@ -299,8 +305,9 @@ function render(){
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
   +'</div></div>'+evHtml+todoHtml;
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline">'+d.households.length+' <i>households &middot;</i> '+invited+' <i>guests</i>'+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>waiting</i></span>':'')+'</div>';
- (function(){var B=d.budget||{},items=B.items||[];var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0);var paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);var left=(B.total!=null?B.total-spent:null);
- q('#sum-budget').innerHTML='<div class="eyebrow">Budget</div><div class="bigline">$'+spent.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>of</i> '+(B.total!=null?'$'+B.total.toLocaleString():'\u2014')+(left!=null?' <i>\u00b7</i> $'+left.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>left</i>':'')+'</div>'})();
+ (function(){var B=d.budget||{},items=B.items||[];var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0);var left=(B.total!=null?B.total-spent:null);
+ q('#sum-budget').innerHTML='<div class="eyebrow">Budget</div><div class="bigline">$'+spent.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>of</i> '+(B.total!=null?'$'+B.total.toLocaleString():'\u2014')+(left!=null?' <i>\u00b7</i> $'+left.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>left</i>':'')+'</div>'
+  +(B.total?'<div class="tbar" style="height:8px;max-width:340px;margin-top:10px"><span style="width:'+Math.min(100,spent/B.total*100).toFixed(1)+'%;background:linear-gradient(100deg,#8f7350,#c0a37e 70%,#b3936c)"></span><span style="width:'+Math.max(0,100-spent/B.total*100).toFixed(1)+'%;background:#eee0d2"></span></div>':'')})();
  q('#sum-act').innerHTML='<div class="eyebrow">Activity</div><div class="hint" style="margin-top:4px">'+((d.activity&&d.activity.length)?esc(d.activity[0].actor)+' \u00b7 '+new Date(d.activity[0].ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Nothing yet')+'</div>';
  q('#sum-villa').innerHTML='<div class="eyebrow">Villa</div><div class="bigline" data-go="sec:villa">'+roomsUsed+' of 15 <i>rooms in use</i></div><div class="tiles t3" style="margin-top:10px">'+[['$'+money0(vExp),'Expected','sec:villa'],['$'+money0(vPaid),'Collected','sec:villa'],['$'+money0(vExp-vPaid),'Owed','sec:villa']].map(tile).join('')+'</div>';
  qa('[data-go]').forEach(function(el){el.onclick=function(e){e.stopPropagation();var g=el.getAttribute('data-go');if(!g)return;if(g.indexOf('sec:')===0)openSec(g.slice(4),true);else if(g.indexOf('hh:')===0){openSec('coming',true);q('#filter').value=g.slice(3);renderHouseholds()}}});
@@ -618,21 +625,34 @@ function renderBackup(){
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
 function renderBudget(){
  var el=q('#tab-budget'),B=S.data.budget||{},items=B.items||[];
- var rows=items.map(function(it,i){var owed=(it.c||0)-(it.p||0);var pl=(it.c==null||it.c<=0)?'<span class="pill mute">\u2014</span>':(it.p!=null&&it.p>=it.c?'<span class="pill ok">Paid</span>':(it.p?'<span class="pill warn">Partial</span>':'<span class="pill bad">Unpaid</span>'));
-  return '<div class="brow" data-i="'+i+'"><input type="text" class="bN" value="'+esc(it.n)+'"><input type="number" class="bC" value="'+(it.c!=null?it.c:'')+'" placeholder="$"><input type="number" class="bP" value="'+(it.p!=null?it.p:'')+'" placeholder="paid"><span class="bpill">'+pl+'</span><button class="x bDel">&times;</button></div>'}).join('');
+ var fmt=function(v){if(v==null||v==='')return '—';var n2=Number(v);return '$'+n2.toLocaleString(undefined,{minimumFractionDigits:(Math.abs(n2%1)>0.004?2:0),maximumFractionDigits:2})};
  var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0),paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);
- el.innerHTML='<div class="card"><div class="grid" style="grid-template-columns:minmax(120px,160px);margin-bottom:4px"><div><label>Total budget ($)</label><input type="number" id="bTot" value="'+(B.total!=null?B.total:'')+'"></div></div>'
-  +'<div class="brow bhead"><span>Expense</span><span>Cost</span><span>Paid</span><span></span><span></span></div>'+rows
-  +'<div class="brow"><input type="text" id="bNewN" placeholder="Add an expense\u2026"><input type="number" id="bNewC" placeholder="$"><input type="number" id="bNewP" placeholder="paid"><span></span><button class="btn sm gold" id="bAdd" style="padding:6px 8px">Add</button></div>'
-  +'<div class="hint" style="margin-top:10px">Spent $'+spent.toLocaleString()+' \u00b7 paid out $'+paid.toLocaleString()+' \u00b7 still to pay $'+(spent-paid).toLocaleString()+'. Refund? Enter a negative cost. Room collections live under Villa \u2014 not in this budget.</div></div>';
- function push(){var items2=qa('.brow',el).filter(function(r){return !r.classList.contains('bhead')&&q('.bN',r)}).map(function(r){return {n:q('.bN',r).value.trim(),c:q('.bC',r).value,p:q('.bP',r).value}}).filter(function(it){return it.n});
-  api('setBudget',{budget:{total:q('#bTot',el).value,items:items2}}).then(load)}
- q('#bTot',el).onchange=push;
- qa('.bN,.bC,.bP',el).forEach(function(inp){inp.onchange=push});
- qa('.bDel',el).forEach(function(b){b.onclick=function(){b.closest('.brow').remove();push()}});
- q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}
-  var items2=(S.data.budget&&S.data.budget.items||[]).concat([{n:n2,c:q('#bNewC',el).value,p:q('#bNewP',el).value}]);
-  api('setBudget',{budget:{total:q('#bTot',el).value,items:items2}}).then(load)};
+ var rows=items.map(function(it,i){
+  var pl=(it.c==null||it.c<=0)?'':(it.p!=null&&it.p>=it.c?'<span class="pill ok">Paid</span>':(it.p?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
+  return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+'</span><span class="m">'+fmt(it.c)+'</span><span class="m">'+fmt(it.p)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
+ el.innerHTML='<div class="card">'
+  +'<div class="bline bhead2"><span>Expense · tap to edit</span><span class="m">Cost</span><span class="m">Paid</span><span></span></div>'
+  +rows
+  +'<div class="bline btot"><span>Total</span><span class="m">'+fmt(spent)+'</span><span class="m">'+fmt(paid)+'</span><span class="bp2"></span></div>'
+  +'<div class="bline btot"><span>Still to pay</span><span></span><span class="m">'+fmt(spent-paid)+'</span><span></span></div>'
+  +'<div class="bline" style="margin-top:6px;border-bottom:0"><input type="text" id="bNewN" placeholder="Add an expense…"><input type="number" id="bNewC" placeholder="$"><input type="number" id="bNewP" placeholder="paid"><button class="btn sm gold" id="bAdd" style="padding:6px 2px">Add</button></div>'
+  +'<div class="bline btot" style="border-top:1px solid var(--gold-line);margin-top:8px"><span>Total budget</span><span></span><span class="m"><input type="number" id="bTot" value="'+(B.total!=null?B.total:'')+'" style="text-align:right;padding:6px"></span><span></span></div>'
+  +'<div class="bline btot" style="border-bottom:0"><span>Left to spend</span><span></span><span class="m">'+(B.total!=null?fmt(B.total-spent):'—')+'</span><span></span></div>'
+  +'<div class="hint" style="margin-top:8px">Refund? Enter a negative cost. Room collections live under Villa.</div></div>';
+ function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p}})}
+ function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:q('#bTot',el).value),items:items2}}).then(load)}
+ qa('.bline[data-i]',el).forEach(function(r){r.onclick=function(){
+  if(r.classList.contains('edit'))return;
+  var i=+r.getAttribute('data-i'),it=(S.data.budget.items||[])[i];if(!it)return;
+  r.classList.add('edit');
+  r.innerHTML='<input type="text" class="eN" value="'+esc(it.n)+'"><input type="number" class="eC" value="'+(it.c!=null?it.c:'')+'"><input type="number" class="eP" value="'+(it.p!=null?it.p:'')+'"><span style="display:flex;gap:3px;justify-content:flex-end"><button class="btn sm gold eOk" style="padding:5px 7px">✓</button><button class="x eDel">×</button></span>';
+  q('.eN',r).focus();
+  q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i]={n:q('.eN',r).value.trim(),c:q('.eC',r).value,p:q('.eP',r).value};if(!items2[i].n)items2.splice(i,1);push(items2)};
+  q('.eDel',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2.splice(i,1);push(items2)};
+ }});
+ q('#bTot',el).onchange=function(){push(cur())};
+ q('#bTot',el).onclick=function(ev){ev.stopPropagation()};
+ q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}push(cur().concat([{n:n2,c:q('#bNewC',el).value,p:q('#bNewP',el).value}]))};
 }
 function renderActivity(){
  var el=q('#tab-act'),a=S.data.activity||[];
