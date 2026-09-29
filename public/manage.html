@@ -372,7 +372,7 @@ function renderHouseholds(){
  if(f==='notinvited'){renderBackup();return}
  var list=d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).filter(function(h){
   if(term&&!(h.name+' '+h.guests.map(function(g){return g.name}).join(' ')+' '+h.resps.map(function(r){return r.name}).join(' ')).toLowerCase().includes(term))return false;
-  if(h.invited===false)return f==='notinvited'||f==='';if(f==='notinvited')return false;if(f==='inv')return h.status!=='declined';if(f==='coming')return h.status==='coming';if(f==='declined')return h.status==='declined';if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
+  if(h.invited===false)return f==='notinvited'||f==='';if(f==='notinvited')return false;if(f==='inv')return h.status!=='declined';if(f==='coming')return h.status==='coming';if(f==='declined'){if(h.status==='declined')return true;var vmD=verdictMap(h);return h.guests.some(function(g){return vmD[(g.name||'').trim().toLowerCase()]==='n'})}if(f==='none')return h.status==='none';if(f==='review')return h.review;if(f==='kids')return h.kids>0;return true});
  if(!list.length){el.innerHTML='<div class="card"><div class="empty">'+(d.households.length?'No households match that search.':'No households yet. Add one, or import the guest list.')+'</div></div>';return}
  el.innerHTML=list.map(function(h){return hhCard(h)}).join('');
  qa('.hh',el).forEach(bindCard);
