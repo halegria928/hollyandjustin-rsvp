@@ -624,34 +624,43 @@ function renderBackup(){
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
 function renderBudget(){
  var el=q('#tab-budget'),B=S.data.budget||{},items=B.items||[];
- var fmt=function(v){if(v==null||v==='')return '—';return '$'+Math.round(Number(v)).toLocaleString()};
+ var fmt=function(v){if(v==null||v==='')return '\u2014';var n2=Number(v);return '$'+n2.toLocaleString(undefined,{minimumFractionDigits:(Math.abs(n2%1)>0.004?2:0),maximumFractionDigits:2})};
  var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0),paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);
  var rows=items.map(function(it,i){
-  var pl=(it.c==null||it.c<=0)?'':(it.p!=null&&it.p>=it.c?'<span class="pill ok">Paid</span>':(it.p?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
-  return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+'</span><span class="m">'+fmt(it.c)+'</span><span class="m">'+fmt(it.p)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
+  var bal=(it.c!=null&&it.c!=='')?(Number(it.c)-(it.p||0)):null;
+  var pl=(it.c==null||it.c===''||it.c<=0)?'':(bal<=0?'<span class="pill ok">Paid</span>':((it.p||0)>0?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
+  return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+'</span><span class="m">'+fmt(it.c)+'</span><span class="m">'+(bal!=null&&bal>0?fmt(bal):'')+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
  el.innerHTML='<div class="card">'
-  +'<div class="bline bhead2"><span>Expense · tap to edit</span><span class="m">Cost</span><span class="m">Paid</span><span></span></div>'
+  +'<div class="bline bhead2"><span>Expense \u00b7 tap to open</span><span class="m">Cost</span><span class="m">Balance</span><span></span></div>'
   +rows
-  +'<div class="bline btot"><span>Total</span><span class="m">'+fmt(spent)+'</span><span class="m">'+fmt(paid)+'</span><span class="bp2"></span></div>'
-  +'<div class="bline btot"><span>Still to pay</span><span></span><span class="m">'+fmt(spent-paid)+'</span><span></span></div>'
-  +'<div class="bline" style="margin-top:6px;border-bottom:0"><input type="text" id="bNewN" placeholder="Add an expense…"><input type="number" id="bNewC" placeholder="$"><input type="number" id="bNewP" placeholder="paid"><button class="btn sm gold" id="bAdd" style="padding:6px 2px">Add</button></div>'
+  +'<div class="bline btot"><span>Total</span><span class="m">'+fmt(spent)+'</span><span class="m">'+fmt(spent-paid)+'</span><span></span></div>'
+  +'<div class="bline" style="margin-top:6px;border-bottom:0"><input type="text" id="bNewN" placeholder="Add an expense\u2026"><input type="number" id="bNewC" placeholder="$"><span></span><button class="btn sm gold" id="bAdd" style="padding:6px 2px">Add</button></div>'
   +'<div class="bline btot" style="border-top:1px solid var(--gold-line);margin-top:8px"><span>Total budget</span><span></span><span class="m"><input type="number" id="bTot" value="'+(B.total!=null?B.total:'')+'" style="text-align:right;padding:6px"></span><span></span></div>'
-  +'<div class="bline btot" style="border-bottom:0"><span>Left to spend</span><span></span><span class="m">'+(B.total!=null?fmt(B.total-spent):'—')+'</span><span></span></div>'
+  +'<div class="bline btot" style="border-bottom:0"><span>Left to spend</span><span></span><span class="m">'+(B.total!=null?fmt(B.total-spent):'\u2014')+'</span><span></span></div>'
   +'<div class="hint" style="margin-top:8px">Refund? Enter a negative cost. Room collections live under Villa.</div></div>';
- function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p}})}
+ function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p,how:it.how||''}})}
  function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:q('#bTot',el).value),items:items2}}).then(load)}
  qa('.bline[data-i]',el).forEach(function(r){r.onclick=function(){
   if(r.classList.contains('edit'))return;
   var i=+r.getAttribute('data-i'),it=(S.data.budget.items||[])[i];if(!it)return;
   r.classList.add('edit');
-  r.innerHTML='<input type="text" class="eN" value="'+esc(it.n)+'"><input type="number" class="eC" value="'+(it.c!=null?it.c:'')+'"><input type="number" class="eP" value="'+(it.p!=null?it.p:'')+'"><span style="display:flex;gap:3px;justify-content:flex-end"><button class="btn sm gold eOk" style="padding:5px 7px">✓</button><button class="x eDel">×</button></span>';
-  q('.eN',r).focus();
-  q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i]={n:q('.eN',r).value.trim(),c:q('.eC',r).value,p:q('.eP',r).value};if(!items2[i].n)items2.splice(i,1);push(items2)};
+  var bal=(it.c!=null&&it.c!=='')?(Number(it.c)-(it.p||0)):null;
+  r.innerHTML='<div style="grid-column:1/-1;padding:4px 0 2px">'
+   +'<div class="grid" style="grid-template-columns:1fr 96px;gap:8px"><div><label>Expense</label><input type="text" class="eN" value="'+esc(it.n)+'"></div><div><label>Cost ($)</label><input type="number" class="eC" value="'+(it.c!=null?it.c:'')+'"></div></div>'
+   +'<div class="hint" style="margin:8px 0 6px">Paid so far '+fmt(it.p||0)+(bal!=null?(bal>0?' \u00b7 balance '+fmt(bal):' \u00b7 paid in full'):'')+(it.how?'<br>'+esc(it.how):'')+'</div>'
+   +'<div class="grid" style="grid-template-columns:96px 1fr 62px;gap:6px;align-items:end"><div><label>Payment ($)</label><input type="number" class="eAmt"></div><div><label>How</label><input type="text" class="eHow" placeholder="Venmo, cash\u2026"></div><button class="btn sm gold ePay" style="padding:8px 4px">Add</button></div>'
+   +'<div class="acts" style="margin-top:12px"><button class="btn sm gold eOk">Done</button><span style="flex:1"></span><button class="btn sm danger eDel">Delete</button></div></div>';
+  q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i].n=q('.eN',r).value.trim();items2[i].c=q('.eC',r).value;if(!items2[i].n)items2.splice(i,1);push(items2)};
+  q('.ePay',r).onclick=function(ev){ev.stopPropagation();var amt=Number(q('.eAmt',r).value);if(!amt){alert('Enter the payment amount.');return}
+   var items2=cur();items2[i].n=q('.eN',r).value.trim()||items2[i].n;items2[i].c=q('.eC',r).value;
+   items2[i].p=(Number(items2[i].p)||0)+amt;var how2=q('.eHow',r).value.trim();
+   items2[i].how=((items2[i].how||'')+' '+fmt(amt)+(how2?' '+how2:'')+' \u00b7').trim();
+   push(items2)};
   q('.eDel',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2.splice(i,1);push(items2)};
  }});
  q('#bTot',el).onchange=function(){push(cur())};
  q('#bTot',el).onclick=function(ev){ev.stopPropagation()};
- q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}push(cur().concat([{n:n2,c:q('#bNewC',el).value,p:q('#bNewP',el).value}]))};
+ q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}push(cur().concat([{n:n2,c:q('#bNewC',el).value,p:'',how:''}]))};
 }
 function renderActivity(){
  var el=q('#tab-act'),a=S.data.activity||[];
