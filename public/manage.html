@@ -281,7 +281,7 @@ function render(){
  var roomsUsed=(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})();
  var noLodge=d.households.filter(function(h){return h.status==='coming'&&h.lodging!=='Villa'&&h.lodging!=='Off-site'}).length;
  var noRoom=0,tentRoom=0;
- d.households.forEach(function(h){if(h.lodging!=='Villa')return;var vm9=verdictMap(h);h.guests.forEach(function(g){var r2=g.room||h.room;var v9=vm9[(g.name||'').trim().toLowerCase()];if(h.status==='coming'&&!r2&&v9!=='n')noRoom++;if(h.status!=='coming'&&r2)tentRoom++})});
+ d.households.forEach(function(h){if(h.lodging!=='Villa')return;var vm9=verdictMap(h);var anyR=!!(h.room)||h.guests.some(function(g){return g.room});h.guests.forEach(function(g){var r2=g.room||h.room;var v9=vm9[(g.name||'').trim().toLowerCase()];if(h.status==='coming'&&!anyR&&v9!=='n')noRoom++;if(h.status!=='coming'&&r2)tentRoom++})});
  var owedOf=function(h){return h.billing==='included'?0:((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0)};
  var oweHH=chgd.filter(function(h){return owedOf(h)>0});
  var oweSum=oweHH.reduce(function(s2,h){return s2+owedOf(h)},0);
@@ -548,7 +548,7 @@ function renderVilla(){
  var waitHH=[];
  villa.forEach(function(h){var vm=verdictMap(h);var anyRoom=!!(h.room)||h.guests.some(function(g){return g.room});
   if(!anyRoom&&h.guests.length&&h.status!=='declined'){waitHH.push(h)}
-  h.guests.forEach(function(g){var r=String(g.room||h.room||'');if(r)((occ[r]=occ[r]||[])).push({n:g.name,hh:h.name,hid:h.id,ty:g.type,st:vm[(g.name||'').trim().toLowerCase()]});else if(anyRoom&&vm[(g.name||'').trim().toLowerCase()]!=='n')homeless.push(g.name+' ('+h.name+')')})});
+  h.guests.forEach(function(g){var r=String(g.room||h.room||'');if(r)((occ[r]=occ[r]||[])).push({n:g.name,hh:h.name,hid:h.id,ty:g.type,st:vm[(g.name||'').trim().toLowerCase()]});})});
  waitHH.sort(function(a,b){return (a.priority-b.priority)||a.name.localeCompare(b.name)});
  var heads=0,conf=0,buckets={},anyArea=false;
  for(var rn=1;rn<=15;rn++){var ps=occ[String(rn)]||[];heads+=ps.length;conf+=ps.filter(function(p9){return p9.st==='c'}).length;
@@ -582,7 +582,6 @@ function renderVilla(){
   +'<div class="sec" style="margin-top:14px">Backup room list</div>'
   +'<div class="bkr">'+(waitHH.length?waitHH.map(function(h){return '<span class="bkc" data-hid="'+h.id+'">'+esc(h.name)+'<button class="x bkUp" title="Move up in line">\u2191</button><button class="x bkX" title="Remove from backup room list">&times;</button></span>'}).join(''):'<span class="hint">Nobody waiting on a room.</span>')+'</div>'
   +'<div style="max-width:300px;margin-top:8px"><input type="text" id="bkrAdd" placeholder="Add a group \u2014 type a name\u2026" autocomplete="off"><div id="bkrSug"></div></div>'
-  +(homeless.length?'<div class="hint" style="margin-top:10px">Still need a room: '+homeless.map(esc).join(', ')+'</div>':'')
   +'<div class="hint" style="margin-top:8px">A room picked on a person&rsquo;s name row wins over the household room. \u2713 = RSVP\u2019d yes.</div></div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Billing'+((paidC+partC+unpC)?' &middot; '+paidC+' paid &middot; '+unpC+' unpaid'+(partC?' &middot; '+partC+' partial':''):'')+'</div>'+(villa.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Due</th><th>Paid</th><th></th><th></th></tr></thead><tbody>'+bill+'</tbody><tfoot><tr><td>Total \u00b7 owed '+money(tot.exp-tot.paid)+'</td><td>'+money(tot.exp)+'</td><td>'+money(tot.paid)+'</td><td></td><td></td></tr></tfoot></table></div>':'<div class="empty">No rooms charged yet.</div>')+'</div>'
   +'<div class="card" style="margin-top:12px"><div class="eyebrow">Coming &amp; staying off-site &middot; '+off.length+'</div>'+(off.length?'<div style="overflow-x:auto;margin-top:12px"><table><thead><tr><th>Household</th><th>Where</th><th>Details</th><th></th></tr></thead><tbody>'+off.map(function(h){return '<tr><td>'+esc(h.name)+'</td><td>'+esc(h.offsitePlace||'TBD')+'</td><td>'+esc(h.offsiteDetails)+'</td><td>'+pill(h)+'</td></tr>'}).join('')+'</tbody></table></div>':'<div class="empty">Nobody confirmed off-site yet.</div>')+'</div>';
