@@ -579,7 +579,7 @@ function renderVilla(){
   var pay=inc?'<span class="pill mute">No charge</span>':(t2>0?(pd>=t2?'<span class="pill ok">Paid</span>':(pd>0?'<span class="pill warn">Partial</span>':'<span class="pill bad">Unpaid</span>')):'<span class="pill mute">Set price</span>');
   bill+='<tr><td><a class="hhLink" data-hh="'+h.id+'">'+esc(h.name)+'</a></td><td>'+(inc?'\u2014':money(t2))+'</td><td>'+(inc?'\u2014':money(pd||''))+'</td><td>'+pay+'</td><td>'+pill(h)+'</td></tr>';
  });
- el.innerHTML='<div class="card"><div class="eyebrow">Rooms &middot; '+heads+' sleeping'+(heads?' &middot; '+conf+' \u2713 &middot; '+(heads-conf)+' tentative':'')+'</div><div class="grid" style="grid-template-columns:repeat(2,minmax(120px,150px));gap:10px;margin-top:10px;align-items:end"><div><label style="white-space:nowrap">Room price</label><input type="number" id="vDef" min="0" value="'+(V.roomDefault!=null?V.roomDefault:'')+'"></div><div><label style="white-space:nowrap">Food per room</label><input type="number" id="vFph" min="0" value="'+(V.foodPerHead!=null?V.foodPerHead:'')+'"></div></div>'+roomsWrap+''
+ el.innerHTML='<div class="card"><div class="eyebrow">Rooms &middot; '+heads+' sleeping'+(heads?' &middot; '+conf+' \u2713 &middot; '+(heads-conf)+' tentative':'')+'</div>'+roomsWrap+''
   +'<div class="sec" style="margin-top:14px">Backup room list</div>'
   +'<div class="bkr">'+(waitHH.length?waitHH.map(function(h){return '<span class="bkc" data-hid="'+h.id+'">'+esc(h.name)+'<button class="x bkUp" title="Move up in line">\u2191</button><button class="x bkX" title="Remove from backup room list">&times;</button></span>'}).join(''):'<span class="hint">Nobody waiting on a room.</span>')+'</div>'
   +'<div style="max-width:300px;margin-top:8px"><input type="text" id="bkrAdd" placeholder="Add a group \u2014 type a name\u2026" autocomplete="off"><div id="bkrSug"></div></div>'
@@ -595,8 +595,6 @@ function renderVilla(){
    out+='<div class="sug" data-hid="'+h2.id+'"><span class="nm">'+esc(h2.name)+'</span><i>'+h2.guests.length+' guest'+(h2.guests.length===1?'':'s')+'</i></div>';n++});
   q('#bkrSug').innerHTML=out;
   qa('#bkrSug .sug').forEach(function(el2){el2.onclick=function(){var h2=d.households.find(function(x){return x.id===el2.getAttribute('data-hid')});var p=JSON.parse(JSON.stringify(h2));['resps','status','heads','kids','teens','review'].forEach(function(k){delete p[k]});p.lodging='Villa';p.room='';api('saveHousehold',{household:p}).then(load)}})};
- q('#vDef').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.roomDefault;else v.roomDefault=Number(val)});if(val!=='')applyDefault('roomCharge',Number(val));else renderVilla()};
- q('#vFph').onchange=function(){var val=this.value;saveVilla(function(v){if(val==='')delete v.foodPerHead;else v.foodPerHead=Number(val)});if(val!=='')applyDefault('foodCharge',Number(val));else renderVilla()};
 }
 function renderBackup(){
  var el=q('#hhList');
