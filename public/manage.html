@@ -656,8 +656,8 @@ function renderBudget(openIdx){
   q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i].n=q('.eN',r).value.trim();items2[i].c=q('.eC',r).value;if(!items2[i].n)items2.splice(i,1);push(items2)};
   q('.ePay',r).onclick=function(ev){ev.stopPropagation();var amt=Number(q('.eAmt',r).value);if(!amt){alert('Enter the payment amount.');return}
    var items2=cur();items2[i].n=q('.eN',r).value.trim()||items2[i].n;items2[i].c=q('.eC',r).value;
-   items2[i].p=(Number(items2[i].p)||0)+amt;var how2=q('.eHow',r).value.trim();
-   items2[i].how=((items2[i].how||'')+' '+fmt(amt)+(how2?' '+how2:'')+' \u00b7').trim();
+   items2[i].p=(Number(items2[i].p)||0)+amt;var how2=q('.eHow',r).value.trim();var ds=new Date().toLocaleDateString([],{month:'short',day:'numeric'});
+   items2[i].how=((items2[i].how||'')+' '+fmt(amt)+(how2?' '+how2:'')+' ('+ds+') \u00b7').trim();
    push(items2)};
   q('.eDel',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2.splice(i,1);push(items2)};
  }});
