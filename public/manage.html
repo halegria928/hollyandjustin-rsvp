@@ -295,7 +295,7 @@ function render(){
  var pct=inv.length?(yesHH+noHH)/inv.length:0;
  var teens=coming.reduce(function(s,h){return s+(h.teens||0)},0);
  var adults=Math.max(headsN-kids-teens,0);
- function arcPath(p){if(p<=0)p=0.0001;if(p>1)p=1;var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);return 'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x+' '+y}
+ function arcPath(p){if(p<=0)p=0.0001;if(p>1)p=1;var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);return 'M14 98 A86 86 0 0 1 '+x+' '+y}
  var noHeads=d.households.reduce(function(s2,h){return s2+(h.decHeads||0)},0);var awaitP=Math.max(invited-headsN-noHeads,0);var seg=function(n,c){return invited?'<span style="width:'+(n/invited*100)+'%;background:'+c+'"></span>':''};
  var roomsUsed=(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})();
  var noLodge=d.households.filter(function(h){return h.status==='coming'&&h.lodging!=='Villa'&&h.lodging!=='Off-site'}).length;
@@ -322,7 +322,7 @@ function render(){
   +'<div class="pline" data-go="hh:coming"><b>'+headsN+'</b> coming <i>&middot; '+adults+' adult'+(adults===1?'':'s')+' &middot; '+(kids+teens)+' kid'+((kids+teens)===1?'':'s')+'</i></div>'
   +'</div></div>'+evHtml+todoHtml;
  (function(){var B=d.budget||{},bi=(B.items||[]);var bsp=bi.reduce(function(s2,it){return s2+(it.c||0)},0);var bl=(B.total!=null?B.total-bsp:null);
-  var mini=function(frac,txt,gid){var p=Math.max(0,Math.min(1,frac));var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);var dp=(p<=0.001)?'':'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x.toFixed(1)+' '+y.toFixed(1);
+  var mini=function(frac,txt,gid){var p=Math.max(0,Math.min(1,frac));var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);var dp=(p<=0.001)?'':'M14 98 A86 86 0 0 1 '+x.toFixed(1)+' '+y.toFixed(1);
    return '<svg style="width:100%;max-width:158px;height:auto;display:block;margin:0 auto" viewBox="0 0 200 110"><defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a6b42"/><stop offset="1" stop-color="#c9a061"/></linearGradient></defs><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="15" stroke-linecap="round"/>'+(dp?'<path d="'+dp+'" fill="none" stroke="url(#'+gid+')" stroke-width="15" stroke-linecap="round"/>':'')+'<text x="100" y="90" text-anchor="middle" class="gnum" style="font-size:44px">'+txt+'</text></svg>'};
   var vp=vExp?vPaid/vExp:0,bp2=(B.total?bsp/B.total:0);
   q('#dcVilla').innerHTML=mini(vp,Math.round(vp*100)+'%','mgv')+'<div class="dl">Villa collected</div><div class="dsub"><b>$'+money0(vPaid)+'</b> collected of $'+money0(vExp)+'</div><div class="dsub">'+roomsUsed+' of 15 rooms occupied</div>';
