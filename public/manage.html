@@ -146,6 +146,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .bline .bp2{text-align:right}
 .bline .pill{padding:2px 7px;font-size:8.5px;letter-spacing:.1em}
 .bline.bhead2{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#85653c;font-weight:500;border-bottom:1px solid var(--gold-line)}
+.bline.edit{display:block;background:var(--soft);border:1px solid var(--gold-line);border-radius:6px;padding:12px 12px 10px;margin:7px 0;cursor:default}
 .bline.btot{font-weight:600}
 .bline.btot .m{font-size:13px;letter-spacing:-.01em}
 @media (max-width:600px){.bline{grid-template-columns:1fr 92px 48px;gap:4px}.bline .m{font-size:13px}}
@@ -622,7 +623,7 @@ function renderBackup(){
  });
 }
 function load(){return api('load').then(function(r){if(!r.ok)throw r.error||'load failed';S.data=r;S.options=r.options;render()}).catch(function(e){alert('Could not load: '+e)})}
-function renderBudget(){
+function renderBudget(openIdx){
  var el=q('#tab-budget'),B=S.data.budget||{},items=B.items||[];
  var fmt=function(v){if(v==null||v==='')return '\u2014';var n2=Number(v);return '$'+n2.toLocaleString(undefined,{minimumFractionDigits:(Math.abs(n2%1)>0.004?2:0),maximumFractionDigits:2})};
  var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0),paid=items.reduce(function(s2,it){return s2+(it.p||0)},0);
@@ -642,7 +643,9 @@ function renderBudget(){
  function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:q('#bTot',el).value),items:items2}}).then(load)}
  qa('.bline[data-i]',el).forEach(function(r){r.onclick=function(){
   if(r.classList.contains('edit'))return;
-  var i=+r.getAttribute('data-i'),it=(S.data.budget.items||[])[i];if(!it)return;
+  var i=+r.getAttribute('data-i');
+  var other=q('.bline.edit',el);if(other&&other!==r){renderBudget(i);return}
+  var it=(S.data.budget.items||[])[i];if(!it)return;
   r.classList.add('edit');
   var bal=(it.c!=null&&it.c!=='')?(Number(it.c)-(it.p||0)):null;
   r.innerHTML='<div style="grid-column:1/-1;padding:4px 0 2px">'
@@ -661,6 +664,7 @@ function renderBudget(){
  q('#bTot',el).onchange=function(){push(cur())};
  q('#bTot',el).onclick=function(ev){ev.stopPropagation()};
  q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}push(cur().concat([{n:n2,c:q('#bNewC',el).value,p:'',how:''}]))};
+ if(openIdx!=null){var rr=el.querySelector('.bline[data-i="'+openIdx+'"]');if(rr)rr.click()}
 }
 function renderActivity(){
  var el=q('#tab-act'),a=S.data.activity||[];
