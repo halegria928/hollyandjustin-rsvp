@@ -114,9 +114,9 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .dcard:hover{border-color:var(--gold)}
 .dcard .dn{font:500 23px/1.1 'Cormorant Garamond',serif;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dcard .dn i{font:italic 400 12.5px 'Cormorant Garamond',serif;color:var(--muted)}
-.dcard .dl{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:#85653c;font-weight:500;margin-top:3px}
+.dcard .dl{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#85653c;font-weight:500;margin-top:6px}
 .dcard{text-align:center}
-.dsub{font:italic 400 12.5px 'Cormorant Garamond',serif;color:var(--muted);margin-top:2px}
+.dsub{font:500 15.5px 'Cormorant Garamond',serif;color:var(--ink);margin-top:3px}
 .dcard .dbar{height:5px;background:#efe6dc;border-radius:3px;margin-top:9px;overflow:hidden}
 .dcard .dbar span{display:block;height:100%;background:linear-gradient(90deg,#8f7350,#c0a37e 70%,#b3936c)}
 .tiles.t3{grid-template-columns:repeat(3,1fr)}
@@ -323,10 +323,10 @@ function render(){
   +'</div></div>'+evHtml+todoHtml;
  (function(){var B=d.budget||{},bi=(B.items||[]);var bsp=bi.reduce(function(s2,it){return s2+(it.c||0)},0);var bl=(B.total!=null?B.total-bsp:null);
   var mini=function(frac,txt){var p=Math.max(0,Math.min(1,frac));var a=Math.PI*(1-p);var x=100+86*Math.cos(a),y=98-86*Math.sin(a);var dp=(p<=0.001)?'':'M14 98 A86 86 0 '+(p>0.5?1:0)+' 1 '+x.toFixed(1)+' '+y.toFixed(1);
-   return '<svg width="88" height="52" viewBox="0 0 200 112"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="14" stroke-linecap="round"/>'+(dp?'<path d="'+dp+'" fill="none" stroke="url(#gg)" stroke-width="14" stroke-linecap="round"/>':'')+'<text x="100" y="88" text-anchor="middle" class="gnum" style="font-size:36px">'+txt+'</text></svg>'};
+   return '<svg style="width:100%;max-width:158px;height:auto;display:block;margin:0 auto" viewBox="0 0 200 110"><path d="M14 98 A86 86 0 1 1 186 98" fill="none" stroke="#f0e2d6" stroke-width="15" stroke-linecap="round"/>'+(dp?'<path d="'+dp+'" fill="none" stroke="url(#gg)" stroke-width="15" stroke-linecap="round"/>':'')+'<text x="100" y="90" text-anchor="middle" class="gnum" style="font-size:44px">'+txt+'</text></svg>'};
   var vp=vExp?vPaid/vExp:0,bp2=(B.total?bsp/B.total:0);
   q('#dcVilla').innerHTML=mini(vp,Math.round(vp*100)+'%')+'<div class="dl">Villa collected</div><div class="dsub">$'+money0(vPaid)+' of $'+money0(vExp)+'</div>';
-  q('#dcBudget').innerHTML=mini(bp2,Math.round(bp2*100)+'%')+'<div class="dl">Budget spent</div><div class="dsub">'+(bl!=null?'$'+money0(bl)+' left':'\u2014')+'</div>'})();
+  q('#dcBudget').innerHTML=mini(bp2,Math.round(bp2*100)+'%')+'<div class="dl">Budget spent</div><div class="dsub">'+(bl!=null?'$'+money0(bl)+' left of $'+money0(B.total):'\u2014')+'</div>'})();
  q('#sum-coming').innerHTML='<div class="eyebrow">Guest list</div><div class="bigline"><span data-go="hh:inv">'+invited+' <i>invited</i></span>'+(noHeads?' <i>&middot;</i> <span data-go="hh:declined">'+noHeads+' <i>declined</i></span>':'')+(waiting?' <i>&middot;</i> <span data-go="hh:notinvited">'+waiting+' <i>backup list</i></span>':'')+'</div>';
  (function(){var B=d.budget||{},items=B.items||[];var spent=items.reduce(function(s2,it){return s2+(it.c||0)},0);var left=(B.total!=null?B.total-spent:null);
  q('#sum-budget').innerHTML='<div class="eyebrow">Budget</div><div class="bigline">$'+spent.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>of</i> '+(B.total!=null?'$'+B.total.toLocaleString():'\u2014')+(left!=null?' <i>\u00b7</i> $'+left.toLocaleString(undefined,{maximumFractionDigits:0})+' <i>left</i>':'')+'</div>'
