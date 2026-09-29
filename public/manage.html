@@ -632,15 +632,15 @@ function renderBudget(openIdx){
   var pl=(it.c==null||it.c===''||it.c<=0)?'':(bal<=0?'<span class="pill ok">Paid</span>':((it.p||0)>0?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
   return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+'</span><span class="m">'+fmt(it.c)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
  el.innerHTML='<div class="card">'
+  +'<div class="bline btot" style="border-bottom:1px solid var(--gold-line)"><span>Total budget</span><span class="m" id="bTotVal">'+(B.total!=null?fmt(B.total):'\u2014')+'</span><span style="text-align:right"><button class="x bTotEdit" title="Change the budget">\u270e</button></span></div>'
   +'<div class="bline bhead2"><span>Expense \u00b7 tap to open</span><span class="m">Cost</span><span></span></div>'
   +rows
   +'<div class="bline" style="border-bottom:0"><input type="text" id="bNewN" placeholder="Add an expense\u2026"><input type="number" id="bNewC" placeholder="$"><button class="btn sm gold" id="bAdd" style="padding:6px 2px">Add</button></div>'
   +'<div class="bline btot" style="border-top:1px solid var(--gold-line)"><span>Total</span><span class="m">'+fmt(spent)+'</span><span></span></div>'
-  +'<div class="bline btot"><span>Total budget</span><span class="m"><input type="number" id="bTot" value="'+(B.total!=null?B.total:'')+'" style="text-align:right;padding:6px"></span><span></span></div>'
   +'<div class="bline btot" style="border-bottom:0"><span>Left to spend</span><span class="m">'+(B.total!=null?fmt(B.total-spent):'\u2014')+'</span><span></span></div>'
   +'<div class="hint" style="margin-top:8px">Paid so far '+fmt(paid)+' \u00b7 still to pay '+fmt(spent-paid)+'</div></div>';
  function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p,how:it.how||''}})}
- function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:q('#bTot',el).value),items:items2}}).then(load)}
+ function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:((S.data.budget&&S.data.budget.total!=null)?S.data.budget.total:'')),items:items2}}).then(load)}
  qa('.bline[data-i]',el).forEach(function(r){r.onclick=function(){
   if(r.classList.contains('edit'))return;
   var i=+r.getAttribute('data-i');
@@ -661,8 +661,7 @@ function renderBudget(openIdx){
    push(items2)};
   q('.eDel',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2.splice(i,1);push(items2)};
  }});
- q('#bTot',el).onchange=function(){push(cur())};
- q('#bTot',el).onclick=function(ev){ev.stopPropagation()};
+ q('.bTotEdit',el).onclick=function(){var sp=q('#bTotVal',el);if(sp.querySelector('input'))return;var cv=(S.data.budget&&S.data.budget.total!=null)?S.data.budget.total:'';sp.innerHTML='<input type="number" value="'+cv+'" style="text-align:right;padding:6px">';var inp=sp.querySelector('input');inp.focus();inp.onchange=function(){push(cur(),inp.value)}};
  q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}push(cur().concat([{n:n2,c:q('#bNewC',el).value,p:'',how:''}]))};
  if(openIdx!=null){var rr=el.querySelector('.bline[data-i="'+openIdx+'"]');if(rr)rr.click()}
 }
