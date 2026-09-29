@@ -335,7 +335,16 @@ app.post('/api/admin', async (req, res) => {
     const actor = await matchUser(b.pw);
     if (!actor) { rlPush('af:' + ip); return res.status(401).json({ ok: false, error: 'bad_password' }); }
     switch (b.action) {
-      case 'login': await logAct(actor, 'logged in'); return res.json({ ok: true, user: actor });
+      case 'login': {
+        const last = await q("SELECT ts FROM activity WHERE actor=$1 AND detail='logged in' ORDER BY id DESC LIMIT 1", [actor]);
+        if (!last.rows.length || Date.now() - new Date(last.rows[0].ts).getTime() > 30 * 60 * 1000) await logAct(actor, 'logged in');
+        return res.json({ ok: true, user: actor });
+      }
+      case 'view': {
+        const secName = { coming: 'the guest list', villa: 'the villa', budget: 'the budget', review: 'RSVP review', act: 'the activity log' }[String(b.sec)];
+        if (secName) await logAct(actor, 'opened ' + secName);
+        return res.json({ ok: true });
+      }
       case 'load': return res.json(await loadAll());
       case 'saveHousehold': {
         const h = b.household || {};
