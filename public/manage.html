@@ -275,7 +275,7 @@ function render(){
  var roomsUsed=(function(){var st={};villa.forEach(function(h){h.guests.forEach(function(g){var r=g.room||h.room;if(r)st[r]=1})});return Object.keys(st).length})();
  var noLodge=d.households.filter(function(h){return h.status==='coming'&&h.lodging!=='Villa'&&h.lodging!=='Off-site'}).length;
  var noRoom=0,tentRoom=0;
- d.households.forEach(function(h){if(h.lodging!=='Villa')return;h.guests.forEach(function(g){var r2=g.room||h.room;if(h.status==='coming'&&!r2)noRoom++;if(h.status!=='coming'&&r2)tentRoom++})});
+ d.households.forEach(function(h){if(h.lodging!=='Villa')return;var vm9=verdictMap(h);h.guests.forEach(function(g){var r2=g.room||h.room;var v9=vm9[(g.name||'').trim().toLowerCase()];if(h.status==='coming'&&!r2&&v9!=='n')noRoom++;if(h.status!=='coming'&&r2)tentRoom++})});
  var owedOf=function(h){return h.billing==='included'?0:((Number(h.roomCharge)||0)+(Number(h.foodCharge)||0))-(Number(h.paid)||0)};
  var oweHH=chgd.filter(function(h){return owedOf(h)>0});
  var oweSum=oweHH.reduce(function(s2,h){return s2+owedOf(h)},0);
