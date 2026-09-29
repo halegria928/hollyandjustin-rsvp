@@ -129,7 +129,7 @@ async function loadAll() {
   let villa = {}; try { villa = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) { villa = {}; }
   let budget = {}; try { budget = JSON.parse(await getSetting('budget', '{}')) || {}; } catch (e) { budget = {}; }
   const activity = (await q('SELECT id, ts, actor, detail FROM activity ORDER BY id DESC LIMIT 150')).rows;
-  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, budget, activity, looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
+  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, budget, activity, website: await getSetting('website', ''), looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
 }
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
@@ -472,6 +472,7 @@ app.post('/api/admin', async (req, res) => {
         if (vparts.length) await logAct(actor, 'villa settings \u2014 ' + vparts.join(', '));
         return res.json({ ok: true });
       }
+      case 'setWebsite': { const u = String(b.url || '').trim(); if (u && !/^https?:\/\/[^\s]+\.[^\s]+/.test(u)) return res.json({ ok: false, error: 'That doesn\u2019t look like a link \u2014 it should start with https://' }); await setSetting('website', u); await logAct(actor, u ? 'set the wedding website button to ' + u.slice(0, 120) : 'removed the wedding website button'); return res.json({ ok: true }); }
       case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); await logAct(actor, 'set the live design to ' + b.theme); return res.json({ ok: true }); }
       case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); if (await matchUser(np)) return res.json({ ok: false, error: 'That password is taken \u2014 pick a different one' }); await q('UPDATE users SET pass=$1 WHERE name=$2', [hashPw(np), actor]); await logAct(actor, 'changed their password'); return res.json({ ok: true, user: actor }); }
       default: return res.json({ ok: false, error: 'unknown_action' });
@@ -487,5 +488,6 @@ async function initLoop() {
 app.get('/api/theme', async (req, res) => { try { res.json({ ok: true, theme: dbReady ? await getSetting('theme', 'blush') : 'blush' }); } catch (e) { res.json({ ok: true, theme: 'blush' }); } });
 const BOOT = String(Date.now());
 app.get('/api/version', (req, res) => res.json({ ok: true, v: BOOT }));
+app.get('/api/config', async (req, res) => { try { res.json({ ok: true, website: await getSetting('website', '') }); } catch (e) { res.json({ ok: true, website: '' }); } });
 app.get('/healthz', (req, res) => res.json({ ok: dbReady, db: dbReady ? 'ready' : 'unavailable', error: dbError, hasUrl: !!process.env.DATABASE_URL }));
 app.listen(PORT, () => { console.log('RSVP site listening on ' + PORT); initLoop(); });

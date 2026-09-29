@@ -106,6 +106,7 @@ label,.lg,.eyebrow{color:color-mix(in srgb, #9c7c54 var(--dk,0%), #5f4a2c)}
   <div class="flor"><i></i><b></b><i></i></div>
   <div class="when"><span style="white-space:nowrap">Saturday, March 13, 2027</span><br><b><span style="white-space:nowrap">Hacienda del Mar</span> &middot; <span style="white-space:nowrap">Puerto Aventuras, Mexico</span></b></div>
   <p class="note">We can&rsquo;t wait to celebrate with you.</p>
+<p class="siteln" style="text-align:center;margin:14px 0 2px"><a id="siteGo" target="_blank" rel="noopener" style="display:none;padding:10px 26px;border:1px solid currentColor;border-radius:999px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;color:inherit;opacity:.85">Agenda &amp; Details</a></p>
   <form id="f" novalidate>
    <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
     <div class="choice"><button type="button" id="yes">Joyfully Accept</button><button type="button" id="no">Regretfully Decline</button></div></div>
@@ -203,4 +204,5 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  return false}
 </script><script>
 (function(){var r=document.documentElement;function f(){var ms=Math.max(document.documentElement.scrollHeight-window.innerHeight,0);var need=Math.max(0,Math.min(1,(360-ms)/360));var base=(window.innerWidth>=900)?(0.30+0.40*need):0.30;var span=Math.min(360,Math.max(ms,1));var t=Math.min(1,(window.scrollY||window.pageYOffset||0)/span);var a=base+(0.88-base)*t;var frac=(a-0.30)/0.58;r.style.setProperty('--hja',a.toFixed(3));r.style.setProperty('--hjb',(4+8*frac).toFixed(1)+'px');r.style.setProperty('--dk',(frac*100).toFixed(0)+'%')}window.addEventListener('scroll',f,{passive:true});window.addEventListener('resize',f);setInterval(f,700);f()})();
-</script></body></html>
+</script><script>(function(){try{fetch('/api/config').then(function(r){return r.json()}).then(function(c){if(c&&c.website){var a=document.getElementById('siteGo');a.href=c.website;a.style.display='inline-block'}}).catch(function(){})}catch(e){}})();</script>
+</body></html>
