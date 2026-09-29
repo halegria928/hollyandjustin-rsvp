@@ -150,7 +150,9 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .rfin{font-size:11px;letter-spacing:.04em;margin-top:4px;color:#6d5233}
 .bline{display:grid;grid-template-columns:1fr 96px 56px;gap:6px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line);cursor:default}
 .bline[data-i]{cursor:pointer}
-.bline .bn2{font:500 15.5px 'Cormorant Garamond',serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bline .bn2{font:500 15.5px 'Cormorant Garamond',serif;overflow:hidden}
+.bline .bn2>*:first-line{white-space:nowrap}
+.bnote{font:italic 400 11.5px 'Cormorant Garamond',serif;color:var(--muted);line-height:1.25;margin-top:1px}
 .bline .m{text-align:right;font-variant-numeric:tabular-nums;font-size:13.5px}
 .bline .bp2{text-align:right}
 .bline .pill{padding:2px 7px;font-size:8.5px;letter-spacing:.1em}
@@ -643,7 +645,7 @@ function renderBudget(openIdx){
  var rows=items.map(function(it,i){
   var bal=(it.c!=null&&it.c!=='')?(Number(it.c)-(it.p||0)):null;
   var pl=(it.c==null||it.c===''||it.c<=0)?'':(bal<=0?'<span class="pill ok">Paid</span>':((it.p||0)>0?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
-  return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+'</span><span class="m">'+fmt(it.c)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
+  return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+(it.note?'<div class="bnote">'+esc(it.note)+'</div>':'')+'</span><span class="m">'+fmt(it.c)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
  el.innerHTML='<div class="card">'
   +'<div class="bline btot" style="border-bottom:1px solid var(--gold-line)"><span>Total budget</span><span class="m" id="bTotVal">'+(B.total!=null?fmt(B.total):'\u2014')+'</span><span style="text-align:right"><button class="x bTotEdit" title="Change the budget">\u270e</button></span></div>'
   +'<div class="bline bhead2"><span>Expense \u00b7 tap to open</span><span class="m">Cost</span><span></span></div>'
@@ -652,7 +654,7 @@ function renderBudget(openIdx){
   +'<div class="bline btot" style="border-top:1px solid var(--gold-line)"><span>Total</span><span class="m">'+fmt(spent)+'</span><span></span></div>'
   +'<div class="bline btot" style="border-bottom:0"><span>Left to spend</span><span class="m">'+(B.total!=null?fmt(B.total-spent):'\u2014')+'</span><span></span></div>'
   +'<div class="hint" style="margin-top:8px">Paid so far '+fmt(paid)+' \u00b7 still to pay '+fmt(spent-paid)+'</div></div>';
- function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p,how:it.how||''}})}
+ function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p,how:it.how||'',note:it.note||''}})}
  function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:((S.data.budget&&S.data.budget.total!=null)?S.data.budget.total:'')),items:items2}}).then(load)}
  qa('.bline[data-i]',el).forEach(function(r){r.onclick=function(){
   if(r.classList.contains('edit'))return;
@@ -663,12 +665,13 @@ function renderBudget(openIdx){
   var bal=(it.c!=null&&it.c!=='')?(Number(it.c)-(it.p||0)):null;
   r.innerHTML='<div style="grid-column:1/-1;padding:4px 0 2px">'
    +'<div class="grid" style="grid-template-columns:1fr 96px;gap:8px"><div><label>Expense</label><input type="text" class="eN" value="'+esc(it.n)+'"></div><div><label>Cost ($)</label><input type="number" class="eC" value="'+(it.c!=null?it.c:'')+'"></div></div>'
+   +'<div style="margin-top:8px"><label>Note</label><input type="text" class="eNote" value="'+esc(it.note||'')+'" placeholder="e.g. $25 per person"></div>'
    +'<div class="hint" style="margin:8px 0 6px">Paid so far '+fmt(it.p||0)+(bal!=null?(bal>0?' \u00b7 balance '+fmt(bal):' \u00b7 paid in full'):'')+(it.how?'<br>'+esc(it.how):'')+'</div>'
    +'<div class="grid" style="grid-template-columns:96px 1fr 62px;gap:6px;align-items:end"><div><label>Payment ($)</label><input type="number" class="eAmt"></div><div><label>How</label><input type="text" class="eHow" placeholder="Venmo, cash\u2026"></div><button class="btn sm gold ePay" style="padding:8px 4px">Add</button></div>'
    +'<div class="acts" style="margin-top:12px"><button class="btn sm gold eOk">Done</button><span style="flex:1"></span><button class="btn sm danger eDel">Delete</button></div></div>';
-  q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i].n=q('.eN',r).value.trim();items2[i].c=q('.eC',r).value;if(!items2[i].n)items2.splice(i,1);push(items2)};
+  q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i].n=q('.eN',r).value.trim();items2[i].c=q('.eC',r).value;items2[i].note=q('.eNote',r).value.trim();if(!items2[i].n)items2.splice(i,1);push(items2)};
   q('.ePay',r).onclick=function(ev){ev.stopPropagation();var amt=Number(q('.eAmt',r).value);if(!amt){alert('Enter the payment amount.');return}
-   var items2=cur();items2[i].n=q('.eN',r).value.trim()||items2[i].n;items2[i].c=q('.eC',r).value;
+   var items2=cur();items2[i].n=q('.eN',r).value.trim()||items2[i].n;items2[i].c=q('.eC',r).value;items2[i].note=q('.eNote',r).value.trim();
    items2[i].p=(Number(items2[i].p)||0)+amt;var how2=q('.eHow',r).value.trim();var ds=new Date().toLocaleDateString([],{month:'short',day:'numeric'});
    items2[i].how=((items2[i].how||'')+' '+fmt(amt)+(how2?' '+how2:'')+' ('+ds+') \u00b7').trim();
    push(items2)};

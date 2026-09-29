@@ -442,7 +442,7 @@ app.post('/api/admin', async (req, res) => {
       }
       case 'setBudget': {
         const src = b.budget || {}; const num = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
-        const out = { total: num(src.total), items: (Array.isArray(src.items) ? src.items : []).slice(0, 200).map(it => ({ n: String((it && it.n) || '').slice(0, 140), c: num(it && it.c), p: num(it && it.p), how: String((it && it.how) || '').slice(0, 300) })).filter(it => it.n) };
+        const out = { total: num(src.total), items: (Array.isArray(src.items) ? src.items : []).slice(0, 200).map(it => ({ n: String((it && it.n) || '').slice(0, 140), c: num(it && it.c), p: num(it && it.p), how: String((it && it.how) || '').slice(0, 300), note: String((it && it.note) || '').slice(0, 300) })).filter(it => it.n) };
         await setSetting('budget', JSON.stringify(out));
         await logAct(actor, 'updated the budget');
         return res.json({ ok: true });
