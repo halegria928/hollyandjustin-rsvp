@@ -159,6 +159,10 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .bline .pill{padding:2px 7px;font-size:8.5px;letter-spacing:.1em}
 .bline.bhead2{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#85653c;font-weight:500;border-bottom:1px solid var(--gold-line)}
 .bline.edit{display:block;background:var(--soft);border:1px solid var(--gold-line);border-radius:6px;padding:12px 12px 10px;margin:7px 0;cursor:default}
+.bitem{grid-template-columns:16px 1fr 96px 56px}
+.bgrip{color:#c9b59d;font-size:12px;letter-spacing:1px;cursor:grab;user-select:none}
+.bitem.drag{opacity:.4}
+@media (max-width:600px){.bitem{grid-template-columns:14px 1fr 88px 44px}}
 .bline.btot{font-weight:600}
 .bline.btot .m{font-size:13px;letter-spacing:-.01em}
 @media (max-width:600px){.bline{grid-template-columns:1fr 92px 48px;gap:4px}.bline .m{font-size:13px}}
@@ -642,7 +646,7 @@ function renderBudget(openIdx){
  var rows=items.map(function(it,i){
   var bal=(it.c!=null&&it.c!=='')?(Number(it.c)-(it.p||0)):null;
   var pl=(it.c==null||it.c===''||it.c<=0)?'':(bal<=0?'<span class="pill ok">Paid</span>':((it.p||0)>0?'<span class="pill warn">Part</span>':'<span class="pill bad">Owe</span>'));
-  return '<div class="bline" data-i="'+i+'"><span class="bn2">'+esc(it.n)+(it.note?'<div class="bnote">'+esc(it.note)+'</div>':'')+'</span><span class="m">'+fmt(it.c)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
+  return '<div class="bline bitem" data-i="'+i+'" draggable="true"><span class="bgrip">\u22ee\u22ee</span><span class="bn2">'+esc(it.n)+(it.note?'<div class="bnote">'+esc(it.note)+'</div>':'')+'</span><span class="m">'+fmt(it.c)+'</span><span class="bp2">'+pl+'</span></div>'}).join('');
  el.innerHTML='<div class="card">'
   +'<div class="bline btot" style="border-bottom:1px solid var(--gold-line)"><span>Total budget</span><span class="m" id="bTotVal">'+(B.total!=null?fmt(B.total):'\u2014')+'</span><span style="text-align:right"><button class="x bTotEdit" title="Change the budget">\u270e</button></span></div>'
   +'<div class="bline bhead2"><span>Expense \u00b7 tap to open</span><span class="m">Cost</span><span></span></div>'
@@ -653,6 +657,13 @@ function renderBudget(openIdx){
   +'<div class="hint" style="margin-top:8px">Paid so far '+fmt(paid)+' \u00b7 still to pay '+fmt(spent-paid)+'</div></div>';
  function cur(){return (S.data.budget&&S.data.budget.items||[]).map(function(it){return {n:it.n,c:it.c,p:it.p,how:it.how||'',note:it.note||''}})}
  function push(items2,total){api('setBudget',{budget:{total:(total!==undefined?total:((S.data.budget&&S.data.budget.total!=null)?S.data.budget.total:'')),items:items2}}).then(load)}
+ var dragging=null;
+ qa('.bitem',el).forEach(function(row){
+  row.addEventListener('dragstart',function(){dragging=row;row.classList.add('drag')});
+  row.addEventListener('dragend',function(){row.classList.remove('drag')});
+  row.addEventListener('dragover',function(e){e.preventDefault();if(!dragging||dragging===row)return;var r2=row.getBoundingClientRect();var before=(e.clientY-r2.top)<r2.height/2;row.parentNode.insertBefore(dragging,before?row:row.nextSibling)});
+  row.addEventListener('drop',function(e){e.preventDefault();var items0=cur();push(qa('.bitem',el).map(function(x){return items0[+x.getAttribute('data-i')]}))});
+ });
  qa('.bline[data-i]',el).forEach(function(r){r.onclick=function(){
   if(r.classList.contains('edit'))return;
   var i=+r.getAttribute('data-i');
@@ -665,7 +676,7 @@ function renderBudget(openIdx){
    +'<div style="margin-top:8px"><label>Note</label><input type="text" class="eNote" value="'+esc(it.note||'')+'" placeholder="e.g. $25 per person"></div>'
    +'<div class="hint" style="margin:8px 0 6px">Paid so far '+fmt(it.p||0)+(bal!=null?(bal>0?' \u00b7 balance '+fmt(bal):' \u00b7 paid in full'):'')+(it.how?'<br>'+esc(it.how):'')+'</div>'
    +'<div class="grid" style="grid-template-columns:96px 1fr 62px;gap:6px;align-items:end"><div><label>Payment ($)</label><input type="number" class="eAmt"></div><div><label>How</label><input type="text" class="eHow" placeholder="Venmo, cash\u2026"></div><button class="btn sm gold ePay" style="padding:8px 4px">Add</button></div>'
-   +'<div class="acts" style="margin-top:12px"><button class="btn sm gold eOk">Done</button><span style="flex:1"></span><button class="btn sm danger eDel">Delete</button></div></div>';
+   +'<div class="acts" style="margin-top:12px"><button class="btn sm gold eOk">Done</button><button class="btn sm eUp">\u2191</button><button class="btn sm eDn">\u2193</button><span style="flex:1"></span><button class="btn sm danger eDel">Delete</button></div></div>';
   q('.eOk',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2[i].n=q('.eN',r).value.trim();items2[i].c=q('.eC',r).value;items2[i].note=q('.eNote',r).value.trim();if(!items2[i].n)items2.splice(i,1);push(items2)};
   q('.ePay',r).onclick=function(ev){ev.stopPropagation();var amt=Number(q('.eAmt',r).value);if(!amt){alert('Enter the payment amount.');return}
    var items2=cur();items2[i].n=q('.eN',r).value.trim()||items2[i].n;items2[i].c=q('.eC',r).value;items2[i].note=q('.eNote',r).value.trim();
@@ -673,6 +684,8 @@ function renderBudget(openIdx){
    items2[i].how=((items2[i].how||'')+' '+fmt(amt)+(how2?' '+how2:'')+' ('+ds+') \u00b7').trim();
    push(items2)};
   q('.eDel',r).onclick=function(ev){ev.stopPropagation();var items2=cur();items2.splice(i,1);push(items2)};
+  q('.eUp',r).onclick=function(ev){ev.stopPropagation();if(i<1)return;var items2=cur();items2.splice(i-1,0,items2.splice(i,1)[0]);push(items2)};
+  q('.eDn',r).onclick=function(ev){ev.stopPropagation();var items2=cur();if(i>=items2.length-1)return;items2.splice(i+1,0,items2.splice(i,1)[0]);push(items2)};
  }});
  q('.bTotEdit',el).onclick=function(){var sp=q('#bTotVal',el);if(sp.querySelector('input'))return;var cv=(S.data.budget&&S.data.budget.total!=null)?S.data.budget.total:'';sp.innerHTML='<input type="number" value="'+cv+'" style="text-align:right;padding:6px">';var inp=sp.querySelector('input');inp.focus();inp.onchange=function(){push(cur(),inp.value)}};
  q('#bAdd',el).onclick=function(){var n2=q('#bNewN',el).value.trim();if(!n2){alert('Name the expense first.');return}push(cur().concat([{n:n2,c:q('#bNewC',el).value,p:'',how:''}]))};
