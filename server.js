@@ -378,6 +378,19 @@ app.post('/api/admin', async (req, res) => {
         await logAct(actor, 'deleted household ' + (cur ? cur.name : '#' + b.id));
         return res.json({ ok: true });
       }
+      case 'updateResponse': {
+        const rid = Number(b.key);
+        const cur = (await q('SELECT * FROM responses WHERE id=$1', [rid])).rows[0];
+        if (!cur) return res.json({ ok: false, error: 'RSVP not found' });
+        const first = String(b.first || '').trim().slice(0, 80), last = String(b.last || '').trim().slice(0, 80);
+        if (!first) return res.json({ ok: false, error: 'First name can\u2019t be empty' });
+        const cnt = Math.max(1, Math.min(30, parseInt(b.count, 10) || 1));
+        const others = (Array.isArray(b.others) ? b.others : []).slice(0, 15).map(o => ({ name: String((o && o.name) || '').trim().slice(0, 90), type: ['Adult', 'Adult child', 'Child'].includes(o && o.type) ? o.type : 'Adult' })).filter(o => o.name);
+        await q('UPDATE responses SET first_name=$1,last_name=$2,count=$3,others=$4 WHERE id=$5', [first, last, String(cnt), JSON.stringify(others), rid]);
+        const oldName = (cur.first_name + ' ' + cur.last_name).trim(), newName = (first + ' ' + last).trim();
+        await logAct(actor, 'edited the RSVP from ' + oldName + (newName !== oldName ? ' \u2192 ' + newName : '') + ' (' + (1 + others.length) + ' people)');
+        return res.json({ ok: true });
+      }
       case 'deleteResponse': {
         const cur = (await q('SELECT first_name,last_name FROM responses WHERE id=$1', [Number(b.key)])).rows[0];
         await q('DELETE FROM responses WHERE id=$1', [Number(b.key)]);

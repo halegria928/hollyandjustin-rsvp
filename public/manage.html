@@ -116,7 +116,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .dcard .dn i{font:italic 400 12.5px 'Cormorant Garamond',serif;color:var(--muted)}
 .dcard .dl{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#85653c;font-weight:500;margin-top:6px}
 .dcard{text-align:center}
-.dsub{font:500 15.5px 'Cormorant Garamond',serif;color:var(--ink);margin-top:3px}.dcard .dsub b{font-weight:700;color:#6d5637}.dcard .dsub+.dsub{margin-top:1px}.addrln{font:400 12px Jost,sans-serif;color:#7a6a58;letter-spacing:.02em;margin:2px 0}.addrln.ok{color:#5f7a5c}.addrln.miss{color:#b4695e;font-weight:500;font-size:11px;letter-spacing:.06em}.addrln.warn{color:#a97f2d;cursor:pointer}.addrln.noin{color:#9a8d7d;font-style:italic}
+.dsub{font:500 15.5px 'Cormorant Garamond',serif;color:var(--ink);margin-top:3px}.dcard .dsub b{font-weight:700;color:#6d5637}.dcard .dsub+.dsub{margin-top:1px}.addrln{font:400 12px Jost,sans-serif;color:#7a6a58;letter-spacing:.02em;margin:2px 0}.addrln.ok{color:#5f7a5c}.addrln.miss{color:#b4695e;font-weight:500;font-size:11px;letter-spacing:.06em}.addrln.warn{color:#a97f2d;cursor:pointer}.addrln.noin{color:#9a8d7d;font-style:italic}.resp .rr{margin:3px 0;font-size:13px;line-height:1.45}.resp .nm2{font-size:16px;font-weight:600;letter-spacing:.02em;margin-bottom:5px}.resp .evs{background:var(--soft);border-radius:6px;padding:6px 10px;margin:5px 0}.resp .evs div{padding:1px 0}.gOk{color:#5f7a5c}.gNo{color:#b4695e}.redit{margin-top:10px;padding-top:8px;border-top:1px dashed var(--gold-line)}
 .dcard .dbar{height:5px;background:#efe6dc;border-radius:3px;margin-top:9px;overflow:hidden}
 .dcard .dbar span{display:block;height:100%;background:linear-gradient(90deg,#8f7350,#c0a37e 70%,#b3936c)}
 .tiles.t3{grid-template-columns:repeat(3,1fr)}
@@ -338,14 +338,25 @@ function render(){
  renderReview();renderHouseholds();renderVilla();renderBudget();renderActivity();
 }
 function respBlock(r,extra){
- var oth=r.others.map(function(o){return esc(o.name)+(o.type==='Child'?' <span class="pill warn" style="padding:1px 7px">child</span>':(o.type==='Adult child'?' <span class="pill mute" style="padding:1px 7px">adult child</span>':''))}).join(', ');
- return '<div class="resp"><b>'+esc(r.name)+'</b> — '+esc(r.attending)+(r.count?' · '+esc(r.count)+' attending':'')+(oth?'<br>With: '+oth:'')+(r.events?'<br>Events: '+esc(r.events):'')+(r.dietary?'<br>Dietary: '+esc(r.dietary):'')+(r.phone?'<br>Phone: '+esc(r.phone):'')+(r.emails?'<br>Email: '+esc(r.emails):'')+(r.note?'<br>Note: <i>'+esc(r.note)+'</i>':'')+'<br><span class="hint">'+new Date(r.ts).toLocaleString()+'</span>'+(extra||'')+'</div>';
+ var acc=/accept/i.test(r.attending);
+ var named=1+r.others.length;var typed=parseInt(r.count,10)||named;
+ var rows=['<div class="rr nm2">'+esc(r.name)+'</div>'];
+ rows.push('<div class="rr">'+(acc?'<b class="gOk">Coming</b>':'<b class="gNo">Declined</b>')+' \u00b7 <b>'+named+'</b> '+(named===1?'person':'people')+' in this RSVP'+(typed!==named?' <span class="pill warn" title="They typed '+typed+' in the party-size box but named '+named+' \u2014 worth a look">typed '+typed+'</span>':'')+'</div>');
+ if(r.others.length)rows.push('<div class="rr">With <b>'+r.others.map(function(o){return esc(o.name)+(o.type!=='Adult'?' ('+esc(o.type.toLowerCase())+')':'')}).join('</b>, <b>')+'</b></div>');
+ if(r.events)rows.push('<div class="rr evs">'+String(r.events).split(';').map(function(sg){var ci=sg.indexOf(':');var ev=ci<0?sg:sg.slice(0,ci);var ans=ci<0?'':sg.slice(ci+1);return '<div>'+esc(ev.trim())+' \u2014 <b>'+esc(ans.trim()||'?')+'</b></div>'}).join('')+'</div>');
+ if(r.dietary)rows.push('<div class="rr">Dietary: <b>'+esc(r.dietary)+'</b></div>');
+ if(r.phone)rows.push('<div class="rr">Phone: '+esc(r.phone)+'</div>');
+ if(r.emails)rows.push('<div class="rr">Email: '+esc(r.emails)+'</div>');
+ if(r.note)rows.push('<div class="rr"><i>\u201c'+esc(r.note)+'\u201d</i></div>');
+ rows.push('<div class="rr hint">'+new Date(r.ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'</div>');
+ return '<div class="resp">'+rows.join('')+(extra||'')+'</div>';
 }
+
 function addrLine(h){if(h.noInvite)return '<div class="addrln noin">No paper invite \u2014 by text</div>';var a=String(h.address||'').trim();if(!a)return '<div class="addrln miss">\u2715 Missing address</div>';if(h.addrOk)return '<div class="addrln ok" title="Verified">\u2713 '+esc(a)+'</div>';if(h.addrFlag)return '<div class="addrln warn" data-va="'+h.id+'" title="'+esc(h.addrFlag)+' \u2014 tap once Holly confirms it.">\u26a0 '+esc(a)+'</div>';var ok=/,[^,]+,\s*[A-Za-z]{2}\.?\s+\d{5}(-\d{4})?$/.test(a);return '<div class="addrln'+(ok?' ok':' warn')+'"'+(ok?'':' title="Doesn\u2019t look like a complete mailing address"')+'>'+(ok?'\u2713 ':'\u26a0 ')+esc(a)+'</div>'}
 function hhOptions(sel,suggested){
  var d=S.data,sug=(suggested||[]),ids={};var out='<option value="">— choose a household —</option>';
- sug.forEach(function(s){var h=d.households.find(function(x){return x.id===s.hid});if(h){ids[h.id]=1;out+='<option value="'+h.id+'"'+(sel===h.id?' selected':'')+'>★ '+esc(h.name)+' (match '+s.score+')</option>'}});
- d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(h){if(!ids[h.id])out+='<option value="'+h.id+'"'+(sel===h.id?' selected':'')+'>'+esc(h.name)+'</option>'});
+ sug.forEach(function(s){if(s.score<2)return;var h=d.households.find(function(x){return x.id===s.hid});if(h){ids[h.id]=1;out+='<option value="'+h.id+'"'+(sel===h.id?' selected':'')+'>★ '+esc(h.name)+' ('+h.guests.length+' on list) — likely</option>'}});
+ d.households.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(h){if(!ids[h.id])out+='<option value="'+h.id+'"'+(sel===h.id?' selected':'')+'>'+esc(h.name)+(h.guests.length?' · '+h.guests.length:'')+'</option>'});
  return out;
 }
 function renderReview(){
@@ -356,7 +367,7 @@ function renderReview(){
  el.innerHTML=d.review.map(function(r){
   var sug=d.suggestions[r.key]||[],cur=r.match?r.match.hid:'';
   var head=r.match?'<span class="pill gold">Auto-matched · please confirm</span>':(sug.length?'<span class="pill warn">Possible match</span>':'<span class="pill bad">Not on the guest list?</span>');
-  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'<button class="btn sm danger mDel">Delete RSVP</button>'+'</div></div>';
+  return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'<button class="btn sm mEdit">Edit RSVP</button>'+'</div></div>';
  }).join('');
  qa('[data-key]',el).forEach(function(card){
   var key=card.getAttribute('data-key'),r=d.responses.find(function(x){return x.key===key});
@@ -364,7 +375,12 @@ function renderReview(){
   q('.mCreate',card).onclick=function(){busy(this);var guests=[{name:r.name,type:'Adult'}].concat(r.others.map(function(o){return {name:o.name,type:o.type}}));
    api('saveHousehold',{household:{name:r.name,tier:'A',invited:true,plusOne:false,likelihood:'Unknown',guests:guests}}).then(function(res){if(!res.ok)throw res.error;return api('setMatch',{key:key,hid:res.id,approved:true,method:'manual'})}).then(load)};
   var u=q('.mUnlink',card);if(u)u.onclick=function(){busy(this);api('setMatch',{key:key,hid:'',approved:false}).then(load)};
-  var md=q('.mDel',card);if(md)md.onclick=function(){if(!confirm('Delete this RSVP permanently?'))return;busy(this);api('deleteResponse',{key:key}).then(load)};
+  q('.mEdit',card).onclick=function(){var ex=q('.redit',card);if(ex){ex.remove();return}
+   var div=document.createElement('div');div.className='redit';
+   div.innerHTML='<div class="grid"><div><label>First name</label><input class="eF" value="'+esc(r.first||'')+'"></div><div><label>Last name</label><input class="eL" value="'+esc(r.last||'')+'"></div><div><label>Party size</label><input class="eC" type="number" min="1" value="'+esc(r.count||(1+r.others.length))+'"></div><div class="full"><label>Also in this RSVP (comma-separated \u2014 use the names as they appear on the guest list so the \u2713s connect)</label><input class="eO" value="'+esc(r.others.map(function(o){return o.name}).join(', '))+'"></div></div><div class="acts"><button class="btn gold sm eSave">Save RSVP</button></div>';
+   card.appendChild(div);
+   q('.eSave',div).onclick=function(){busy(this);var others=q('.eO',div).value.split(',').map(function(x){return x.trim()}).filter(Boolean).map(function(n2){var old=r.others.filter(function(o){return o.name.toLowerCase()===n2.toLowerCase()})[0];return {name:n2,type:old?old.type:'Adult'}});
+    api('updateResponse',{key:key,first:q('.eF',div).value,last:q('.eL',div).value,count:q('.eC',div).value,others:others}).then(function(res){if(!res.ok){alert(res.error||'Hmm');return}load()})}};
  });
 }
 function busy(b){if(b){b.disabled=true}}
