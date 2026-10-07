@@ -58,6 +58,7 @@ async function init() {
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS address text NOT NULL DEFAULT ''`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS addr_flag text NOT NULL DEFAULT ''`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS addr_ok boolean NOT NULL DEFAULT false`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS no_invite boolean NOT NULL DEFAULT false`);
   await q(`ALTER TABLE guests ADD COLUMN IF NOT EXISTS plus_one boolean NOT NULL DEFAULT false`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS paid_via text NOT NULL DEFAULT ''`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS phone text NOT NULL DEFAULT ''`);
@@ -109,7 +110,7 @@ async function loadAll() {
   const hh = (await q('SELECT * FROM households ORDER BY name')).rows.map(r => ({
     id: String(r.id), name: r.name, tier: r.tier, invited: r.invited, priority: r.priority == null ? 1000000 : r.priority, plusOne: r.plus_one, likelihood: r.likelihood, notes: r.notes, lodging: r.lodging,
     room: r.room, headcount: r.headcount == null ? '' : r.headcount, roomCharge: r.room_charge == null ? '' : Number(r.room_charge),
-    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, address: r.address || '', addrFlag: r.addr_flag || '', addrOk: !!r.addr_ok, paidVia: r.paid_via || '', phone: r.phone || '', email: r.email || '', guests: []
+    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, address: r.address || '', addrFlag: r.addr_flag || '', addrOk: !!r.addr_ok, noInvite: !!r.no_invite, paidVia: r.paid_via || '', phone: r.phone || '', email: r.email || '', guests: []
   }));
   const byId = Object.fromEntries(hh.map(h => [h.id, h]));
   for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone, room: g.room == null ? '' : g.room, plusOne: !!g.plus_one }); }
@@ -136,13 +137,13 @@ async function loadAll() {
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
   const vals = [h.name || '', OPTIONS.tier.includes(h.tier) ? h.tier : 'A', h.invited !== false, !!h.plusOne, h.likelihood || 'Unknown', h.notes || '', h.lodging || 'Unsure', h.room || '',
-    numOrNull(h.headcount), numOrNull(h.roomCharge), numOrNull(h.foodCharge), numOrNull(h.paid), h.billing === 'included' ? 'included' : 'charged', h.offsitePlace || '', h.offsiteDetails || '', String(h.address || '').slice(0, 300), String(h.paidVia || '').slice(0, 120), String(h.phone || '').trim().slice(0, 40), String(h.email || '').trim().slice(0, 120)];
+    numOrNull(h.headcount), numOrNull(h.roomCharge), numOrNull(h.foodCharge), numOrNull(h.paid), h.billing === 'included' ? 'included' : 'charged', h.offsitePlace || '', h.offsiteDetails || '', String(h.address || '').slice(0, 300), String(h.paidVia || '').slice(0, 120), String(h.phone || '').trim().slice(0, 40), String(h.email || '').trim().slice(0, 120), !!h.noInvite];
   let id = Number(h.id) || 0;
   if (id) {
-    const r = await q(`UPDATE households SET name=$1,tier=$2,invited=$3,plus_one=$4,likelihood=$5,notes=$6,lodging=$7,room=$8,headcount=$9,room_charge=$10,food_charge=$11,paid=$12,billing=$13,offsite_place=$14,offsite_details=$15,address=$16,paid_via=$17,phone=$18,email=$19 WHERE id=$20 RETURNING id`, [...vals, id]);
+    const r = await q(`UPDATE households SET name=$1,tier=$2,invited=$3,plus_one=$4,likelihood=$5,notes=$6,lodging=$7,room=$8,headcount=$9,room_charge=$10,food_charge=$11,paid=$12,billing=$13,offsite_place=$14,offsite_details=$15,address=$16,paid_via=$17,phone=$18,email=$19,no_invite=$20 WHERE id=$21 RETURNING id`, [...vals, id]);
     if (!r.rows.length) id = 0;
   }
-  if (!id) id = (await q(`INSERT INTO households(name,tier,invited,plus_one,likelihood,notes,lodging,room,headcount,room_charge,food_charge,paid,billing,offsite_place,offsite_details,address,paid_via,phone,email) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`, vals)).rows[0].id;
+  if (!id) id = (await q(`INSERT INTO households(name,tier,invited,plus_one,likelihood,notes,lodging,room,headcount,room_charge,food_charge,paid,billing,offsite_place,offsite_details,address,paid_via,phone,email,no_invite) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING id`, vals)).rows[0].id;
   if (Array.isArray(h.guests)) {
     await q('DELETE FROM guests WHERE household_id=$1', [id]);
     let pos = 0;
@@ -297,7 +298,7 @@ function diffHousehold(cur, curG, h) {
   const F = [['name','name'],['tier','tier'],['likelihood',"Holly's guess"],['lodging','lodging'],['room','room'],['billing','billing'],['headcount','heads'],['notes','notes']];
   const map = { name: h.name, tier: h.tier, likelihood: h.likelihood, lodging: h.lodging, room: h.room, billing: h.billing, headcount: h.headcount, notes: h.notes };
   for (const [k, label] of F) { const a = normV(cur[k]), b2 = normV(map[k]); if (a !== b2) parts.push(label + (k === 'notes' ? ' updated' : ' ' + (a || '—') + '→' + (b2 || '—'))); }
-  const M2 = [['invited', h.invited, 'invited'], ['plus_one', h.plusOne, 'plus-one']];
+  const M2 = [['invited', h.invited, 'invited'], ['plus_one', h.plusOne, 'plus-one'], ['no_invite', h.noInvite, 'no paper invite']];
   for (const [k, nv, label] of M2) { const a = normV(!!cur[k]), b2 = normV(!!nv); if (a !== b2) parts.push(label + ' ' + a + '→' + b2); }
   const N2 = [['room_charge', h.roomCharge, 'room $'], ['food_charge', h.foodCharge, 'food $'], ['paid', h.paid, 'paid $'], ['offsite_place', h.offsitePlace, 'off-site'], ['offsite_details', h.offsiteDetails, 'off-site details'], ['address', h.address, 'address'], ['paid_via', h.paidVia, 'paid via'], ['phone', h.phone, 'phone'], ['email', h.email, 'email']];
   for (const [k, nv, label] of N2) { const a = normV(cur[k]), b2 = normV(nv); if (a !== b2) parts.push(label + ' ' + (a || '—') + '→' + (b2 || '—')); }
@@ -449,7 +450,7 @@ app.post('/api/admin', async (req, res) => {
         const clean = n => String(n || '').replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim();
         const rows = [['Household', 'Street', 'City', 'State', 'Zip']];
         for (const h of data.households) {
-          if (h.invited === false) continue;
+          if (h.invited === false || h.noInvite) continue;
           if (/^holly\s*&\s*justin$/i.test(String(h.name || '').trim())) continue;
           rows.push([clean(h.name), ...splitA(h.address)]);
         }
