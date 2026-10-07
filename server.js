@@ -468,6 +468,8 @@ app.post('/api/admin', async (req, res) => {
         for (const h of data.households) {
           if (h.invited === false || h.noInvite) continue;
           if (/^holly\s*&\s*justin$/i.test(String(h.name || '').trim())) continue;
+          const hr = data.responses.filter(r => data.matches[r.key] && data.matches[r.key].hid === h.id);
+          if (hr.length && !hr.some(r => /accept/i.test(r.attending)) && hr.some(r => /decline/i.test(r.attending))) continue;
           rows.push([clean(h.name), ...splitA(h.address)]);
         }
         await logAct(actor, 'downloaded the invitation address list');
