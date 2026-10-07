@@ -420,6 +420,30 @@ app.post('/api/admin', async (req, res) => {
         await logAct(actor, 'downloaded a backup');
         return res.json({ ok: true, backup: { exported: new Date().toISOString(), households: data.households, responses: data.responses, matches: data.matches, theme: data.theme, villa: data.villa, activity: data.activity } });
       }
+      case 'exportInvitesCsv': {
+        const data = await loadAll();
+        const splitA = a => {
+          a = String(a || '').trim(); if (!a) return ['', '', '', ''];
+          const parts = a.split(',').map(x => x.trim()).filter(Boolean);
+          const m = parts.length >= 2 ? parts[parts.length - 1].match(/^([A-Za-z]{2})\.?\s+(\d{5}(?:-\d{4})?)$/) : null;
+          if (m) {
+            const city = parts.length >= 3 ? parts[parts.length - 2] : '';
+            const street = parts.slice(0, Math.max(parts.length - (parts.length >= 3 ? 2 : 1), 0)).join(', ');
+            return [street, city, m[1].toUpperCase(), m[2]];
+          }
+          return [a, '', '', ''];
+        };
+        const escC = v => { let x = String(v == null ? '' : v); if (/^[=+@]/.test(x) || (/^-/.test(x) && !/^-?\d+(\.\d+)?$/.test(x))) x = "'" + x; return '"' + x.replace(/"/g, '""') + '"'; };
+        const clean = n => String(n || '').replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim();
+        const rows = [['Household', 'Street', 'City', 'State', 'Zip']];
+        for (const h of data.households) {
+          if (h.invited === false) continue;
+          if (/^holly\s*&\s*justin$/i.test(String(h.name || '').trim())) continue;
+          rows.push([clean(h.name), ...splitA(h.address)]);
+        }
+        await logAct(actor, 'downloaded the invitation address list');
+        return res.json({ ok: true, csv: rows.map(r => r.map(escC).join(',')).join('\r\n') });
+      }
       case 'exportCsv': {
         const data = await loadAll();
         const splitAddr = a => {
