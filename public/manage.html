@@ -343,7 +343,7 @@ function respBlock(r,extra){
  var rows=['<div class="rr nm2">'+esc(r.name)+'</div>'];
  rows.push('<div class="rr">'+(acc?'<b class="gOk">Coming</b>':'<b class="gNo">Declined</b>')+' \u00b7 <b>'+named+'</b> '+(named===1?'person':'people')+' in this RSVP'+(typed!==named?' <span class="pill warn" title="They typed '+typed+' in the party-size box but named '+named+' \u2014 worth a look">typed '+typed+'</span>':'')+'</div>');
  if(r.others.length)rows.push('<div class="rr">With <b>'+r.others.map(function(o){return esc(o.name)+(o.type!=='Adult'?' ('+esc(o.type.toLowerCase())+')':'')}).join('</b>, <b>')+'</b></div>');
- if(r.events)rows.push('<div class="rr evs">'+String(r.events).split(';').map(function(sg){var ci=sg.indexOf(':');var ev=ci<0?sg:sg.slice(0,ci);var ans=ci<0?'':sg.slice(ci+1);return '<div>'+esc(ev.trim())+' \u2014 <b>'+esc(ans.trim()||'?')+'</b></div>'}).join('')+'</div>');
+ if(r.events)rows.push('<div class="rr evs">'+String(r.events).split(';').map(function(sg){var ci=sg.indexOf(':');var ev=ci<0?sg:sg.slice(0,ci);var ans=ci<0?'':sg.slice(ci+1);return '<div><b>'+esc(ans.trim()||'?')+'</b> \u2014 '+esc(ev.trim())+'</div>'}).join('')+'</div>');
  if(r.dietary)rows.push('<div class="rr">Dietary: <b>'+esc(r.dietary)+'</b></div>');
  if(r.phone)rows.push('<div class="rr">Phone: '+esc(r.phone)+'</div>');
  if(r.emails)rows.push('<div class="rr">Email: '+esc(r.emails)+'</div>');
@@ -367,6 +367,9 @@ function renderReview(){
  el.innerHTML=d.review.map(function(r){
   var sug=d.suggestions[r.key]||[],cur=r.match?r.match.hid:'';
   var head=r.match?'<span class="pill gold">Auto-matched · please confirm</span>':(sug.length?'<span class="pill warn">Possible match</span>':'<span class="pill bad">Not on the guest list?</span>');
+  var mh9=cur?d.households.filter(function(x){return x.id===cur})[0]:null;
+  if(mh9){var tok9=function(n){return (n||'').trim().toLowerCase().split(/\s+/)[0]};var gl9=mh9.guests.map(function(g){return tok9(g.name)});var ex9=[r.name].concat(r.others.map(function(o){return o.name})).filter(function(n2){var t9=tok9(n2);return t9&&gl9.indexOf(t9)<0});
+   if(ex9.length)head+=' <span class="pill warn" title="These names aren\u2019t on '+esc(mh9.name)+'\u2019s guest list \u2014 did they add extra people?">\u26a0 extra: '+esc(ex9.join(', '))+'</span>';}
   return '<div class="card" style="margin-bottom:10px" data-key="'+esc(r.key)+'">'+head+respBlock(r)+'<div class="grid"><div class="full"><label>This RSVP belongs to</label><select class="mSel">'+hhOptions(cur,sug)+'</select></div></div><div class="acts"><button class="btn gold sm mApprove">Approve match</button><button class="btn sm mCreate">Not on list → create household</button>'+(r.match?'<button class="btn sm danger mUnlink">Unlink</button>':'')+'<button class="btn sm mEdit">Edit RSVP</button>'+'</div></div>';
  }).join('');
  qa('[data-key]',el).forEach(function(card){
