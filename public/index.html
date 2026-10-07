@@ -177,10 +177,10 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
   body.events=qa('.ev').map(function(e){return e.getAttribute('data-v')+': '+e.getAttribute('data-a')});
 }
  fetch('/api/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(r){
-  if(!r||!r.ok)throw new Error('save');
+  if(r&&r.error==='closed'){err.textContent=r.message||'The RSVP deadline has passed \u2014 please reach out to Holly.';err.style.display='block';b.disabled=false;b.textContent='Send RSVP';return}if(!r||!r.ok)throw new Error('save');
   if(A==="Regretfully decline")q('#dbig').textContent='You will be dearly missed';
   q('#cardview').style.display='none';q('#done').style.display='block';window.scrollTo(0,0);
  }).catch(function(){err.textContent='Something went wrong sending your RSVP. Please try again in a moment.';err.style.display='block';b.disabled=false;b.textContent='Send RSVP';});
  return false}
-</script><script>(function(){try{fetch('/api/config').then(function(r){return r.json()}).then(function(c){if(c&&c.website){var a=document.getElementById('siteGo');a.href=c.website;a.style.display='inline-block'}}).catch(function(){})}catch(e){}})();</script>
+</script><script>(function(){try{fetch('/api/config').then(function(r){return r.json()}).then(function(c){if(c&&c.website){var a=document.getElementById('siteGo');a.href=c.website;a.style.display='inline-block'}if(c&&c.closed){var f=document.getElementById('f');if(f){var dv=document.createElement('div');dv.style.cssText='text-align:center;padding:18px 16px;border:1px solid currentColor;border-radius:12px;opacity:.9;line-height:1.7;font-size:15px';dv.innerHTML='The RSVP deadline was <b>'+c.closedText+'</b> and headcounts have been turned in.<br>If you missed it, please reach out to Holly \u2014 we\u2019ll see if accommodations are still possible.';f.parentNode.replaceChild(dv,f)}}}).catch(function(){})}catch(e){}})();</script>
 </body></html>

@@ -83,6 +83,7 @@ async function init() {
   await bootstrapPrivileges();
 }
 async function getSetting(key, dflt) { const r = await q('SELECT value FROM settings WHERE key=$1', [key]); return r.rows.length ? r.rows[0].value : dflt; }
+async function rsvpClosed() { const d = String(await getSetting('deadline', '')).trim(); if (!d) return null; const ts = Date.parse(d + 'T23:59:59-07:00'); if (isNaN(ts) || Date.now() <= ts) return null; return new Date(d + 'T12:00:00-07:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
 async function setSetting(key, value) { await q('INSERT INTO settings(key,value) VALUES($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value', [key, value]); }
 
 // ---------- matching (name similarity) ----------
@@ -132,7 +133,7 @@ async function loadAll() {
   let villa = {}; try { villa = JSON.parse(await getSetting('villa', '{}')) || {}; } catch (e) { villa = {}; }
   let budget = {}; try { budget = JSON.parse(await getSetting('budget', '{}')) || {}; } catch (e) { budget = {}; }
   const activity = (await q('SELECT id, ts, actor, detail FROM activity ORDER BY id DESC LIMIT 150')).rows;
-  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, budget, activity, website: await getSetting('website', ''), looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
+  return { ok: true, households: hh, responses, matches, suggestions, options: OPTIONS, theme, villa, budget, activity, website: await getSetting('website', ''), deadline: await getSetting('deadline', ''), looks: LOOKS.map(l => ({ id: l.id, title: l.title })) };
 }
 const numOrNull = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
 async function saveHousehold(h) {
@@ -182,6 +183,8 @@ app.post('/api/rsvp', async (req, res) => {
   if (!dbReady) return res.status(503).json({ ok: false, error: 'db_unavailable' });
   const ip = req.ip || ''; rlPush('r:' + ip);
   if (rlCount('r:' + ip, 3600000) > 25) return res.status(429).json({ ok: false, error: 'too_many' });
+  const closedText = dbReady ? await rsvpClosed() : null;
+  if (closedText) return res.status(403).json({ ok: false, error: 'closed', message: 'The RSVP deadline was ' + closedText + ' and headcounts have been turned in \u2014 please reach out to Holly to see if accommodations are still possible.' });
   try {
     const b = req.body || {};
     const first = String(b.first || '').trim().slice(0, 80), last = String(b.last || '').trim().slice(0, 80), attending = String(b.attending || '').slice(0, 40);
@@ -522,6 +525,7 @@ app.post('/api/admin', async (req, res) => {
         if (vparts.length) await logAct(actor, 'villa settings \u2014 ' + vparts.join(', '));
         return res.json({ ok: true });
       }
+      case 'setDeadline': { const dd = String(b.date || '').trim(); if (dd && !/^\d{4}-\d{2}-\d{2}$/.test(dd)) return res.json({ ok: false, error: 'Use the format 2027-02-01 (year-month-day)' }); await setSetting('deadline', dd); await logAct(actor, dd ? 'set the RSVP deadline to ' + dd : 'removed the RSVP deadline \u2014 RSVPs are open'); return res.json({ ok: true }); }
       case 'setWebsite': { const u = String(b.url || '').trim(); if (u && !/^https?:\/\/[^\s]+\.[^\s]+/.test(u)) return res.json({ ok: false, error: 'That doesn\u2019t look like a link \u2014 it should start with https://' }); await setSetting('website', u); await logAct(actor, u ? 'set the wedding website button to ' + u.slice(0, 120) : 'removed the wedding website button'); return res.json({ ok: true }); }
       case 'setTheme': { if (!LOOKS.some(l => l.id === b.theme)) return res.json({ ok: false, error: 'unknown look' }); await setSetting('theme', b.theme); await logAct(actor, 'set the live design to ' + b.theme); return res.json({ ok: true }); }
       case 'changePassword': { const np = String(b.newPw || '').trim(); if (np.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' }); if (await matchUser(np)) return res.json({ ok: false, error: 'That password is taken \u2014 pick a different one' }); await q('UPDATE users SET pass=$1 WHERE name=$2', [hashPw(np), actor]); await logAct(actor, 'changed their password'); return res.json({ ok: true, user: actor }); }
@@ -538,6 +542,6 @@ async function initLoop() {
 app.get('/api/theme', async (req, res) => { try { res.json({ ok: true, theme: dbReady ? await getSetting('theme', 'blush') : 'blush' }); } catch (e) { res.json({ ok: true, theme: 'blush' }); } });
 const BOOT = String(Date.now());
 app.get('/api/version', (req, res) => res.json({ ok: true, v: BOOT }));
-app.get('/api/config', async (req, res) => { try { res.json({ ok: true, website: await getSetting('website', '') }); } catch (e) { res.json({ ok: true, website: '' }); } });
+app.get('/api/config', async (req, res) => { try { const ct = await rsvpClosed(); res.json({ ok: true, website: await getSetting('website', ''), closed: !!ct, closedText: ct || '' }); } catch (e) { res.json({ ok: true, website: '', closed: false, closedText: '' }); } });
 app.get('/healthz', (req, res) => res.json({ ok: dbReady, db: dbReady ? 'ready' : 'unavailable', error: dbError, hasUrl: !!process.env.DATABASE_URL }));
 app.listen(PORT, () => { console.log('RSVP site listening on ' + PORT); initLoop(); });
