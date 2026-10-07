@@ -56,6 +56,8 @@ async function init() {
     name text NOT NULL, type text NOT NULL DEFAULT 'Adult', phone text NOT NULL DEFAULT '', pos integer NOT NULL DEFAULT 0)`);
   await q(`ALTER TABLE guests ADD COLUMN IF NOT EXISTS room integer`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS address text NOT NULL DEFAULT ''`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS addr_flag text NOT NULL DEFAULT ''`);
+  await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS addr_ok boolean NOT NULL DEFAULT false`);
   await q(`ALTER TABLE guests ADD COLUMN IF NOT EXISTS plus_one boolean NOT NULL DEFAULT false`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS paid_via text NOT NULL DEFAULT ''`);
   await q(`ALTER TABLE households ADD COLUMN IF NOT EXISTS phone text NOT NULL DEFAULT ''`);
@@ -107,7 +109,7 @@ async function loadAll() {
   const hh = (await q('SELECT * FROM households ORDER BY name')).rows.map(r => ({
     id: String(r.id), name: r.name, tier: r.tier, invited: r.invited, priority: r.priority == null ? 1000000 : r.priority, plusOne: r.plus_one, likelihood: r.likelihood, notes: r.notes, lodging: r.lodging,
     room: r.room, headcount: r.headcount == null ? '' : r.headcount, roomCharge: r.room_charge == null ? '' : Number(r.room_charge),
-    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, address: r.address || '', paidVia: r.paid_via || '', phone: r.phone || '', email: r.email || '', guests: []
+    foodCharge: r.food_charge == null ? '' : Number(r.food_charge), paid: r.paid == null ? '' : Number(r.paid), billing: r.billing || 'charged', offsitePlace: r.offsite_place, offsiteDetails: r.offsite_details, address: r.address || '', addrFlag: r.addr_flag || '', addrOk: !!r.addr_ok, paidVia: r.paid_via || '', phone: r.phone || '', email: r.email || '', guests: []
   }));
   const byId = Object.fromEntries(hh.map(h => [h.id, h]));
   for (const g of (await q('SELECT * FROM guests ORDER BY household_id, pos, id')).rows) { const h = byId[String(g.household_id)]; if (h) h.guests.push({ name: g.name, type: g.type, phone: g.phone, room: g.room == null ? '' : g.room, plusOne: !!g.plus_one }); }
@@ -355,9 +357,19 @@ app.post('/api/admin', async (req, res) => {
           if (cur) detail = diffHousehold(cur, curG, h);
           if (detail) detail = 'edited ' + (h.name || cur.name) + ' — ' + detail;
         } else detail = 'added household ' + (h.name || '') + ' (' + ((h.guests || []).length) + ' guests)';
+        const prevAddr = h.id ? (((await q('SELECT address FROM households WHERE id=$1', [Number(h.id)])).rows[0]) || {}).address : undefined;
         const out = await saveHousehold(h);
         if (out.ok && detail) await logAct(actor, detail);
+        if (out.ok && h.id && h.address !== undefined && String(h.address || '') !== String(prevAddr || '')) await q("UPDATE households SET addr_flag='', addr_ok=false WHERE id=$1", [Number(h.id)]);
         return res.json(out);
+      }
+      case 'verifyAddr': {
+        const hid = Number(b.id);
+        const cur = (await q('SELECT name FROM households WHERE id=$1', [hid])).rows[0];
+        if (!cur) return res.json({ ok: false, error: 'not found' });
+        await q("UPDATE households SET addr_ok=true, addr_flag='' WHERE id=$1", [hid]);
+        await logAct(actor, 'verified the mailing address for ' + cur.name);
+        return res.json({ ok: true });
       }
       case 'deleteHousehold': {
         const cur = (await q('SELECT name FROM households WHERE id=$1', [Number(b.id)])).rows[0];

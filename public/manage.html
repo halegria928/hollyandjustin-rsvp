@@ -116,7 +116,7 @@ tfoot td{font-weight:500;border-bottom:0;border-top:1px solid var(--gold-line)}
 .dcard .dn i{font:italic 400 12.5px 'Cormorant Garamond',serif;color:var(--muted)}
 .dcard .dl{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:#85653c;font-weight:500;margin-top:6px}
 .dcard{text-align:center}
-.dsub{font:500 15.5px 'Cormorant Garamond',serif;color:var(--ink);margin-top:3px}.dcard .dsub b{font-weight:700;color:#6d5637}.dcard .dsub+.dsub{margin-top:1px}.addrln{font:400 12px Jost,sans-serif;color:#7a6a58;letter-spacing:.02em;margin:2px 0}.addrln.ok{color:#5f7a5c}.addrln.miss{color:#b4695e;font-weight:500;font-size:11px;letter-spacing:.06em}
+.dsub{font:500 15.5px 'Cormorant Garamond',serif;color:var(--ink);margin-top:3px}.dcard .dsub b{font-weight:700;color:#6d5637}.dcard .dsub+.dsub{margin-top:1px}.addrln{font:400 12px Jost,sans-serif;color:#7a6a58;letter-spacing:.02em;margin:2px 0}.addrln.ok{color:#5f7a5c}.addrln.miss{color:#b4695e;font-weight:500;font-size:11px;letter-spacing:.06em}.addrln.warn{color:#a97f2d;cursor:pointer}
 .dcard .dbar{height:5px;background:#efe6dc;border-radius:3px;margin-top:9px;overflow:hidden}
 .dcard .dbar span{display:block;height:100%;background:linear-gradient(90deg,#8f7350,#c0a37e 70%,#b3936c)}
 .tiles.t3{grid-template-columns:repeat(3,1fr)}
@@ -341,7 +341,7 @@ function respBlock(r,extra){
  var oth=r.others.map(function(o){return esc(o.name)+(o.type==='Child'?' <span class="pill warn" style="padding:1px 7px">child</span>':(o.type==='Adult child'?' <span class="pill mute" style="padding:1px 7px">adult child</span>':''))}).join(', ');
  return '<div class="resp"><b>'+esc(r.name)+'</b> — '+esc(r.attending)+(r.count?' · '+esc(r.count)+' attending':'')+(oth?'<br>With: '+oth:'')+(r.events?'<br>Events: '+esc(r.events):'')+(r.dietary?'<br>Dietary: '+esc(r.dietary):'')+(r.phone?'<br>Phone: '+esc(r.phone):'')+(r.emails?'<br>Email: '+esc(r.emails):'')+(r.note?'<br>Note: <i>'+esc(r.note)+'</i>':'')+'<br><span class="hint">'+new Date(r.ts).toLocaleString()+'</span>'+(extra||'')+'</div>';
 }
-function addrLine(h){var a=String(h.address||'').trim();if(!a)return '<div class="addrln miss">\u2715 Missing address</div>';var ok=/,[^,]+,\s*[A-Za-z]{2}\.?\s+\d{5}(-\d{4})?$/.test(a);return '<div class="addrln'+(ok?' ok':'')+'">'+(ok?'\u2713 ':'\u26a0 ')+esc(a)+'</div>'}
+function addrLine(h){var a=String(h.address||'').trim();if(!a)return '<div class="addrln miss">\u2715 Missing address</div>';if(h.addrOk)return '<div class="addrln ok" title="Verified">\u2713 '+esc(a)+'</div>';if(h.addrFlag)return '<div class="addrln warn" data-va="'+h.id+'" title="'+esc(h.addrFlag)+' \u2014 tap once Holly confirms it.">\u26a0 '+esc(a)+'</div>';var ok=/,[^,]+,\s*[A-Za-z]{2}\.?\s+\d{5}(-\d{4})?$/.test(a);return '<div class="addrln'+(ok?' ok':' warn')+'"'+(ok?'':' title="Doesn\u2019t look like a complete mailing address"')+'>'+(ok?'\u2713 ':'\u26a0 ')+esc(a)+'</div>'}
 function hhOptions(sel,suggested){
  var d=S.data,sug=(suggested||[]),ids={};var out='<option value="">— choose a household —</option>';
  sug.forEach(function(s){var h=d.households.find(function(x){return x.id===s.hid});if(h){ids[h.id]=1;out+='<option value="'+h.id+'"'+(sel===h.id?' selected':'')+'>★ '+esc(h.name)+' (match '+s.score+')</option>'}});
@@ -409,6 +409,7 @@ function memberRow(g,i,hr,st){var o=S.options;return '<div class="member"><input
 function bindCard(card){
  var id=card.getAttribute('data-id'),h=S.data.households.find(function(x){return x.id===id});
  q('.head',card).onclick=function(){var was=card.classList.contains('open');if(!was){qa('.hh.open').forEach(function(c2){if(c2!==card)c2.classList.remove('open')});S.open={}}card.classList.toggle('open',!was);S.open[id]=!was};
+ qa('.addrln[data-va]',card).forEach(function(el){el.onclick=function(e){e.stopPropagation();var hid=el.getAttribute('data-va');var hh2=S.data.households.filter(function(x){return x.id===hid})[0];if(!confirm((hh2?hh2.name:'This household')+'\u2019s address:\n'+(hh2?hh2.address:'')+'\n\n'+(hh2&&hh2.addrFlag?hh2.addrFlag+'\n\n':'')+'Holly confirmed it\u2019s correct \u2014 mark verified?'))return;api('verifyAddr',{id:hid}).then(function(r){if(!r.ok){alert(r.error||'Hmm \u2014 try again');return}load()})}});
  function lodge(){var v=q('.fLodge',card).value;qa('.villaOnly',card).forEach(function(e){e.style.display=v==='Villa'?'':'none'});qa('.offOnly',card).forEach(function(e){e.style.display=v==='Off-site'?'':'none'});var inc=q('.fNC',card)&&q('.fNC',card).checked;var mh=q('.ncHide',card);if(mh)mh.style.display=(v==='Villa'&&!inc)?'':'none'}
  q('.fNC',card)&&(q('.fNC',card).onchange=lodge);
  q('.fLodge',card).onchange=lodge;lodge();
