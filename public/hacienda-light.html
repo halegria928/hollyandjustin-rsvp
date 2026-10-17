@@ -93,7 +93,7 @@ body{background:#1a1410}
   <h1>Holly &amp; Justin</h1>
   <div class="flor"><i></i><b></b><i></i></div>
   <div class="when"><span style="white-space:nowrap">Saturday, March 13, 2027</span><br><b><span style="white-space:nowrap">Hacienda del Mar</span> &middot; <span style="white-space:nowrap">Puerto Aventuras, Mexico</span></b></div>
-  <p class="siteln" style="text-align:center;margin:14px 0 2px"><a id="siteGo" target="_blank" rel="noopener" style="display:none;padding:10px 26px;border:1px solid currentColor;border-radius:999px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;color:inherit;opacity:.85">View Wedding Details</a></p>
+  <p class="siteln" style="text-align:center;margin:14px 0 2px"><a id="siteGo" target="_blank" rel="noopener" style="display:none;padding:10px 26px;border:1px solid currentColor;border-radius:999px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;color:inherit;opacity:1">View Wedding Details</a></p>
 <p class="note">We can&rsquo;t wait to celebrate with you.</p>
   <form id="f" novalidate>
    <div class="f"><span class="lg">Will you be joining us? <span class="req">*</span></span>
@@ -116,7 +116,7 @@ body{background:#1a1410}
    <div id="phoneBlock" hidden><div class="f"><label id="phoneLbl">Phone number <span class="req">*</span></label><input type="text" id="phone" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567"></div><div class="f"><label id="emailLbl">Email address <span class="req">*</span></label><input type="text" id="email" inputmode="email" autocomplete="email" placeholder="you@example.com"><input type="text" id="email2" hidden inputmode="email"><input type="text" id="email3" hidden inputmode="email"><button type="button" id="addEm">+ Add another email</button></div></div>
    <div id="slotB"></div>
    <div class="f" id="noteF" hidden><label id="noteLbl">Anything else we should know?</label><textarea id="msg" rows="1" placeholder="A maybe-guest, travel plans &mdash; anything at all"></textarea></div>
-   <button class="send" id="send" type="submit">Send RSVP</button>
+   <button class="send" id="send" type="submit" style="display:none">Send RSVP</button>
    <div class="err" id="err"></div>
   </form>
  </div>
@@ -151,8 +151,8 @@ function setExtras(n){
 function place(where){var p=q('#primary');p.hidden=false;q(where).appendChild(p)}
 function placePhone(where){var p=q('#phoneBlock');p.hidden=false;q(where).appendChild(p)}
 function setNote(a){q('#noteF').hidden=false;var l=q('#noteLbl'),m=q('#msg'),pl=q('#phoneLbl'),p=q('#phone');if(a==='decline'){l.innerHTML='A message for the bride &amp; groom';m.placeholder='';pl.textContent='Phone number';p.placeholder='';q('#emailLbl').textContent='Email address';q('#email').placeholder=''}else{l.textContent='Anything else we should know?';m.placeholder='A maybe-guest, travel plans — anything at all';pl.innerHTML='Phone number <span class="req">*</span>';p.placeholder='(555) 123-4567';q('#emailLbl').innerHTML='Email address <span class="req">*</span>';q('#email').placeholder='you@example.com'}}
-q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');setCount(parseInt(C,10)||2);setNote('accept');q('#err').style.display='none'};
-q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#err').style.display='none'};
+q('#yes').onclick=function(){A="Joyfully accept";this.classList.add('on');q('#no').classList.remove('on');q('#more').classList.add('open');setCount(parseInt(C,10)||2);setNote('accept');q('#send').style.display='';q('#err').style.display='none'};
+q('#no').onclick=function(){A="Regretfully decline";this.classList.add('on');q('#yes').classList.remove('on');q('#more').classList.remove('open');place('#slotB');placePhone('#slotB');setNote('decline');q('#send').style.display='';q('#err').style.display='none'};
 function setCount(n){n=Math.max(1,Math.min(8,n));C=String(n);q('#cnum').textContent=C;var kk=q('.kids');if(kk)kk.hidden=n<3;q('#after').hidden=false;place('#slotA');placePhone('#slotP');setExtras(n)}
 q('#dec').onclick=function(){setCount((parseInt(C,10)||2)-1)};
 q('#inc').onclick=function(){setCount((parseInt(C,10)||2)+1)};
