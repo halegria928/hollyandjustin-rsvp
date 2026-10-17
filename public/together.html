@@ -88,7 +88,7 @@ body{background:#1a1410}
 </style><style>
 .bg{background-position:30% center}
 .bg:after{background:linear-gradient(90deg,rgba(30,18,12,.16) 0%,rgba(28,17,11,.38) 52%,rgba(22,13,8,.58) 100%),linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(20,12,8,.32) 100%)}
-.arch{background:rgba(255,254,252,var(--hja,.30))!important;-webkit-backdrop-filter:blur(var(--hjb,4px));backdrop-filter:blur(var(--hjb,4px));transition:background .5s ease,backdrop-filter .5s ease}
+.arch{background:rgba(255,254,252,var(--hja,.30))!important;-webkit-backdrop-filter:blur(var(--hjb,4px));backdrop-filter:blur(var(--hjb,4px));transition:background .35s ease}
 @media (max-width:659px){.arch{margin-left:3vw;margin-right:3vw;padding-left:22px;padding-right:22px}.bg{background-position:22% center}}
 @media (min-width:1000px){.arch{margin-left:auto;margin-right:5vw}.foot{max-width:660px;margin-left:auto;margin-right:5vw}}
 @media (min-width:660px) and (max-width:999px){.arch{max-width:530px;padding:60px 28px 44px;margin-left:auto;margin-right:14px}.foot{max-width:530px;margin-left:auto;margin-right:14px}}
@@ -202,6 +202,9 @@ q('#f').onsubmit=function(ev){ev.preventDefault();
  }).catch(function(){err.textContent='Something went wrong sending your RSVP. Please try again in a moment.';err.style.display='block';b.disabled=false;b.textContent='Send RSVP';});
  return false}
 </script><script>
-(function(){var r=document.documentElement;var la=-1;function f(fo){var ms=Math.max(document.documentElement.scrollHeight-window.innerHeight,0);var need=Math.max(0,Math.min(1,(360-ms)/360));var base=(window.innerWidth>=900)?(0.30+0.40*need):0.30;var span=Math.min(360,Math.max(ms,1));var t=Math.min(1,Math.max(0,(window.scrollY||window.pageYOffset||0))/span);var a=base+(0.88-base)*t;if(!fo&&la>=0&&Math.abs(a-la)<0.02)return;la=a;var frac=(a-0.30)/0.58;r.style.setProperty('--hja',a.toFixed(3));r.style.setProperty('--hjb',(4+8*frac).toFixed(1)+'px');r.style.setProperty('--dk',(frac*100).toFixed(0)+'%')}window.addEventListener('scroll',function(){f(false)},{passive:true});window.addEventListener('resize',function(){f(true)});setInterval(function(){f(false)},700);f(true)})();
+(function(){var r=document.documentElement;var cur=-1,w=-1;
+function tgt(){var ms=Math.max(document.documentElement.scrollHeight-window.innerHeight,0);var need=Math.max(0,Math.min(1,(360-ms)/360));var base=(window.innerWidth>=900)?(0.30+0.40*need):0.30;var span=Math.min(360,Math.max(ms,1));var t=Math.min(1,Math.max(0,(window.scrollY||window.pageYOffset||0))/span);return base+(0.88-base)*t}
+function f(){var g=tgt();if(cur<0)cur=g;cur+=(g-cur)*0.3;if(Math.abs(g-cur)<0.005)cur=g;if(w>=0&&Math.abs(cur-w)<0.008)return;w=cur;var frac=(cur-0.30)/0.58;r.style.setProperty('--hja',cur.toFixed(3));r.style.setProperty('--hjb',(4+8*frac).toFixed(1)+'px');r.style.setProperty('--dk',(frac*100).toFixed(0)+'%')}
+window.addEventListener('scroll',f,{passive:true});window.addEventListener('resize',f);setInterval(f,250);f()})();
 </script><script>(function(){try{fetch('/api/config').then(function(r){return r.json()}).then(function(c){if(c&&c.website){var a=document.getElementById('siteGo');a.href=c.website;a.style.display='inline-block'}if(c&&c.closed){var f=document.getElementById('f');if(f){var dv=document.createElement('div');dv.style.cssText='text-align:center;padding:18px 16px;border:1px solid currentColor;border-radius:12px;opacity:.9;line-height:1.7;font-size:15px';dv.innerHTML='The RSVP deadline was <b>'+c.closedText+'</b> and headcounts have been turned in.<br>If you missed it, please reach out to Holly \u2014 we\u2019ll see if accommodations are still possible.';f.parentNode.replaceChild(dv,f)}}}).catch(function(){})}catch(e){}})();</script>
 </body></html>
